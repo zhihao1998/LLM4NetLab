@@ -1,10 +1,9 @@
 from typing import List
 
 import instructor
+import llm_config
 from openai import OpenAI
 from pydantic import BaseModel, Field
-
-from agent import configs
 
 
 class Character(BaseModel):
@@ -16,7 +15,7 @@ class Character(BaseModel):
 # enables `response_model` in create call
 client = instructor.from_openai(
     OpenAI(
-        base_url=configs.LLM_API_URL,
+        base_url=llm_config.LLM_API_URL,
         api_key="ollama",  # required, but unused
     ),
     mode=instructor.Mode.JSON,
@@ -27,7 +26,7 @@ resp = client.chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": "Tell me about the Harry Potter",
+            "content": "how old is Joh biden?",
         }
     ],
     response_model=Character,

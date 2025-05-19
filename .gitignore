@@ -4,3 +4,4 @@
 **/__pycache_/**
 *.p4i
 /ai4netops.egg-info/
+**/pcap/**

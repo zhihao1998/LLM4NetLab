@@ -1,7 +1,11 @@
-# Agent
+# Problems
 
-Test LLM connectivity
+1. python environments of mininet and agent is not the same one
  
+
+# Requirements
+
+1. Network env: p4-utils, pyzmq
 
 # Usage
 

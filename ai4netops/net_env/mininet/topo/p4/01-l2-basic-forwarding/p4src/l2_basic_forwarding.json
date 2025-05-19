@@ -115,7 +115,7 @@
       "name" : "deparser",
       "id" : 0,
       "source_info" : {
-        "filename" : "/home/p4/AI4NetOps/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
+        "filename" : "/home/p4/AI4NetOps/ai4netops/net_env/mininet/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
         "line" : 117,
         "column" : 8,
         "source_fragment" : "MyDeparser"
@@ -159,7 +159,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "/home/p4/AI4NetOps/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
+            "filename" : "/home/p4/AI4NetOps/ai4netops/net_env/mininet/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
             "line" : 67,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = egress_port"
@@ -173,7 +173,7 @@
       "name" : "ingress",
       "id" : 0,
       "source_info" : {
-        "filename" : "/home/p4/AI4NetOps/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
+        "filename" : "/home/p4/AI4NetOps/ai4netops/net_env/mininet/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
         "line" : 57,
         "column" : 8,
         "source_fragment" : "MyIngress"
@@ -184,7 +184,7 @@
           "name" : "MyIngress.dmac",
           "id" : 0,
           "source_info" : {
-            "filename" : "/home/p4/AI4NetOps/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
+            "filename" : "/home/p4/AI4NetOps/ai4netops/net_env/mininet/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
             "line" : 70,
             "column" : 10,
             "source_fragment" : "dmac"
@@ -225,7 +225,7 @@
       "name" : "egress",
       "id" : 1,
       "source_info" : {
-        "filename" : "/home/p4/AI4NetOps/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
+        "filename" : "/home/p4/AI4NetOps/ai4netops/net_env/mininet/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4",
         "line" : 94,
         "column" : 8,
         "source_fragment" : "MyEgress"
@@ -277,7 +277,7 @@
       ["standard_metadata", "priority"]
     ]
   ],
-  "program" : "/home/p4/AI4NetOps/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4i",
+  "program" : "/home/p4/AI4NetOps/ai4netops/net_env/mininet/topo/p4/01-l2-basic-forwarding/p4src/l2_basic_forwarding.p4i",
   "__meta__" : {
     "version" : [2, 23],
     "compiler" : "https://github.com/p4lang/p4c"
