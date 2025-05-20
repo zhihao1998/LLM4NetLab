@@ -1,36 +1,42 @@
 import os
+import sys
 
 import zmq
 from p4utils.mininetlib.network_API import NetworkAPI
 
+# todo: need a better way to set the path
+sys.path.append("/home/p4/AI4NetOps")
+from ai4netops.utils.mininet_utils import dumpNetConnections
+
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Set up Mininet environment
-net = NetworkAPI()
-net.topoFile = os.path.join(cur_dir, "topology.json")
+mn_api = NetworkAPI()
+mn_api.topoFile = os.path.join(cur_dir, "topology.json")
+mn_api.modules["sw_cli"]["kwargs"] = {"log_dir": os.path.join(cur_dir, "log")}
 
-net.setLogLevel("info")
-net.setCompiler(p4rt=True)
+mn_api.setLogLevel("info")
+mn_api.setCompiler(p4rt=True)
 
-net.addP4RuntimeSwitch("s1", cli_input=os.path.join(cur_dir, "s1-commands.txt"))
-net.setP4Source("s1", os.path.join(cur_dir, "p4src/l2_basic_forwarding.p4"))
+mn_api.addP4RuntimeSwitch("s1", cli_input=os.path.join(cur_dir, "s1-commands.txt"))
+mn_api.setP4Source("s1", os.path.join(cur_dir, "p4src/l2_basic_forwarding.p4"))
 
-net.addHost("h1")
-net.addHost("h2")
-net.addHost("h3")
-net.addHost("h4")
+mn_api.addHost("h1")
+mn_api.addHost("h2")
+mn_api.addHost("h3")
+mn_api.addHost("h4")
 
-net.addLink("s1", "h1")
-net.addLink("s1", "h2")
-net.addLink("s1", "h3")
-net.addLink("s1", "h4")
+mn_api.addLink("s1", "h1")
+mn_api.addLink("s1", "h2")
+mn_api.addLink("s1", "h3")
+mn_api.addLink("s1", "h4")
 
-net.l2()
-net.enablePcapDumpAll(os.path.join(cur_dir, "pcap"))
-net.enableLogAll(os.path.join(cur_dir, "log"))
-net.disableCli()
+mn_api.l2()
+mn_api.enablePcapDumpAll(os.path.join(cur_dir, "pcap"))
+mn_api.enableLogAll(os.path.join(cur_dir, "log"))
+mn_api.disableCli()
 
-net.startNetwork()
+mn_api.startNetwork()
 
 # 启动 ZeroMQ REP 服务
 context = zmq.Context()
@@ -40,52 +46,62 @@ socket.bind("tcp://*:5555")
 try:
     while True:
         message = socket.recv_string()
-        print(f"📥 收到命令: {message}")
+        print(f"📥 Received command: {message}")
 
-        # 解析命令
         parts = message.strip().split()
         if not parts:
-            socket.send_string("❌ 无效命令")
+            socket.send_string("❌ Invalid command")
             continue
 
         cmd = parts[0]
 
         if cmd == "status":
-            socket.send_string("ok")
+            if mn_api.net is not None:
+                socket.send_string("ok")
+
         elif cmd == "ping" and len(parts) == 3:
-            h1 = net.net.get(parts[1])
+            h1 = mn_api.net.get(parts[1])
             h2 = parts[2]
             result = h1.cmd(f"ping -c 3 {h2}")
             socket.send_string(result)
 
         elif cmd == "exec" and len(parts) >= 3:
-            host = net.net.get(parts[1])
+            host = mn_api.net.get(parts[1])
             shell_cmd = " ".join(parts[2:])
             result = host.cmd(shell_cmd)
             socket.send_string(result)
 
         elif cmd == "exit":
-            socket.send_string("✅ 退出 Mininet 服务")
             break
 
         elif cmd == "linkdown" and len(parts) == 3:
             h1 = parts[1]
             h2 = parts[2]
-            net.net.configLinkStatus(h1, h2, "down")
-            socket.send_string(f"🔴 {h1} 和 {h2} 之间的链路已关闭")
+            mn_api.net.configLinkStatus(h1, h2, "down")
+            socket.send_string("ok")
 
         elif cmd == "linkup" and len(parts) == 3:
             h1 = parts[1]
             h2 = parts[2]
-            net.net.configLinkStatus(h1, h2, "up")
-            socket.send_string(f"🟢 {h1} 和 {h2} 之间的链路已恢复")
+            mn_api.net.configLinkStatus(h1, h2, "up")
+            # to re-insert the static arp entries
+            # TODO: Need to be improved
+            mn_api.program_hosts()
+            socket.send_string("ok")
+
+        elif cmd == "dumpconn":
+            response = str(dumpNetConnections(mn_api.net))
+            socket.send_string(response)
 
         else:
-            socket.send_string("❌ 未知命令或参数不足")
+            socket.send_string("❌ Unknown command or invalid arguments")
 
 except KeyboardInterrupt:
-    print("🔴 手动中断")
+    print("🔴 Shutting down Mininet by KeyboardInterrupt")
+
+except Exception as e:
+    print(f"❌ Error occurred: {e}")
 
 finally:
-    net.stopNetwork()
-    print("🛑 Mininet 已关闭")
+    mn_api.stopNetwork()
+    print("🛑 Mininet has been shut down!")

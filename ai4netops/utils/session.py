@@ -14,7 +14,7 @@ import uuid
 
 from pydantic import BaseModel
 
-from ai4netops.proj_config import RESULTS_DIR
+from ai4netops.config import RESULTS_DIR
 
 
 class SessionItem(BaseModel):

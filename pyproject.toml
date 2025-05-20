@@ -1,0 +1,22 @@
+[project]
+name = "ai4netops"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "zhihao1998",email = "zhihao.wang@polito.it"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "ai4netops"
+version = "0.1.0"
+packages = [{ include = "ai4netops" }]

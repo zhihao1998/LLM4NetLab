@@ -1,6 +1,6 @@
 import time
 
-from ai4netops.net_env import MininetEnv
+from ai4netops.net_env.mininet.mininet_env import MininetEnv
 from ai4netops.service.bmv2_thrift_api import Bmv2ThriftAPI
 from ai4netops.service.mininet_api import MininetAPI
 from ai4netops.utils.error_utils import InvalidActionError, ResponseParsingError

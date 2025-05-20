@@ -3,10 +3,14 @@ import signal
 import subprocess
 import time
 
-import zmq
+from ai4netops.service.mininet_api import MininetAPI
 
 
 class MininetEnv:
+    """
+    Note: need to keep this along each experiment to avoid
+    """
+
     def __init__(
         self,
         server_script="/home/p4/AI4NetOps/ai4netops/net_env/mininet/topo/p4/01-l2-basic-forwarding/network.py",
@@ -15,72 +19,61 @@ class MininetEnv:
         self.server_script = server_script
         self.port = port
         self.process = None
-        self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.REQ)
+        self.mininet_api = MininetAPI(mininet_server_addr=f"tcp://localhost:{self.port}")
 
     def start(self):
-        print("🚀 启动 Mininet 服务脚本...")
+        print("🚀 Starting Mininet Environment...")
         self.process = subprocess.Popen(
             ["sudo", "python3", self.server_script],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            preexec_fn=os.setsid,  # 启动为新进程组
+            preexec_fn=os.setsid,
         )
 
-        # 等待 ZMQ 服务上线
-        print("⏳ 等待 ZeroMQ 接口响应...")
-        self._wait_for_zmq()
-
-        # 连接到 ZeroMQ
-        self.socket.connect(f"tcp://localhost:{self.port}")
-        print("✅ Mininet 服务已连接")
+        print("⏳ Waiting for Mininet to start...")
+        self._wait_for_zmq(timeout=10)
 
     def _wait_for_zmq(self, timeout=10):
         start = time.time()
+        self.mininet_api.connect()
         while time.time() - start < timeout:
             try:
-                test_socket = self.context.socket(zmq.REQ)
-                test_socket.connect(f"tcp://localhost:{self.port}")
-                test_socket.setsockopt(zmq.LINGER, 0)
-                test_socket.send_string("status")
-                poller = zmq.Poller()
-                poller.register(test_socket, zmq.POLLIN)
-                if poller.poll(1000):
-                    response = test_socket.recv_string()
-                    if response.strip() == "ok":
-                        print("✅ ZeroMQ 服务已准备")
-                        test_socket.close()
-                        return
-                test_socket.close()
+                # Test if the Mininet server is ready
+                if self.mininet_api.test_mn_connect():
+                    print("✅ Mininet server is ready")
+                    return
             except Exception:
                 pass
+            finally:
+                # Close the socket to avoid resource leaks
+                self.mininet_api.close()
             time.sleep(1)
-        raise TimeoutError("⚠️ ZeroMQ 服务器连接超时")
-
-    def send(self, cmd):
-        print(f"📤 发送命令: {cmd}")
-        self.socket.send_string(cmd)
-        response = self.socket.recv_string()
-        print(f"📥 响应:\n{response}\n")
-        return response
+        raise TimeoutError("⚠️ ZeroMQ server did not start in time")
 
     def stop(self):
-        print("🛑 正在停止 Mininet 环境...")
+        print("🛑 Stopping Mininet Environment")
+        # try normal exit
+        if self.mininet_api:
+            try:
+                self.mininet_api.connect()
+                # self.mininet_api._send_cmd("exit")
+            except Exception as e:
+                print("❌ Exception while stopping Mininet with exit:", str(e), "\nTrying to kill process...")
+
+        # try kill process
         if self.process:
             try:
                 os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
                 stdout, stderr = self.process.communicate(timeout=5)
-                print("📝 Mininet 输出:\n", stdout.decode())
+                print("📝 Mininet Output:\n", stdout.decode())
                 if stderr:
-                    print("⚠️ 错误信息:\n", stderr.decode())
+                    print("⚠️ Debug Information:\n", stderr.decode())
             except Exception as e:
-                print("❌ 关闭时异常：", str(e))
-        self.socket.close()
-        self.context.term()
+                print("❌ Exception while stopping Mininet:", str(e))
 
 
 # -------------------------------------------
-# ✅ 调试入口
+# ✅ Simple Test
 # -------------------------------------------
 
 if __name__ == "__main__":
@@ -88,19 +81,7 @@ if __name__ == "__main__":
 
     try:
         env.start()
-        env.send("exec h1 ifconfig")
-        env.send("exec h2 hostname")
-
-        env.send("ping h1 10.0.0.2")
-
-        env.send("linkdown h1 s1")
-        env.send("ping h1 10.0.0.2")
-        env.send("linkup h1 s1")
-        time.sleep(1)
-        env.send("ping h1 10.0.0.2")
-
-        env.send("exit")
     except Exception as e:
-        print("❌ 运行时错误：", str(e))
+        print("❌ Exception:", str(e))
     finally:
         env.stop()
