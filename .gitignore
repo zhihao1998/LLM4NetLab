@@ -1,0 +1,10 @@
+cache_dir/
+**/log/**
+*.pyc
+**/__pycache_/**
+*.p4i
+**/pcap/**
+tmp/
+.vscode/
+results/*
+config/config.yaml

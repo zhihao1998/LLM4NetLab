@@ -1,0 +1,27 @@
+[project]
+name = "llm4netlab"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "zhihao1998",email = "zhihao.wang@polito.it"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "pydantic (>=2.11.4,<3.0.0)",
+    "openai (>=1.79.0,<2.0.0)",
+    "instructor (>=1.8.2,<2.0.0)",
+    "kathara (>=3.7.9,<4.0.0)",
+    "colorama (>=0.4.6,<0.5.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "llm4netlab"
+version = "0.1.0"
+packages = [{ include = "llm4netlab" }]
