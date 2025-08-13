@@ -1,6 +1,6 @@
 import re
 
-from llm4netlab.service.kathara_api import KatharaAPI
+from llm4netlab.service.kathara import KatharaBMv2API
 from llm4netlab.utils.actions import read
 
 
@@ -19,7 +19,7 @@ class AcionBase:
         Returns:
             str: The logs from the bmv2 switch.
         """
-        kathara_api = KatharaAPI(lab_name=net_env_name)
+        kathara_api = KatharaBMv2API(lab_name=net_env_name)
         return kathara_api.bmv2_get_log(switch_name)
 
     # @staticmethod
@@ -47,7 +47,7 @@ class AcionBase:
         Returns:
             str: The ping results from each host to all other hosts in the lab.
         """
-        kathara_api = KatharaAPI(lab_name=net_env_name)
+        kathara_api = KatharaBMv2API(lab_name=net_env_name)
         return kathara_api.get_reachability()
 
     @staticmethod
@@ -62,7 +62,7 @@ class AcionBase:
         Returns:
             str: The counters from the bmv2 switch.
         """
-        kathara_api = KatharaAPI(lab_name=net_env_name)
+        kathara_api = KatharaBMv2API(lab_name=net_env_name)
         counters = kathara_api.bmv2_get_counter_arrays(switch_name)
         matches = re.findall(r"'([^']+)'\s*:", counters)
         return str(matches)
@@ -81,7 +81,7 @@ class AcionBase:
         Returns:
             str: The value of the specified counter.
         """
-        kathara_api = KatharaAPI(lab_name=net_env_name)
+        kathara_api = KatharaBMv2API(lab_name=net_env_name)
         return kathara_api.bmv2_counter_read(switch_name, counter_name, index)
 
     @staticmethod
@@ -96,7 +96,7 @@ class AcionBase:
         Returns:
             str: The ports of the bmv2 switch.
         """
-        kathara_api = KatharaAPI(lab_name=net_env_name)
+        kathara_api = KatharaBMv2API(lab_name=net_env_name)
         return kathara_api.bmv2_show_ports(switch_name)
 
     @staticmethod
@@ -111,7 +111,7 @@ class AcionBase:
         Returns:
             str: The tables of the bmv2 switch.
         """
-        kathara_api = KatharaAPI(lab_name=net_env_name)
+        kathara_api = KatharaBMv2API(lab_name=net_env_name)
         return kathara_api.bmv2_show_tables(switch_name)
 
     @staticmethod
@@ -127,7 +127,7 @@ class AcionBase:
         Returns:
             str: The entries of the specified table.
         """
-        kathara_api = KatharaAPI(lab_name=net_env_name)
+        kathara_api = KatharaBMv2API(lab_name=net_env_name)
         return kathara_api.bmv2_table_dump(switch_name, table_name)
 
 

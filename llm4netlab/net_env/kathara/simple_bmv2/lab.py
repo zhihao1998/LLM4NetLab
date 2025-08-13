@@ -174,6 +174,6 @@ if __name__ == "__main__":
         l2.undeploy()
         print("Lab undeployed")
 
-    print("Deploying lab...")
-    l2.deploy()
-    print("Lab deployed")
+    # print("Deploying lab...")
+    # l2.deploy()
+    # print("Lab deployed")

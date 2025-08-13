@@ -1,5 +1,7 @@
 import json
 
+from Kathara.manager.Kathara import Kathara
+
 
 class NetworkEnvBase:
     """
@@ -16,6 +18,7 @@ class NetworkEnvBase:
         self.links = []
         self.interfaces = []
         self.load_config()
+        self.instance = None
 
     def load_config(self):
         """
@@ -38,9 +41,9 @@ class NetworkEnvBase:
                 self.routers = config["nodes"][node]
         self.links = config.get("links", None)
 
-        for bmv2_switch in self.bmv2_switches:
-            for intf in config["interfaces"][bmv2_switch]:
-                self.interfaces.append(f"{bmv2_switch}:{intf}")
+        # for bmv2_switch in self.bmv2_switches:
+        #     for intf in config["interfaces"][bmv2_switch]:
+        #         self.interfaces.append(f"{bmv2_switch}:{intf}")
 
     def net_summary(self):
         """
@@ -67,19 +70,27 @@ class NetworkEnvBase:
         """
         return self.net_summary()
 
+    def lab_exists(self):
+        """Check if the lab exists"""
+        tmp_lab = self.instance.get_lab_from_api(lab_name=self.name)
+        tmp_machines = tmp_lab.machines
+        if len(tmp_machines) == 0 or tmp_machines is None:
+            return False
+        return True
+
     def deploy(self):
-        """
-        Deploy the network environment.
-        """
-        # Implement the deployment logic here
-        raise NotImplementedError("Deploy method not implemented.")
+        """Deploy the lab"""
+        if self.lab_exists():
+            print(f"Lab {self.name} exists")
+            return
+        Kathara.get_instance().deploy_lab(lab=self.lab)
 
     def undeploy(self):
-        """
-        Undeploy the network environment.
-        """
-        # Implement the undeployment logic here
-        raise NotImplementedError("Undeploy method not implemented.")
+        """Undeploy the lab"""
+        try:
+            self.instance.undeploy_lab(lab_name=self.name)
+        except Exception as e:
+            print(f"Error undeploying lab {self.name}: {e}")
 
 
 if __name__ == "__main__":

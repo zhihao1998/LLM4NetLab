@@ -2,7 +2,15 @@ from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.simple_bmv2.lab import SimpleTC
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.discovery import DiscoveryTask
-from llm4netlab.service.kathara_api import KatharaAPI
+from llm4netlab.service.kathara import KatharaBMv2API, KatharaTCAPI
+
+
+# inheritance from multiple APIs for current use case
+class KatharaAPIBMv2TC(KatharaBMv2API, KatharaTCAPI):
+    """Combined API for both BMv2 and TC functionalities in Kathara."""
+
+    def __init__(self, lab_name: str):
+        super().__init__(lab_name)
 
 
 class PacketLossBaseTask:
@@ -10,7 +18,7 @@ class PacketLossBaseTask:
 
     def __init__(self):
         self.net_env = SimpleTC()  # each problem should tailor its own network environment
-        self.kathara_api = KatharaAPI(lab_name=self.net_env.lab.name)
+        self.kathara_api = KatharaAPIBMv2TC(lab_name=self.net_env.lab.name)
 
         self.problem_name = "PacketLossBaseTask"
         self.problem_description = "A problem to detect packet loss in a host interface."

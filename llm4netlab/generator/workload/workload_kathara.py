@@ -1,4 +1,4 @@
-from llm4netlab.service.kathara_api import KatharaAPI
+from llm4netlab.service.kathara.base import KatharaBaseAPI
 
 # TODO: add iperf, hping3, scapy, etc.
 
@@ -9,7 +9,7 @@ class KatharaWorkloadPing:
     """
 
     def __init__(self, lab_name: str):
-        self.kathara_api = KatharaAPI(lab_name)
+        self.kathara_api = KatharaBaseAPI(lab_name)
         self.result = None
 
     def start_workload(self, host: str, dst_ip: str, count: int = 4, interval: int = 1):
