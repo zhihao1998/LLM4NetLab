@@ -83,8 +83,8 @@ class P4INTLab(NetworkEnvBase):
         for j in range(1, len(hosts) + 1):
             if j != len(hosts) + 1:
                 collector_cmd_list.append(f"arp -s 10.0.0.{j} 00:00:0a:00:00:0{j}")
-        collector_cmd_list.append("sleep 2")  # wait for the interfaces to be up
-        collector_cmd_list.append("bash collector_src/collector_setup.sh &> collector_setup.log")
+
+        collector_cmd_list.append("python3 collector_src/int_collector.py &> int_collector.log")
         self.lab.create_file_from_list(
             collector_cmd_list,
             f"{collector.name}.startup",

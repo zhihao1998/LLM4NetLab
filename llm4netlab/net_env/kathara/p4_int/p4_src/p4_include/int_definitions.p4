@@ -22,10 +22,9 @@
 
 #define TARGET_BMV2
 
-/* indicate INT by DSCP value */
-const bit<6> DSCP_INT = 0x17;
-// 0x3f: 111111
-const bit<6> DSCP_MASK = 0x3F;
+/* indicate INT by TOS value */
+const bit<8> TOS_INT = 0x66; // 0x66: 01100110
+const bit<8> TOS_MASK = 0xFF; // 0xFF: 11111111
 
 typedef bit<48> timestamp_t;
 typedef bit<32> switch_id_t;

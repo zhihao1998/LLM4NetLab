@@ -1,3 +1,17 @@
+#!/bin/bash
+set -e
+
+influxd &
+INFLUXD_PID=$!
+
+echo "Waiting for InfluxDB to start..."
+for i in {1..30}; do
+    if curl -fsS http://localhost:8086/health >/dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+done
+
 ORG="${ORG:-int_org}"
 BUCKET="${BUCKET:-int_bucket}"
 USERNAME="${USERNAME:-int_user}"
@@ -17,3 +31,5 @@ influx config create \
   --host-url http://localhost:8086 \
   --org ${ORG} \
   --token ${TOKEN} 
+
+sleep infinity

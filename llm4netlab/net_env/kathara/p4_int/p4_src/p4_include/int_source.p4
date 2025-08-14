@@ -24,15 +24,13 @@ control process_int_source (
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 
-    direct_counter(CounterType.packets_and_bytes) counter_int_source;
-
     action int_source(bit<5> hop_metadata_len, bit<8> remaining_hop_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
         // insert INT shim header
         hdr.intl4_shim.setValid();
         // int_type: Hop-by-hop type (1) , destination type (2)
         hdr.intl4_shim.int_type = 1;
         hdr.intl4_shim.len = INT_HEADER_LEN_WORD;
-        hdr.intl4_shim.dscp = hdr.ipv4.dscp;
+        hdr.intl4_shim.tos = hdr.ipv4.tos;
 
         // insert INT header
         hdr.int_header.setValid();
@@ -52,26 +50,23 @@ control process_int_source (
 
         // add the header len (3 words) to total len
         hdr.ipv4.len = hdr.ipv4.len + INT_HEADER_SIZE + INT_SHIM_HEADER_SIZE;
-        hdr.udp.length_ = hdr.udp.length_ + INT_HEADER_SIZE + INT_SHIM_HEADER_SIZE;
+        hdr.udp.length = hdr.udp.length + INT_HEADER_SIZE + INT_SHIM_HEADER_SIZE;
     }
-    action int_source_dscp(bit<5> hop_metadata_len, bit<8> remaining_hop_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
+    action int_source_tos(bit<5> hop_metadata_len, bit<8> remaining_hop_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
         int_source(hop_metadata_len, remaining_hop_cnt, ins_mask0003, ins_mask0407);
-        hdr.ipv4.dscp = DSCP_INT;
-        counter_int_source.count();
+        hdr.ipv4.tos = TOS_INT;
     }
 
     table tb_int_source {
         key = {
             hdr.ipv4.src_addr: ternary;
             hdr.ipv4.dst_addr: ternary;
-            local_metadata.l4_src_port: ternary;
-            local_metadata.l4_dst_port: ternary;
+            hdr.ipv4.protocol: exact;
         }
         actions = {
-            int_source_dscp;
+            int_source_tos;
             @defaultonly NoAction();
         }
-        counters = counter_int_source;
         const default_action = NoAction();
     }
 
@@ -85,17 +80,12 @@ control process_int_source_sink (
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 
-    direct_counter(CounterType.packets_and_bytes) counter_set_source;
-    direct_counter(CounterType.packets_and_bytes) counter_set_sink;
-
     action int_set_source () {
         local_metadata.int_meta.source = _TRUE;
-        counter_set_source.count();
     }
 
     action int_set_sink () {
         local_metadata.int_meta.sink = _TRUE;
-        counter_set_sink.count();
     }
 
     table tb_set_source {
@@ -106,7 +96,6 @@ control process_int_source_sink (
             int_set_source;
             @defaultonly NoAction();
         }
-        counters = counter_set_source;
         const default_action = NoAction();
         size = MAX_PORTS;
     }
@@ -118,7 +107,6 @@ control process_int_source_sink (
             int_set_sink;
             @defaultonly NoAction();
         }
-        counters = counter_set_sink;
         const default_action = NoAction();
         size = MAX_PORTS;
     }

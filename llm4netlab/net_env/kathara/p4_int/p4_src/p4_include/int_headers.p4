@@ -22,9 +22,13 @@
 #define __INT_HEADERS__
 #include "telemetry_report_headers.p4"
 
-// INT version 1.0
-
-// TODO: modify the header to support INT 2.0
+// INT shim header for TCP/UDP
+header intl4_shim_t {
+    bit<8> int_type;
+    bit<8> rsvd1;
+    bit<8> len;
+    bit<8> tos; // TOS value for INT
+}
 
 // INT header
 header int_header_t {
@@ -79,14 +83,7 @@ header int_data_t {
     varbit<1920> data;
 }
 
-// INT shim header for TCP/UDP
-header intl4_shim_t {
-    bit<8> int_type;
-    bit<8> rsvd1;
-    bit<8> len;
-    bit<6> dscp;
-    bit<2> rsvd2;
-}
+
 
 struct int_metadata_t {
     switch_id_t switch_id;
@@ -99,8 +96,6 @@ struct int_metadata_t {
 }
 
 struct headers_t {
-    packet_out_header_t packet_out;
-    packet_in_header_t packet_in;
     // INT Report Encapsulation
     ethernet_t report_ethernet;
     ipv4_t report_ipv4;
@@ -113,6 +108,7 @@ struct headers_t {
     ipv4_t ipv4;
     tcp_t tcp;
     udp_t udp;
+    icmp_t icmp;
     // INT specific headers
     intl4_shim_t intl4_shim;
     int_header_t int_header;

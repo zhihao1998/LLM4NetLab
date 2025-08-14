@@ -18,6 +18,8 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/* influxdata-archive.key; \
     pip install influxdb-client --break-system-packages
 
+COPY docker-entrypoint.sh docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh
 
-CMD ["influxd"]
+ENTRYPOINT ["/bin/bash", "docker-entrypoint.sh"]
 

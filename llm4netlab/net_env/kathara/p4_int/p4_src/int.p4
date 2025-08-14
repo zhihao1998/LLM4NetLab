@@ -22,9 +22,6 @@
 #include "p4_include/headers.p4"
 #include "p4_include/int_definitions.p4"
 #include "p4_include/int_headers.p4"
-#include "p4_include/packet_io.p4"
-#include "p4_include/port_counters.p4"
-#include "p4_include/table0.p4"
 #include "p4_include/checksums.p4"
 #include "p4_include/int_parser.p4"
 #include "p4_include/int_source.p4"
@@ -41,9 +38,6 @@ control ingress (
     inout standard_metadata_t standard_metadata) {
 
     apply {
-        port_counters_ingress.apply(hdr, standard_metadata);
-        packetio_ingress.apply(hdr, standard_metadata);
-        // table0_control.apply(hdr, local_metadata, standard_metadata);
         dmac_forward_control.apply(hdr, local_metadata, standard_metadata);
         process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
     
@@ -71,22 +65,15 @@ control egress (
         if(hdr.int_header.isValid()) {
             process_int_transit.apply(hdr, local_metadata, standard_metadata);
 
-            #ifdef TARGET_BMV2
             if (IS_I2E_CLONE(standard_metadata)) {
                 /* send int report */
                 process_int_report.apply(hdr, local_metadata, standard_metadata);
             }
 
             if (local_metadata.int_meta.sink == _TRUE && !IS_I2E_CLONE(standard_metadata)) {
-            
-            #else
-            if (local_metadata.int_meta.sink == _TRUE) {
-            #endif // TARGET_BMV2
                 process_int_sink.apply(hdr, local_metadata, standard_metadata);
              }
         }
-        port_counters_egress.apply(hdr, standard_metadata);
-        packetio_egress.apply(hdr, standard_metadata);
     }
 }
 

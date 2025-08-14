@@ -24,11 +24,11 @@ control process_int_sink (
     inout standard_metadata_t standard_metadata) {
     @hidden
     action restore_header () {
-        hdr.ipv4.dscp = hdr.intl4_shim.dscp;
+        hdr.ipv4.tos = hdr.intl4_shim.tos;
         // restore length fields of IPv4 header and UDP header
         bit<16> len_bytes = ((bit<16>)hdr.intl4_shim.len) << 2;
         hdr.ipv4.len = hdr.ipv4.len - len_bytes;
-        hdr.udp.length_ = hdr.udp.length_ - len_bytes;
+        hdr.udp.length = hdr.udp.length - len_bytes;
     }
 
     @hidden

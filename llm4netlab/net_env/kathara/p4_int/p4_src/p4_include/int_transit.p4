@@ -313,7 +313,7 @@ control process_int_transit (
         // We don't really need a key here, however we add a dummy one as a
         // workaround to ONOS inability to properly support default actions.
         key = {
-            hdr.int_header.isValid(): exact @name("int_is_valid");
+            hdr.int_header.isValid(): exact;
         }
         actions = {
             init_metadata;
@@ -427,7 +427,7 @@ control process_int_transit (
             hdr.ipv4.len = hdr.ipv4.len + local_metadata.int_meta.new_bytes;
         }
         if (hdr.udp.isValid()) {
-            hdr.udp.length_ = hdr.udp.length_ + local_metadata.int_meta.new_bytes;
+            hdr.udp.length = hdr.udp.length + local_metadata.int_meta.new_bytes;
         }
         if (hdr.intl4_shim.isValid()) {
             hdr.intl4_shim.len = hdr.intl4_shim.len + local_metadata.int_meta.new_words;

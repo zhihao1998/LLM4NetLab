@@ -20,6 +20,7 @@
 #define ETH_TYPE_IPV4 0x0800
 #define IP_PROTO_TCP 8w6
 #define IP_PROTO_UDP 8w17
+#define IP_PROTO_ICMP 8w1
 #define IP_VERSION_4 4w4
 #define IPV4_IHL_MIN 4w5
 #define MAX_PORTS 511

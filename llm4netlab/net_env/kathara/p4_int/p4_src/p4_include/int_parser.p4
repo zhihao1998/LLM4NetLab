@@ -25,14 +25,8 @@ parser int_parser (
     inout standard_metadata_t standard_metadata) {
     state start {
         transition select(standard_metadata.ingress_port) {
-            CPU_PORT: parse_packet_out;
             default: parse_ethernet;
         }
-    }
-
-    state parse_packet_out {
-        packet.extract(hdr.packet_out);
-        transition parse_ethernet;
     }
 
     state parse_ethernet {
@@ -46,18 +40,7 @@ parser int_parser (
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
         transition select(hdr.ipv4.protocol) {
-            IP_PROTO_TCP : parse_tcp;
-            IP_PROTO_UDP : parse_udp;
-            default: accept;
-        }
-    }
-
-    state parse_tcp {
-        packet.extract(hdr.tcp);
-        local_metadata.l4_src_port = hdr.tcp.src_port;
-        local_metadata.l4_dst_port = hdr.tcp.dst_port;
-        transition select(hdr.ipv4.dscp) {
-            DSCP_INT &&& DSCP_MASK: parse_intl4_shim;
+            IP_PROTO_UDP : parse_udp;  // onlyparse UDP for INT
             default: accept;
         }
     }
@@ -66,8 +49,8 @@ parser int_parser (
         packet.extract(hdr.udp);
         local_metadata.l4_src_port = hdr.udp.src_port;
         local_metadata.l4_dst_port = hdr.udp.dst_port;
-        transition select(hdr.ipv4.dscp) {
-            DSCP_INT &&& DSCP_MASK: parse_intl4_shim;
+        transition select(hdr.ipv4.tos) {
+            TOS_INT &&& TOS_MASK: parse_intl4_shim;
             default: accept;
         }
     }
@@ -94,7 +77,6 @@ control int_deparser(
     packet_out packet,
     in headers_t hdr) {
     apply {
-        packet.emit(hdr.packet_in);
         packet.emit(hdr.report_ethernet);
         packet.emit(hdr.report_ipv4);
         packet.emit(hdr.report_udp);
@@ -103,6 +85,7 @@ control int_deparser(
         packet.emit(hdr.ipv4);
         packet.emit(hdr.tcp);
         packet.emit(hdr.udp);
+        packet.emit(hdr.icmp);
         packet.emit(hdr.intl4_shim);
         packet.emit(hdr.int_header);
         packet.emit(hdr.int_switch_id);

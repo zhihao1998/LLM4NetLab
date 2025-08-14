@@ -61,8 +61,7 @@ control process_int_report (
         hdr.report_ipv4.setValid();
         hdr.report_ipv4.version = IP_VERSION_4;
         hdr.report_ipv4.ihl = IPV4_IHL_MIN;
-        hdr.report_ipv4.dscp = 6w0;
-        hdr.report_ipv4.ecn = 2w0;
+        hdr.report_ipv4.tos = 8w0;
         /* Total Len is report_ipv4_len + report_udp_len + report_fixed_hdr_len + ethernet_len + ipv4_totalLen */
         hdr.report_ipv4.len = (bit<16>) IPV4_MIN_HEAD_LEN + (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN +
                               (bit<16>) ETH_HEADER_LEN + (bit<16>) IPV4_MIN_HEAD_LEN + (bit<16>) UDP_HEADER_LEN + (((bit<16>) hdr.intl4_shim.len)<< 2);
@@ -79,7 +78,7 @@ control process_int_report (
         hdr.report_udp.setValid();
         hdr.report_udp.src_port = 0;
         hdr.report_udp.dst_port = mon_port;
-        hdr.report_udp.length_ = (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN +
+        hdr.report_udp.length = (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN +
                                  (bit<16>) ETH_HEADER_LEN + (bit<16>) IPV4_MIN_HEAD_LEN + (bit<16>) UDP_HEADER_LEN +
                                  (((bit<16>) hdr.intl4_shim.len)<< 2);
 
