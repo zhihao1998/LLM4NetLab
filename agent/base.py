@@ -36,7 +36,7 @@ class AgentBase:
         self.history.append({"role": "system", "content": self.system_message})
         self.history.append({"role": "user", "content": self.task_message})
 
-    async def get_action(self, input) -> str:
+    async def get_action(self, input, trace_id) -> str:
         """Wrapper to interface the agent with OpsBench.
 
         Args:

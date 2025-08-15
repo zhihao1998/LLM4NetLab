@@ -32,7 +32,7 @@ class SessionItem(BaseModel):
 
 class Session:
     def __init__(self) -> None:
-        self.session_id = uuid.uuid4()
+        self.session_id = str(uuid.uuid4()).replace("-", "")
         self.pid = None
         self.problem: TaskBase = None
         self.solution = None

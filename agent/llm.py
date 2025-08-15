@@ -6,12 +6,20 @@ import json
 import os
 from pathlib import Path
 
-from openai import OpenAI
+from dotenv import load_dotenv
 
-from config import OPENAI_LLM_KEY, OPENAI_LLM_MODEL, OPENAI_LLM_URL
+from config import OPENAI_LLM_KEY, OPENAI_LLM_MODEL, OPENAI_LLM_URL, USE_LANGFUSE, RuntimeConfig
+
+if USE_LANGFUSE:
+    from langfuse import get_client
+    from langfuse.openai import OpenAI
+else:
+    from openai import OpenAI
 
 CACHE_DIR = Path("./cache_dir")
 CACHE_PATH = CACHE_DIR / "cache.json"
+
+load_dotenv()
 
 
 class Cache:
@@ -60,12 +68,22 @@ class LLMBase:
 
         client = OpenAI(base_url=OPENAI_LLM_URL, api_key=OPENAI_LLM_KEY)
         try:
-            response = client.chat.completions.create(
-                messages=payload,
-                model=OPENAI_LLM_MODEL,
-                stream=False,
-                stop=[],
-            )
+            if USE_LANGFUSE:
+                langfuse = get_client()
+                with langfuse.start_as_current_span(
+                    name="agent_calling",
+                    trace_context={
+                        "trace_id": RuntimeConfig.langfuse_trace_id,
+                        "parent_span_id": RuntimeConfig.root_span_id,
+                    },
+                ) as span:
+                    response = client.chat.completions.create(
+                        messages=payload, model=OPENAI_LLM_MODEL, stream=False, stop=[]
+                    )
+            else:
+                response = client.chat.completions.create(
+                    messages=payload, model=OPENAI_LLM_MODEL, stream=False, stop=[]
+                )
         except Exception as e:
             print(f"Exception: {repr(e)}")
             raise e

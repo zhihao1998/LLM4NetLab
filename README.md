@@ -36,6 +36,7 @@ This is the code repository for the paper [Towards a Playground to Democratize E
 - [Kathará](https://www.kathara.org/). 
   Follow the [official installation guide](https://github.com/KatharaFramework/Kathara?tab=readme-ov-file#installation) to install Kathará.
 - Python >= 3.10
+- [Langfuse](https://langfuse.com/)
 
 
 ## Setup

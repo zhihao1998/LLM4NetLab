@@ -1,6 +1,9 @@
 import inspect
 import time
 
+from langfuse import get_client
+
+from config import USE_LANGFUSE, RuntimeConfig
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
 from llm4netlab.utils.errors import InvalidActionError, ResponseParsingError, SessionPrint
 from llm4netlab.utils.parser import ResponseParser
@@ -35,7 +38,16 @@ class Orchestrator:
         self.session = Session()
         print("Initializing session...")
         print(f"Session ID: {self.session.session_id}")
+        if USE_LANGFUSE:
+            # share the langfuse trace ID for tracing at all modules
+            RuntimeConfig.langfuse_trace_id = self.trace_id = self.session.session_id.replace("-", "")
+            langfuse = get_client()
+            with langfuse.start_as_current_span(
+                name="orchestrator_init", trace_context={"trace_id": self.trace_id}
+            ) as root_span:
+                RuntimeConfig.root_span_id = langfuse.get_current_observation_id()
 
+        self.problem_id = problem_id
         self.problem = get_problem_instance(problem_id)
         self.session.set_problem(self.problem, problem_id)
         self.session.set_agent(self.agent_name)
@@ -76,13 +88,14 @@ class Orchestrator:
         assert self.agent is not None, "Agent not registered"
         assert self.session is not None, "Session not initialized"
 
-        agent_response = await self.agent.get_action(input=input)
+        agent_response = await self.agent.get_action(input=input, trace_id=self.trace_id)
         self.session.add(
             {
                 "role": "assistant",
                 "content": agent_response,
             }
         )
+
         return agent_response
 
     async def ask_env(self, input):
@@ -93,6 +106,21 @@ class Orchestrator:
             resp = self.parser.parse(input)
         except ResponseParsingError as e:
             self.session.add({"role": "env", "content": str(e)})
+
+            if USE_LANGFUSE:
+                langfuse = get_client()
+                with langfuse.start_as_current_span(
+                    name="tool_calling_error",
+                    trace_context={
+                        "trace_id": RuntimeConfig.langfuse_trace_id,
+                        "parent_span_id": RuntimeConfig.root_span_id,
+                    },
+                ) as span:
+                    span.update(
+                        input=input,
+                        output=str(e),
+                        level="WARNING",
+                    )
             return str(e)
 
         api, args, kwargs = resp["api_name"], resp["args"], resp["kwargs"]
@@ -108,9 +136,27 @@ class Orchestrator:
                 env_response = await result
             else:
                 env_response = result
+            response_level = "DEFAULT"
 
         except InvalidActionError as e:
             env_response = str(e)
+            response_level = "WARNING"
+
+        if USE_LANGFUSE:
+            langfuse = get_client()
+            with langfuse.start_as_current_span(
+                name=f"tool_calling_{api}",
+                trace_context={
+                    "trace_id": RuntimeConfig.langfuse_trace_id,
+                    "parent_span_id": RuntimeConfig.root_span_id,
+                },
+            ) as span:
+                span.update(
+                    input=input,
+                    output=env_response,
+                    metadata={"tool_calling_details": {"api": api, "args": args, "kwargs": kwargs}},
+                    level=response_level,
+                )
 
         self.session.add({"role": "env", "content": env_response})
         return env_response
@@ -124,6 +170,7 @@ class Orchestrator:
 
         for step in range(max_steps):
             action = await self.ask_agent(action_instr)
+
             self.session_print.agent(action)
             # action = (
             #     '```\n bmv2_show_tables("simple_bmv2", "s3") \n```'  # For testing purposes, replace with agent response
@@ -146,6 +193,27 @@ class Orchestrator:
         assert self.problem is not None, "Problem not initialized"
 
         self.orchestration_end_time = time.time()
+        if USE_LANGFUSE:
+            langfuse = get_client()
+            with langfuse.start_as_current_span(
+                name="orchestrator_end",
+                trace_context={
+                    "trace_id": RuntimeConfig.langfuse_trace_id,
+                    "parent_span_id": RuntimeConfig.root_span_id,
+                },
+            ) as span:
+                span.update_trace(
+                    name=self.problem_id,
+                    session_id=self.session.session_id,
+                    tags=[self.agent_name],
+                    metadata={
+                        "orchestration_details": {
+                            "net_env_name": self.problem.net_env.name,
+                            "duration": self.orchestration_end_time - self.orchestration_start_time,
+                        }
+                    },
+                )
+            langfuse.flush()
         if cleanup:
             self.problem.net_env.undeploy()
             print(f"Network environment {self.problem.net_env.name} undeployed.")

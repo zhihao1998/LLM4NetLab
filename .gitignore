@@ -8,3 +8,4 @@ tmp/
 .vscode/
 results/*
 config/config.yaml
+.env

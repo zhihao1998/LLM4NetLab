@@ -137,6 +137,6 @@ if __name__ == "__main__":
         p4_int_lab.undeploy()
         print("Lab undeployed")
 
-    print("Deploying lab p4_int_lab...")
-    p4_int_lab.deploy()
-    print("Lab deployed")
+    # print("Deploying lab p4_int_lab...")
+    # p4_int_lab.deploy()
+    # print("Lab deployed")

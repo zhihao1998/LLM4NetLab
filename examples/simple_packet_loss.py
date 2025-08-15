@@ -20,7 +20,7 @@ agent.init_context(task_desc, instructions, actions)
 print("Agent context initialized.")
 
 # 4. Start the problem with a maximum number of steps
-asyncio.run(orchestrator.start_problem(max_steps=30))
+asyncio.run(orchestrator.start_problem(max_steps=3))
 
 # 5. Stop the problem and clean the environments after completion
 orchestrator.stop_problem()

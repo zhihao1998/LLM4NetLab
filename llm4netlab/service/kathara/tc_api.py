@@ -1,10 +1,13 @@
-class KatharaTCAPI:
+from llm4netlab.service.kathara.base import KatharaBaseAPI, _SupportsBase
+
+
+class KatharaTCMixin:
     """
     Interfaces to interact with Linux Traffic within Kathara.
     """
 
     def tc_set_intf(
-        self,
+        self: _SupportsBase,
         host_name: str,
         interface: str,
         loss: int = None,
@@ -47,19 +50,27 @@ class KatharaTCAPI:
             command += f" rate {rate}mbit"
         return self._run_cmd(host_name, command)
 
-    def tc_show_intf(self, host_name: str, interface: str) -> list[str]:
+    def tc_show_intf(self: _SupportsBase, host_name: str, interface: str) -> list[str]:
         """
         Show traffic control (tc) parameters on a specific interface of a host.
         """
         command = f"tc qdisc show dev {interface}"
         return self._run_cmd(host_name, command)
 
-    def tc_clear_intf(self, host_name: str, interface: str) -> list[str]:
+    def tc_clear_intf(self: _SupportsBase, host_name: str, interface: str) -> list[str]:
         """
         Clear traffic control (tc) parameters on a specific interface of a host.
         """
         command = f"tc qdisc del dev {interface} root"
         return self._run_cmd(host_name, command)
+
+
+class KatharaTCAPI(KatharaBaseAPI, KatharaTCMixin):
+    """
+    Kathara Traffic Control API to manage traffic control settings on host interfaces.
+    """
+
+    pass
 
 
 # async def main():
