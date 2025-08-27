@@ -27,24 +27,38 @@ class KatharaBaseAPI:
         if self.lab is None:
             raise ValueError(f"Lab {lab_name} not found.")
 
-    def get_mahines(self) -> list[str]:
-        """
-        Get the list of machines in the lab.
-        """
-        return self.lab.machines
-
     def get_hosts(self) -> list[Machine]:
         """
-        Get the list of hosts in the lab.
-        # TODO: Find better way to get the host names
+        Get the list of hosts (all containers with Docker image kathara/base) in the lab.
         """
-        return [machine for name, machine in self.lab.machines.items() if machine.name.startswith("pc")]
+        hosts = []
+        for name, machine in self.lab.machines.items():
+            image = machine.get_image()
+            if "base" in image:
+                hosts.append(name)
+        return hosts
 
-    def get_switches(self) -> list[Machine]:
+    def get_host_net_config(self, host_name: str) -> dict:
         """
-        Get the list of switches in the lab.
+        Get the network configuration of a host, including ifconfig, ip addr, and ip route.
         """
-        return [machine for name, machine in self.lab.machines.items() if machine.name.startswith("s")]
+        config = {}
+        config["host_name"] = host_name
+        config["ifconfig"] = self._run_cmd(host_name, "ifconfig -a")
+        config["ip_addr"] = self._run_cmd(host_name, "ip addr")
+        config["ip_route"] = self._run_cmd(host_name, "ip route")
+        return config
+
+    def get_bmv2_switches(self) -> list[Machine]:
+        """
+        Get the list of bmv2 switches in the lab.
+        """
+        switches = []
+        for name, machine in self.lab.machines.items():
+            image = machine.get_image()
+            if "p4" in image:
+                switches.append(name)
+        return switches
 
     def get_host_ip(self, host_name: str) -> str:
         """
@@ -77,23 +91,6 @@ class KatharaBaseAPI:
                 result[link.name] = (link.containers[0].labels["name"], link.containers[1].labels["name"])
         return result
 
-    def get_connectivity(self) -> dict:
-        """
-        Get the connectivity of the network.
-        TODO: need to add which port connects to which host/switch/router.
-
-        Example output:
-        {"s1": ["s2", "h1"], "h1": ["s1"], "s2": ["s1"]}
-        """
-        links = self.get_links()
-        links = dict(sorted(links.items(), key=lambda item: item[0]))  # sort by link name
-        result = {}
-        for _, link in links.items():
-            src, dst = link
-            result.setdefault(src, []).append(dst)
-            result.setdefault(dst, []).append(src)
-        return json.dumps(result)
-
     def _run_cmd(self, machine_name: str, command: str) -> str:
         """
         Run a command on a machine and return its output as a list of strings,
@@ -125,60 +122,20 @@ class KatharaBaseAPI:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self._run_cmd, machine_name, command)
 
-    # synchronous version of get_reachability, now deprecated
-    # def _check_ping_success(self, host: str, dst_ip: str) -> bool:
-    #     """
-    #     Check if ping to dst_ip from host is successful.
-    #     """
-    #     command = f"ping -c 10 {dst_ip}"
-    #     result = self._run_cmd(host, command)
-    #     matches = re.findall(r"\d+ packets transmitted, \d+ received, .*? packet loss, time \d+ms", result)
-    #     if len(matches) > 0:
-    #         return matches[0]
-    #     else:
-    #         return f"Ping command failed on {host} for {dst_ip}. Result: {result}"
-    # return any(" 0% packet loss" in line for line in lines)
-
-    # def get_reachability(self) -> dict:
-    #     """
-    #     Check the reachability of all hosts.
-    #     """
-    #     # only get hosts without switch, router, or other devices
-    #     host_names = sorted([host.name for host in self.get_hosts()])
-    #     host_ips = {host_name: self.get_host_ip(host_name) for host_name in host_names}
-    #     ping_pairs = []
-    #     for index, host_name_i in enumerate(host_names):
-    #         for host_name_j in host_names[index + 1 :]:
-    #             if host_name_i == host_name_j:
-    #                 continue
-    #             host_ip_j = host_ips[host_name_j]
-    #             ping_pairs.append((host_name_i, host_name_j, host_ip_j))
-
-    #     result = []
-    #     for host_name_i, host_name_j, host_ip_j in ping_pairs:
-    #         is_ping_success = self._check_ping_success(host_name_i, host_ip_j)
-    #         result.append(f"{host_name_i} ping {host_name_j}: {is_ping_success}")
-    #         # result.setdefault(f"{host_ip_i}", {}).update(is_ping_success})
-    #         # if is_ping_success:
-    #         #     result.setdefault(host_name_i, {}).update({host_name_j: "ping success"})
-    #         # else:
-    #         #     result.setdefault(host_name_i, {}).update({host_name_j: "ping failed"})
-    #     return str(result)
-
     async def _check_ping_success_async(self, host: str, dst_ip: str) -> bool:
-        command = f"ping -c 10 {dst_ip}"
+        command = f"ping -c 4 {dst_ip}"
         result = await self._run_cmd_async(host, command)
-        matches = re.findall(r"\d+ packets transmitted, \d+ received, .*? packet loss, time \d+ms", result)
-        if len(matches) > 0:
-            return matches[0]
-        else:
-            return result
+        # matches = re.findall(r"\d+ packets transmitted, \d+ received, .*? packet loss, time \d+ms", result)
+        # if len(matches) > 0:
+        #     return matches[0]
+        # else:
+        return result
 
     async def get_reachability(self) -> str:
         return await self._get_reachability_async()
 
     async def _get_reachability_async(self) -> str:
-        host_names = [host.name for host in self.get_hosts()]
+        host_names = [host for host in self.get_hosts()]
         host_ips = {host_name: self.get_host_ip(host_name) for host_name in host_names}
         result = []
 
@@ -197,8 +154,46 @@ class KatharaBaseAPI:
             result.append(f"{host_i} ping {host_j}: {is_success}")
         return str(result)
 
+    def traceroute(self, host_name: str, dst_ip: str) -> str:
+        """
+        Run a traceroute from a host to a destination IP.
+        """
+        command = f"traceroute {dst_ip}"
+        return self._run_cmd(host_name, command)
+
+    def iperf_test(
+        self,
+        client_host_name: str,
+        server_host_name: str,
+        duration: int = 10,
+        client_args: str = "",
+        server_args: str = "",
+    ) -> str:
+        """
+        Run an iperf test between two hosts.
+        """
+        # Start iperf server
+        self._run_cmd(server_host_name, f"iperf3 -s -D {server_args}")
+        # Run iperf client
+        result = self._run_cmd(
+            client_host_name, f"iperf3 -c {self.get_host_ip(server_host_name)} -t {duration} {client_args}"
+        )
+        # Stop iperf server
+        self._run_cmd(server_host_name, "pkill iperf3")
+        return result
+
+    def systemctl_ops(self, host_name: str, service_name: str, operation: str) -> str:
+        """
+        Perform systemctl operations (start, stop, restart, status) on a host.
+        """
+        return self._run_cmd(host_name, f"systemctl {operation} {service_name} ")
+
+
+async def main():
+    api = KatharaBaseAPI(lab_name="simple_bgp")
+    result = await api.get_reachability()
+    print("Reachability:", result)
+
 
 if __name__ == "__main__":
-    lab_name = "simple_bmv2"
-    kathara_api = KatharaBaseAPI(lab_name)
-    print(kathara_api.get_reachability())
+    asyncio.run(main())

@@ -1,14 +1,9 @@
-import inspect
+import logging
 import time
 
-from langfuse import get_client
-
-from config import USE_LANGFUSE, RuntimeConfig
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
-from llm4netlab.utils.errors import InvalidActionError, ResponseParsingError, SessionPrint
-from llm4netlab.utils.parser import ResponseParser
+from llm4netlab.utils.errors import SessionPrint
 from llm4netlab.utils.session import Session
-from llm4netlab.utils.submission import SubmissionStatus
 
 """Orchestrator class that interfaces with the agent and the environment."""
 
@@ -19,10 +14,10 @@ class Orchestrator:
         self.session = None
         self.session_print = SessionPrint()
         self.problem = None
-        self.parser = ResponseParser()
 
         self.orchestration_start_time = None
         self.orchestration_end_time = None
+        self.logger = logging.getLogger("orchestrator")
 
     def init_problem(self, problem_id: str) -> tuple:
         """Initialize the problem to solve.
@@ -31,40 +26,31 @@ class Orchestrator:
             problem_id: The problem ID.
 
         Returns:
-            Tuple of problem description, instructions, and APIs.
+            str: The task description.
         """
         self.orchestration_start_time = time.time()
 
         self.session = Session()
-        print("Initializing session...")
-        print(f"Session ID: {self.session.session_id}")
-        if USE_LANGFUSE:
-            # share the langfuse trace ID for tracing at all modules
-            RuntimeConfig.langfuse_trace_id = self.trace_id = self.session.session_id.replace("-", "")
-            langfuse = get_client()
-            with langfuse.start_as_current_span(
-                name="orchestrator_init", trace_context={"trace_id": self.trace_id}
-            ) as root_span:
-                RuntimeConfig.root_span_id = langfuse.get_current_observation_id()
+        self.logger.info(f"Initialized ID: {self.session.session_id}")
 
         self.problem_id = problem_id
         self.problem = get_problem_instance(problem_id)
         self.session.set_problem(self.problem, problem_id)
-        self.session.set_agent(self.agent_name)
+        # self.session.set_agent(self.agent_name)
 
         # deploy the network environment
         # check if the environment is already deployed
         if not self.problem.net_env.lab_exists():
-            print("Deploying network environment...")
             self.problem.net_env.deploy()
+            self.logger.info(f"Deployed network environment {self.problem.net_env.name}.")
+        else:
+            self.logger.info(f"Network environment {self.problem.net_env.name} already deployed. Skipping deployment.")
 
         self.problem.inject_fault()
 
         # Get the problem description, instructions, and APIs
         task_desc = self.problem.get_task_description()
-        instructions = self.problem.get_instructions()
-        actions = self.problem.get_available_actions()
-        return task_desc, instructions, actions
+        return task_desc
 
     def register_agent(self, agent, agent_name) -> None:
         """Register an agent with the orchestrator.
@@ -75,91 +61,6 @@ class Orchestrator:
         """
         self.agent = agent
         self.agent_name = agent_name
-
-    async def ask_agent(self, input: str) -> str:
-        """Ask the agent the next step given the current context.
-
-        Args:
-           input: The input to the agent.
-
-        Returns:
-            The agent's response.
-        """
-        assert self.agent is not None, "Agent not registered"
-        assert self.session is not None, "Session not initialized"
-
-        agent_response = await self.agent.get_action(input=input, trace_id=self.trace_id)
-        self.session.add(
-            {
-                "role": "assistant",
-                "content": agent_response,
-            }
-        )
-
-        return agent_response
-
-    async def ask_env(self, input):
-        """Ask the environment for the observation given the current action."""
-        assert self.session is not None
-
-        try:
-            resp = self.parser.parse(input)
-        except ResponseParsingError as e:
-            self.session.add({"role": "env", "content": str(e)})
-
-            if USE_LANGFUSE:
-                langfuse = get_client()
-                with langfuse.start_as_current_span(
-                    name="tool_calling_error",
-                    trace_context={
-                        "trace_id": RuntimeConfig.langfuse_trace_id,
-                        "parent_span_id": RuntimeConfig.root_span_id,
-                    },
-                ) as span:
-                    span.update(
-                        input=input,
-                        output=str(e),
-                        level="WARNING",
-                    )
-            return str(e)
-
-        api, args, kwargs = resp["api_name"], resp["args"], resp["kwargs"]
-
-        # if submit, save solution for eval
-        if api == "submit":
-            self.session.set_solution(args[0] if len(args) == 1 else args)
-
-        try:
-            result = self.session.problem.perform_action(api, *args, **kwargs)
-
-            if inspect.iscoroutine(result):
-                env_response = await result
-            else:
-                env_response = result
-            response_level = "DEFAULT"
-
-        except InvalidActionError as e:
-            env_response = str(e)
-            response_level = "WARNING"
-
-        if USE_LANGFUSE:
-            langfuse = get_client()
-            with langfuse.start_as_current_span(
-                name=f"tool_calling_{api}",
-                trace_context={
-                    "trace_id": RuntimeConfig.langfuse_trace_id,
-                    "parent_span_id": RuntimeConfig.root_span_id,
-                },
-            ) as span:
-                span.update(
-                    input=input,
-                    output=env_response,
-                    metadata={"tool_calling_details": {"api": api, "args": args, "kwargs": kwargs}},
-                    level=response_level,
-                )
-
-        self.session.add({"role": "env", "content": env_response})
-        return env_response
 
     async def start_problem(self, max_steps=10):
         """Start the problem."""
@@ -178,13 +79,6 @@ class Orchestrator:
             env_response = await self.ask_env(action)
             self.session_print.service(env_response)
 
-            if env_response == SubmissionStatus.VALID_SUBMISSION:
-                break
-            elif env_response == SubmissionStatus.INVALID_SUBMISSION:
-                raise ValueError("Invalid submission!")
-
-            action_instr = env_response + "\n" + "Please take the next action"
-
         self.session.end()
 
     def stop_problem(self, cleanup=False):
@@ -193,27 +87,6 @@ class Orchestrator:
         assert self.problem is not None, "Problem not initialized"
 
         self.orchestration_end_time = time.time()
-        if USE_LANGFUSE:
-            langfuse = get_client()
-            with langfuse.start_as_current_span(
-                name="orchestrator_end",
-                trace_context={
-                    "trace_id": RuntimeConfig.langfuse_trace_id,
-                    "parent_span_id": RuntimeConfig.root_span_id,
-                },
-            ) as span:
-                span.update_trace(
-                    name=self.problem_id,
-                    session_id=self.session.session_id,
-                    tags=[self.agent_name],
-                    metadata={
-                        "orchestration_details": {
-                            "net_env_name": self.problem.net_env.name,
-                            "duration": self.orchestration_end_time - self.orchestration_start_time,
-                        }
-                    },
-                )
-            langfuse.flush()
         if cleanup:
             self.problem.net_env.undeploy()
             print(f"Network environment {self.problem.net_env.name} undeployed.")

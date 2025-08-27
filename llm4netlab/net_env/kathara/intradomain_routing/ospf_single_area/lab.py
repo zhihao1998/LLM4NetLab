@@ -5,16 +5,19 @@ from Kathara.model.Lab import Lab
 
 from llm4netlab.net_env.base import NetworkEnvBase
 
-LAB_NAME = "ospf_frr_single_area"
+# TODO: fix get topology and get interfaces
+
+LAB_NAME = "ospf_single_area"
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
-class OspfFrrSingleArea(NetworkEnvBase):
+class OspfSingleArea(NetworkEnvBase):
     def __init__(self):
-        super().__init__(os.path.join(cur_path, "metadata.json"))
+        super().__init__()
         self.lab = Lab(LAB_NAME)
         self.name = LAB_NAME
         self.instance = Kathara.get_instance()
+        self.desc = "A single area OSPF network with 5 routers."
 
         bb0 = self.lab.new_machine("bb0", **{"image": "kathara/frr"})
         bb1 = self.lab.new_machine("bb1", **{"image": "kathara/frr"})
@@ -44,10 +47,11 @@ class OspfFrrSingleArea(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    ospf_frr_single = OspfFrrSingleArea()
-    if ospf_frr_single.lab_exists():
+    ospf_single_area = OspfSingleArea()
+    print("Lab description:", ospf_single_area.desc)
+    if ospf_single_area.lab_exists():
         print("Lab exists, undeploying it...")
-        ospf_frr_single.undeploy()
+        ospf_single_area.undeploy()
         print("Lab undeployed")
 
     # print("Deploying lab...")

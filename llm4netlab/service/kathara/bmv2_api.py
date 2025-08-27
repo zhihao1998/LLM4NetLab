@@ -1,6 +1,7 @@
+import asyncio
 from typing import List
 
-from llm4netlab.service.kathara.base import KatharaBaseAPI, _SupportsBase
+from llm4netlab.service.kathara.base_api import KatharaBaseAPI, _SupportsBase
 
 
 def _build_thrift_command(api_calls: list[str]) -> str:
@@ -250,7 +251,15 @@ class KatharaBMv2API(KatharaBaseAPI, BMv2APIMixin):
     pass
 
 
-if __name__ == "__main__":
+async def main():
     lab_name = "simple_bmv2"
     kathara_api = KatharaBMv2API(lab_name)
-    print(kathara_api.get_reachability())
+    # result = await kathara_api.get_reachability()
+    # print(result)
+
+    result = kathara_api.bmv2_get_counter_arrays("s1")
+    print(result)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

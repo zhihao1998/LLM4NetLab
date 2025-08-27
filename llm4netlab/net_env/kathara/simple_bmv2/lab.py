@@ -12,10 +12,11 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 
 class SimpleTC(NetworkEnvBase):
     def __init__(self):
-        super().__init__(os.path.join(cur_path, "metadata.json"))
+        super().__init__()
         self.lab = Lab(LAB_NAME)
         self.name = LAB_NAME
         self.instance = Kathara.get_instance()
+        self.desc = "A simple network with 4 bmv2 switches and 3 hosts."
 
         pc1 = self.lab.new_machine("pc1", **{"image": "kathara/base"})
         pc2 = self.lab.new_machine("pc2", **{"image": "kathara/base"})
@@ -169,6 +170,7 @@ class SimpleTC(NetworkEnvBase):
 if __name__ == "__main__":
     l2 = SimpleTC()
     print(l2.net_summary())
+
     if l2.lab_exists():
         print("Lab exists, undeploying it...")
         l2.undeploy()

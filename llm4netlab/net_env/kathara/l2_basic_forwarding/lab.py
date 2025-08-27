@@ -13,10 +13,11 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 class L2BasicForwarding(NetworkEnvBase):
     def __init__(self):
         # TODO: maybe we do not need a separate metadata.json file, just to dig from the lab
-        super().__init__(os.path.join(cur_path, "metadata.json"))
+        super().__init__()
         self.lab = Lab(LAB_NAME)
         self.name = LAB_NAME
         self.instance = Kathara.get_instance()
+        self.desc = "A simple L2 forwarding network with 4 hosts and 1 bmv2 switch."
 
         pc1 = self.lab.new_machine("pc1", **{"image": "kathara/base"})
         pc2 = self.lab.new_machine("pc2", **{"image": "kathara/base"})
@@ -110,6 +111,7 @@ class L2BasicForwarding(NetworkEnvBase):
 
 if __name__ == "__main__":
     l2 = L2BasicForwarding()
+    print(l2)
     if l2.lab_exists():
         print("Lab exists, undeploying it...")
         l2.undeploy()

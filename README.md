@@ -131,6 +131,14 @@ Check all available problems and corresponing names at `llm4netlab/orchestrator/
 
 LLM4NetLab supports various network issues, such as packet loss, delay, congestion, etc. These issues can be injected into the network scenarios using the fault injection mechanism. The faults are defined in `llm4netlab/generator/fault`, which provides a base class for fault injectors and specific implementations for different types of faults.
 
+### BGP
+
+The BGP failures are motivated by [Huawei NE40E Troubleshooting Guide](https://support.huawei.com/enterprise/en/doc/EDOC1000177634/31f2a647/case-study-a-bgp-peer-relationship-fails-to-be-established#EN-US_CONCEPT_0000001180501803). We implement the following BGP failure causes:
+
+- An ACL filters out the packets carrying TCP port 179.
+- 
+
+
 ## Traffic Generation
 
 LLM4NetLab supports traffic generation, which can generate traffic according to traffic matrix or offline traces. 

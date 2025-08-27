@@ -1,4 +1,4 @@
-from llm4netlab.service.kathara.base import KatharaBaseAPI, _SupportsBase
+from llm4netlab.service.kathara.base_api import KatharaBaseAPI, _SupportsBase
 
 
 class TelemetryAPIMixin:

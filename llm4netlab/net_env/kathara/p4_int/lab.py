@@ -12,10 +12,11 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 
 class P4INTLab(NetworkEnvBase):
     def __init__(self):
-        super().__init__(os.path.join(cur_path, "metadata.json"))
+        super().__init__()
         self.lab = Lab(LAB_NAME)
         self.name = LAB_NAME
         self.instance = Kathara.get_instance()
+        self.desc = "A simple P4 lab with 2 hosts, 2 leaf switches and 2 spine switches, where In-band Network Telemetry is enabled."
 
         pc1 = self.lab.new_machine("pc1", **{"image": "kathara/base"})
         pc2 = self.lab.new_machine("pc2", **{"image": "kathara/base"})
@@ -132,6 +133,7 @@ class P4INTLab(NetworkEnvBase):
 
 if __name__ == "__main__":
     p4_int_lab = P4INTLab()
+    print(p4_int_lab.net_summary())
     if p4_int_lab.lab_exists():
         print("Lab exists, undeploying it...")
         p4_int_lab.undeploy()
