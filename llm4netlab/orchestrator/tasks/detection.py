@@ -17,7 +17,7 @@ class DetectionTask(TaskBase):
             The network you are working with today is described below:
             {net_summary}
 
-            You will begin by analyzing the network's state, detect anomalies, then report your solution:
+            You will begin by analyzing the network's state, and detect anomalies:
             1. str: `Yes` or `No` to indicate whether there are anomalies detected.
             """
 

@@ -71,11 +71,31 @@ async def main():
     orchestrator = Orchestrator()
     task_desc = orchestrator.init_problem("p4_int_hop_delay_high_detection")
 
-    # Run the query
-    result = await agent.arun(task_desc)
-    print("\n\nFinal Result:", result)
+    await client.create_all_sessions()
+    session = client.get_session("kathara_telemetry_mcp_server")
+    tools = await session.list_tools()
+    print("Available tools:", tools)
+    result = await session.call_tool(
+        name="influx_get_measurements",
+        arguments={"lab_name": "p4_int"},
+    )
+    print("influx_get_measurements call result:", result)
+    print()
 
-    orchestrator.stop_problem(cleanup=True)
+    result = await session.call_tool(
+        name="influx_count_measurements",
+        arguments={"lab_name": "p4_int", "measurement": "flow_hop_latency"},
+    )
+    print("influx_count_measurements call result:", result)
+
+    print()
+    result = await session.call_tool(
+        name="influx_query_measurement",
+        arguments={"lab_name": "p4_int", "measurement": "flow_hop_latency"},
+    )
+    print("influx_query_measurement call result:", result)
+
+    # orchestrator.stop_problem(cleanup=True)
 
 
 if __name__ == "__main__":

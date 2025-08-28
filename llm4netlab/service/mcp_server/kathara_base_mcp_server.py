@@ -1,6 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 
-from llm4netlab.service.kathara import KatharaBaseAPI
+from llm4netlab.service.kathara import KatharaBaseAPI, KatharaNFTableAPI
 
 # Initialize FastMCP server
 mcp = FastMCP("kathara_base_mcp_server")
@@ -86,6 +86,21 @@ def iperf_test(
         server_args=server_args,
     )
     return result
+
+
+@mcp.tool()
+def nft_list_ruleset(lab_name: str) -> dict:
+    """Get the nftables ruleset for the lab.
+
+    Args:
+        lab_name (str): The name of the lab.
+
+    Returns:
+        dict: The nftables ruleset.
+    """
+    kathara_api = KatharaNFTableAPI(lab_name=lab_name)
+    ruleset = kathara_api.nft_list_ruleset()
+    return ruleset
 
 
 if __name__ == "__main__":

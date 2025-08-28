@@ -19,17 +19,17 @@ class SimpleBGP(NetworkEnvBase):
         router1 = self.lab.new_machine("router1", **{"image": "kathara/frr"})
         router2 = self.lab.new_machine("router2", **{"image": "kathara/frr"})
 
-        h1 = self.lab.new_machine("h1", **{"image": "kathara/base"})
-        h2 = self.lab.new_machine("h2", **{"image": "kathara/base"})
+        pc1 = self.lab.new_machine("pc1", **{"image": "kathara/base"})
+        pc2 = self.lab.new_machine("pc2", **{"image": "kathara/base"})
 
         self.lab.connect_machine_to_link(router1.name, "A")
         self.lab.connect_machine_to_link(router2.name, "A")
 
         self.lab.connect_machine_to_link(router1.name, "B")
-        self.lab.connect_machine_to_link(h1.name, "B")
+        self.lab.connect_machine_to_link(pc1.name, "B")
 
         self.lab.connect_machine_to_link(router2.name, "C")
-        self.lab.connect_machine_to_link(h2.name, "C")
+        self.lab.connect_machine_to_link(pc2.name, "C")
 
         # Add basic configuration to the machines
         for i, router in enumerate([router1, router2], start=1):
@@ -37,8 +37,8 @@ class SimpleBGP(NetworkEnvBase):
             # to create the startup file, use self.lab instead of host
             self.lab.create_file_from_path(os.path.join(cur_path, f"router{i}.startup"), f"router{i}.startup")
 
-        for i, host in enumerate([h1, h2], start=1):
-            self.lab.create_file_from_path(os.path.join(cur_path, f"h{i}.startup"), f"h{i}.startup")
+        for i, host in enumerate([pc1, pc2], start=1):
+            self.lab.create_file_from_path(os.path.join(cur_path, f"pc{i}.startup"), f"pc{i}.startup")
 
 
 if __name__ == "__main__":

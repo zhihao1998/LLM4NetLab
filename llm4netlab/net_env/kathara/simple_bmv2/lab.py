@@ -10,7 +10,7 @@ LAB_NAME = "simple_bmv2"
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
-class SimpleTC(NetworkEnvBase):
+class SimpleBmv2(NetworkEnvBase):
     def __init__(self):
         super().__init__()
         self.lab = Lab(LAB_NAME)
@@ -168,7 +168,7 @@ class SimpleTC(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    l2 = SimpleTC()
+    l2 = SimpleBmv2()
     print(l2.net_summary())
 
     if l2.lab_exists():

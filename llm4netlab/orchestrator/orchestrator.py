@@ -89,4 +89,4 @@ class Orchestrator:
         self.orchestration_end_time = time.time()
         if cleanup:
             self.problem.net_env.undeploy()
-            print(f"Network environment {self.problem.net_env.name} undeployed.")
+            self.logger.info(f"Undeployed network environment {self.problem.net_env.name}.")

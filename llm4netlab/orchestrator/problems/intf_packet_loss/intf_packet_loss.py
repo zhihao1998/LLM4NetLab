@@ -1,5 +1,5 @@
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
-from llm4netlab.net_env.kathara.simple_bmv2.lab import SimpleTC
+from llm4netlab.net_env.kathara.simple_bmv2.lab import SimpleBmv2
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.service.kathara import KatharaBMv2API, KatharaTCAPI
 
@@ -16,7 +16,7 @@ class PacketLossBaseTask:
     """Base class for a packet loss problem."""
 
     def __init__(self):
-        self.net_env = SimpleTC()  # each problem should tailor its own network environment
+        self.net_env = SimpleBmv2()  # each problem should tailor its own network environment
         self.kathara_api = KatharaAPIBMv2TC(lab_name=self.net_env.lab.name)
 
         self.problem_name = "PacketLossBaseTask"
@@ -25,11 +25,17 @@ class PacketLossBaseTask:
 
     def inject_fault(self):
         print("Injecting packet loss fault...")
-        self.injector._inject(
-            fault_type="packet_loss",
-            host_name="s3",  # TODO: make this adjustable
+        self.injector.inject_packet_loss(
+            host_name="s3",
             interface="eth1",
             loss_percentage=90,
+        )
+
+    def recover_fault(self):
+        print("Recovering from packet loss fault...")
+        self.injector.recover_packet_loss(
+            host_name="s3",
+            interface="eth1",
         )
 
 

@@ -1,5 +1,4 @@
 import asyncio
-import json
 import re
 from typing import Dict, Protocol, runtime_checkable
 
@@ -93,29 +92,31 @@ class KatharaBaseAPI:
 
     def _run_cmd(self, machine_name: str, command: str) -> str:
         """
-        Run a command on a machine and return its output as a list of strings,
-        decoding bytes and filtering out None, empty strings, and zeros.
+        Run a command on a machine and return its output as a string,
+        decoding bytes and filtering out None/empty/zeros.
         """
         output_generator = self.instance.exec(
             machine_name=machine_name, command=command, lab_name=self.lab.name, stream=False
         )
 
-        result = []
         for item in output_generator:
             if not item or item == b"" or isinstance(item, int) or item is None or item == "None":
                 continue
             if isinstance(item, bytes):
-                item = item.decode("utf-8", errors="ignore").strip()
+                return item.decode("utf-8", errors="ignore").strip()
             elif isinstance(item, str):
-                item = item.strip()
+                return item.strip()
             else:
-                item = str(item).strip()
-            if item:
-                result.append(item)
+                return str(item).strip()
 
-        if isinstance(result, list):
-            result = json.dumps(result)
-        return result
+        return ""
+
+    def exec_cmd(self, machine_name: str, command: str) -> str:
+        """
+        Run a command on a machine and return its output as a string.
+        """
+        cmd = "/bin/bash -c '{}'".format(command.replace("'", "'\\''").replace('"', '\\"'))
+        return self._run_cmd(machine_name, cmd)
 
     # asynchronous
     async def _run_cmd_async(self, machine_name: str, command: str) -> list[str]:
@@ -190,7 +191,7 @@ class KatharaBaseAPI:
 
 
 async def main():
-    api = KatharaBaseAPI(lab_name="simple_bgp")
+    api = KatharaBaseAPI(lab_name="ospf_multi_area")
     result = await api.get_reachability()
     print("Reachability:", result)
 

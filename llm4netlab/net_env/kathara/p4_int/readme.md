@@ -10,8 +10,6 @@ docker exec -it influxdb bash
 
 curl http://localhost:8086/health
 
-docker exec -it $(docker ps -a --format '{{.Names}}' | grep leaf1) bash
-
 echo -n "hello" | nc -u -w1 10.0.0.2 5000
 
 ```python
@@ -27,7 +25,7 @@ with InfluxDBClient(url=url, token=token, org=org) as client:
     # read flow_stat: flow latency and flow path
     query = f'''
         from(bucket: "{bucket}")
-        |> range(start: -1h)  // 最近1小时
+        |> range(start: -1h) 
         |> filter(fn: (r) => r["_measurement"] == "flow_stat")
         '''
     tables = query_api.query(query, org=org)
