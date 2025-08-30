@@ -4,6 +4,7 @@ from Kathara.manager.Kathara import Kathara
 
 
 class NetworkEnvBase:
+    LAB_NAME = None
     """
     Base class for network environments."""
 

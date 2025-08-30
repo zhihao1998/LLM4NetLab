@@ -1,61 +1,80 @@
-"""
-Each problem must have at least one network environment and one task.
-"""
+import json
+from typing import Dict, Type
 
-from llm4netlab.orchestrator.problems.bgp_failures.bgp_peer_failure import (
-    BgpAclBlockDetection,
-    BgpAsnMisconfigDetection,
-)
-from llm4netlab.orchestrator.problems.device_down.bmv2_down import Bmv2DownDetection
-from llm4netlab.orchestrator.problems.device_down.frr_down import FrrDownDetection
-from llm4netlab.orchestrator.problems.intf_packet_loss.intf_packet_loss import (
-    PacketLossDetection,
-)
-from llm4netlab.orchestrator.problems.ospf_failures.ospf_peer_failure import (
-    OspfAclBlockDetection,
-    OspfMisconfigDetection,
-)
-from llm4netlab.orchestrator.problems.p4_failures.p4_tbl_entry_missing import (
-    P4TableEntryMissingDetection,
-)
-from llm4netlab.orchestrator.problems.performance_failure.int import (
-    P4IntHopDelayHighDetection,
-)
+from pydantic import BaseModel
+
+from llm4netlab.orchestrator.problems.config_access_policy_error.bgp_error import BgpAclBlockDetection
+from llm4netlab.orchestrator.problems.config_access_policy_error.ospf_error import OspfAclBlockDetection
+from llm4netlab.orchestrator.problems.config_routing_policy_error.bgp_error import BgpAsnMisconfigDetection
+from llm4netlab.orchestrator.problems.config_routing_policy_error.ospf_error import OspfMisconfigDetection
+from llm4netlab.orchestrator.problems.connectivity_loss.p4_packet_loss import P4PacketLossDetection
+from llm4netlab.orchestrator.problems.device_failure.bmv2_failure import Bmv2DownDetection
+from llm4netlab.orchestrator.problems.device_failure.frr_failure import FrrDownDetection
+from llm4netlab.orchestrator.problems.p4_runtime_error.p4_tbl_entry_missing import P4TableEntryMissingDetection
+from llm4netlab.orchestrator.problems.performance_degradation.p4_int import P4IntHopDelayHighDetection
 from llm4netlab.orchestrator.tasks.base import TaskBase
 
-_PROBLEMS = {
+_PROBLEMS: Dict[str, Type[TaskBase]] = {
     ####################
     #  Generic device failure issues
     ####################
-    "frr_down_detection": FrrDownDetection,
-    "bmv2_down_detection": Bmv2DownDetection,
+    FrrDownDetection.META.id: FrrDownDetection,
+    Bmv2DownDetection.META.id: Bmv2DownDetection,
     ####################
     #  BGP issues
     ####################
     # ref: https://support.huawei.com/enterprise/en/doc/EDOC1000177634/31f2a647/case-study-a-bgp-peer-relationship-fails-to-be-established#EN-US_CONCEPT_0000001180501803
     # An ACL filters out the packets carrying TCP port 179.
-    "bgp_acl_block_detection": BgpAclBlockDetection,
+    BgpAclBlockDetection.META.id: BgpAclBlockDetection,
     # ASN misconfiguration can cause BGP peer relationship to fail.
-    "bgp_asn_misconfig_detection": BgpAsnMisconfigDetection,
+    BgpAsnMisconfigDetection.META.id: BgpAsnMisconfigDetection,
     ####################
     #  OSPF issues
     ####################
-    "ospf_acl_block_detection": OspfAclBlockDetection,
-    # OSPF area misconfiguration can cause routing issues.
-    "ospf_misconfig_detection": OspfMisconfigDetection,
+    OspfAclBlockDetection.META.id: OspfAclBlockDetection,
+    OspfMisconfigDetection.META.id: OspfMisconfigDetection,
     ####################
     #  P4 issues
     ####################
-    "p4_tbl_entry_missing_detection": P4TableEntryMissingDetection,
+    P4TableEntryMissingDetection.META.id: P4TableEntryMissingDetection,
     ####################
     #  INT issues
     ####################
-    "p4_int_hop_delay_high_detection": P4IntHopDelayHighDetection,
+    P4IntHopDelayHighDetection.META.id: P4IntHopDelayHighDetection,
     ####################
     #  Generic issues
     ####################
-    "packet_loss_detection": PacketLossDetection,
+    P4PacketLossDetection.META.id: P4PacketLossDetection,
 }
+
+
+def get_submit_instruction(problem_id: str) -> str:
+    """Get the submission instruction for a specific problem.
+
+    Args:
+        problem_id: The problem ID.
+
+    Returns:
+        str: The submission instruction.
+    """
+    if problem_id in _PROBLEMS:
+        return _PROBLEMS[problem_id].get_submit_instruction()
+    else:
+        raise ValueError(f"Problem ID {problem_id} not found in the pool.")
+
+
+def list_avail_problems() -> list[str]:
+    return [
+        json.dumps(
+            {
+                "id": prob.META.id,
+                "description": prob.META.description,
+                "issue_type": prob.META.issue_type,
+            },
+            ensure_ascii=False,
+        )
+        for prob in _PROBLEMS.values()
+    ]
 
 
 def get_problem_instance(problem_id: str) -> TaskBase:
@@ -70,4 +89,23 @@ def get_problem_instance(problem_id: str) -> TaskBase:
     if problem_id in _PROBLEMS:
         return _PROBLEMS[problem_id]()
     else:
-        raise ValueError(f"Problem ID {problem_id} not found in the pool.")
+        return None
+
+
+def get_submission_template(problem_id: str) -> BaseModel:
+    """Get the submission template for a specific problem.
+
+    Args:
+        problem_id (str): The ID of the problem.
+
+    Returns:
+        BaseModel: The submission template for the problem.
+    """
+    if problem_id in _PROBLEMS:
+        return _PROBLEMS[problem_id].SUBMISSION
+    else:
+        return None
+
+
+if __name__ == "__main__":
+    print(get_submission_template("frr_down_detection"))

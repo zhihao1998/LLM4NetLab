@@ -6,16 +6,16 @@ from Kathara.model.Lab import Lab
 from config import BASE_DIR
 from llm4netlab.net_env.base import NetworkEnvBase
 
-LAB_NAME = "l2_basic_forwarding"
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class L2BasicForwarding(NetworkEnvBase):
+    LAB_NAME = "l2_basic_forwarding"
+
     def __init__(self):
-        # TODO: maybe we do not need a separate metadata.json file, just to dig from the lab
         super().__init__()
-        self.lab = Lab(LAB_NAME)
-        self.name = LAB_NAME
+        self.lab = Lab(self.LAB_NAME)
+        self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "A simple L2 forwarding network with 4 hosts and 1 bmv2 switch."
 

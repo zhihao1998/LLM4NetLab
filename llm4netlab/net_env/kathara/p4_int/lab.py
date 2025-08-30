@@ -6,15 +6,16 @@ from Kathara.model.Lab import Lab
 from config import BASE_DIR
 from llm4netlab.net_env.base import NetworkEnvBase
 
-LAB_NAME = "p4_int"
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class P4INTLab(NetworkEnvBase):
+    LAB_NAME = "p4_int"
+
     def __init__(self):
         super().__init__()
-        self.lab = Lab(LAB_NAME)
-        self.name = LAB_NAME
+        self.lab = Lab(self.LAB_NAME)
+        self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "A simple P4 lab with 2 hosts, 2 leaf switches and 2 spine switches, where In-band Network Telemetry is enabled."
 

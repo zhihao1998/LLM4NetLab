@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
@@ -50,6 +51,13 @@ class Orchestrator:
 
         # Get the problem description, instructions, and APIs
         task_desc = self.problem.get_task_description()
+
+        os.makedirs(f"/home/p4/codes/AI4NetOps/results/{self.problem_id}", exist_ok=True)
+        # Log the problem and descriptions as ground truth
+        with open(
+            f"/home/p4/codes/AI4NetOps/results/{self.problem_id}/{self.session.session_id}_ground_truth.log", "a+"
+        ) as log_file:
+            log_file.write(self.problem.SUBMISSION.model_dump_json() + "\n")
         return task_desc
 
     def register_agent(self, agent, agent_name) -> None:

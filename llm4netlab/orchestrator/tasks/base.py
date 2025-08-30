@@ -1,8 +1,13 @@
+from pydantic import BaseModel
+
 from llm4netlab.net_env.base import NetworkEnvBase
 
 
 class TaskBase:
     """Base class for all tasks."""
+
+    META: BaseModel = None
+    SUBMISSION: BaseModel = None
 
     def __init__(self):
         self.results = {}
@@ -15,12 +20,6 @@ class TaskBase:
         raise NotImplementedError()
 
     def get_instructions(self):
-        raise NotImplementedError()
-
-    def get_available_actions(self):
-        raise NotImplementedError()
-
-    def perform_action(self, action_name, *args, **kwargs):
         raise NotImplementedError()
 
     def add_result(self, key, value):

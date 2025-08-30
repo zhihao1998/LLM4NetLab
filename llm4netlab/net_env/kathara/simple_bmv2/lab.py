@@ -6,15 +6,16 @@ from Kathara.model.Lab import Lab
 from config import BASE_DIR
 from llm4netlab.net_env.base import NetworkEnvBase
 
-LAB_NAME = "simple_bmv2"
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class SimpleBmv2(NetworkEnvBase):
+    LAB_NAME = "simple_bmv2"
+
     def __init__(self):
         super().__init__()
-        self.lab = Lab(LAB_NAME)
-        self.name = LAB_NAME
+        self.lab = Lab(self.LAB_NAME)
+        self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "A simple network with 4 bmv2 switches and 3 hosts."
 

@@ -1,6 +1,7 @@
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.p4_int.lab import P4INTLab
-from llm4netlab.orchestrator.tasks.detection import DetectionTask
+from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemBase
+from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaTCAPI
 
 
@@ -10,9 +11,6 @@ class P4IntHopDelayHighBaseTask:
     def __init__(self):
         self.net_env = P4INTLab()
         self.kathara_api = KatharaTCAPI(lab_name=self.net_env.lab.name)
-
-        self.problem_name = "P4IntHopDelayHighBaseTask"
-        self.problem_description = "A problem to detect high hop delay via the INT signals"
         self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
@@ -24,11 +22,21 @@ class P4IntHopDelayHighBaseTask:
 
 
 class P4IntHopDelayHighDetection(P4IntHopDelayHighBaseTask, DetectionTask):
+    META = ProblemBase(
+        id="p4_int_hop_delay_high_detection",
+        description="Detect if there is high hop delay.",
+        issue_type="performance_issue",
+    )
+
+    SUBMISSION = DetectionSubmission(
+        is_anomaly=True,
+        issue_type=IssueType.PERFORMANCE_DEGRADATION,
+        problem_id=META.id,
+    )
+
     def __init__(self):
         P4IntHopDelayHighBaseTask.__init__(self)
         DetectionTask.__init__(self, self.net_env)
-        self.problem_name = "P4IntHopDelayHighDetection"
-        self.problem_description = "Detection problem to identify if there is high hop delay via the INT signals"
 
 
 if __name__ == "__main__":

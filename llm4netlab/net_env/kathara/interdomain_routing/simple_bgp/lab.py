@@ -5,14 +5,15 @@ from Kathara.model.Lab import Lab
 
 from llm4netlab.net_env.base import NetworkEnvBase
 
-LAB_NAME = "simple_bgp"
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class SimpleBGP(NetworkEnvBase):
+    LAB_NAME = "simple_bgp"
+
     def __init__(self):
-        self.lab = Lab(LAB_NAME)
-        self.name = LAB_NAME
+        self.lab = Lab(self.LAB_NAME)
+        self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "A simple BGP network with two routers and two hosts."
 

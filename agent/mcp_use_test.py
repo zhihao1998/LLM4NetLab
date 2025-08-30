@@ -31,32 +31,41 @@ async def main():
 
     # Create configuration dictionary
     config = {
+        "mcpClient": {
+            "name": "MCPAgent_DeepSeek",
+            "session_id": "session_123"
+        },
         "mcpServers": {
             "kathara_base_mcp_server": {
                 "command": "python3",
                 "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/kathara_base_mcp_server.py"],
             },
-            "kathara_bmv2_mcp_server": {
-                "command": "python3",
-                "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/kathara_bmv2_mcp_server.py"],
-            },
-            "kathara_telemetry_mcp_server": {
-                "command": "python3",
-                "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/kathara_telemetry_mcp_server.py"],
-            },
+            # "kathara_bmv2_mcp_server": {
+            #     "command": "python3",
+            #     "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/kathara_bmv2_mcp_server.py"],
+            # },
+            # "kathara_telemetry_mcp_server": {
+            #     "command": "python3",
+            #     "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/kathara_telemetry_mcp_server.py"],
+            # },
             # "common_tools_mcp_server": {
             #     "command": "python3",
             #     "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/common_tools_mcp_server.py"],
             # },
-            # "kathara_frr_mcp_server": {
-            #     "command": "python3",
-            #     "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/kathara_frr_mcp_server.py"],
-            # },
+            "kathara_frr_mcp_server": {
+                "command": "python3",
+                "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/kathara_frr_mcp_server.py"],
+            },
+            "task_mcp_server": {
+                "command": "python3",
+                "args": ["/home/p4/codes/AI4NetOps/llm4netlab/service/mcp_server/task_mcp_server.py"],
+            },
         }
     }
 
     # Create MCPClient from configuration dictionary
     client = MCPClient.from_dict(config)
+    client.
     # Create LLM
     llm = ChatDeepSeek(model="deepseek-reasoner")
     # Create agent with the client
@@ -69,7 +78,8 @@ async def main():
     )
 
     orchestrator = Orchestrator()
-    task_desc = orchestrator.init_problem("p4_int_hop_delay_high_detection")
+    task_desc = orchestrator.init_problem("frr_down_detection")
+    orchestrator.register_agent(agent, agent.name)
 
     # Run the query
     result = await agent.arun(task_desc)

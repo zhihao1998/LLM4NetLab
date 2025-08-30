@@ -1,6 +1,7 @@
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.simple_bmv2.lab import SimpleBmv2
-from llm4netlab.orchestrator.tasks.detection import DetectionTask
+from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemBase
+from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaBMv2API, KatharaTCAPI
 
 
@@ -12,15 +13,12 @@ class KatharaAPIBMv2TC(KatharaBMv2API, KatharaTCAPI):
         super().__init__(lab_name)
 
 
-class PacketLossBaseTask:
+class P4PacketLossBaseTask:
     """Base class for a packet loss problem."""
 
     def __init__(self):
         self.net_env = SimpleBmv2()  # each problem should tailor its own network environment
         self.kathara_api = KatharaAPIBMv2TC(lab_name=self.net_env.lab.name)
-
-        self.problem_name = "PacketLossBaseTask"
-        self.problem_description = "A problem to detect packet loss in a host interface."
         self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
@@ -39,9 +37,19 @@ class PacketLossBaseTask:
         )
 
 
-class PacketLossDetection(PacketLossBaseTask, DetectionTask):
+class P4PacketLossDetection(P4PacketLossBaseTask, DetectionTask):
+    META = ProblemBase(
+        id="packet_loss_detection",
+        description="Detect if there is packet loss in a host interface.",
+        issue_type="network_issue",
+    )
+
+    SUBMISSION = DetectionSubmission(
+        is_anomaly=True,
+        issue_type=IssueType.CONNECTIVITY_LOSS,
+        problem_id=META.id,
+    )
+
     def __init__(self):
-        PacketLossBaseTask.__init__(self)
+        P4PacketLossBaseTask.__init__(self)
         DetectionTask.__init__(self, self.net_env)
-        self.problem_name = "PacketLossDetection"
-        self.problem_description = "Detection problem to identify which host interface is experiencing packet loss."

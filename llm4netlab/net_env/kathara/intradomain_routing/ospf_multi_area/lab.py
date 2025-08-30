@@ -5,7 +5,6 @@ from Kathara.model.Lab import Lab
 
 from llm4netlab.net_env.base import NetworkEnvBase
 
-LAB_NAME = "ospf_multi_area"
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 """
@@ -23,10 +22,12 @@ pc3       pc4
 
 
 class OspfMultiArea(NetworkEnvBase):
+    LAB_NAME = "ospf_multi_area"
+
     def __init__(self):
         super().__init__()
-        self.lab = Lab(LAB_NAME)
-        self.name = LAB_NAME
+        self.lab = Lab(self.LAB_NAME)
+        self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "An OSPF network with 4 routers and 3 areas."
 
