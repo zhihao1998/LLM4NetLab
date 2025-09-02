@@ -19,11 +19,11 @@ def google_search(query: str) -> dict:
     Returns:
         dict: A dictionary containing the search results with titles and links.
     """
-    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-    GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
+    GOOGLE_SEARCH_API_KEY = os.getenv("GOOGLE_SEARCH_API_KEY")
+    GOOGLE_SEARCH_CSE_ID = os.getenv("GOOGLE_SEARCH_CSE_ID")
 
-    service = build("customsearch", "v1", developerKey=GOOGLE_API_KEY)
-    res = service.cse().list(q=query, cx=GOOGLE_CSE_ID, num=5).execute()
+    service = build("customsearch", "v1", developerKey=GOOGLE_SEARCH_API_KEY)
+    res = service.cse().list(q=query, cx=GOOGLE_SEARCH_CSE_ID, num=5).execute()
     results = [
         {"title": item["title"], "link": item["link"], "snippet": item["snippet"]} for item in res.get("items", [])
     ]

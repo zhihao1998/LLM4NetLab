@@ -25,7 +25,10 @@ load_dotenv(verbose=True)
 LAB_SESSION_ID = os.getenv("LAB_SESSION_ID")
 LAB_PROBLEM_ID = os.getenv("LAB_PROBLEM_ID")
 AGENT_NAME = os.getenv("AGENT_NAME")
-RESULT_DIR = os.getenv("RESULT_DIR")
+base_dir = os.getenv("BASE_DIR")
+base_dir = os.getenv("BASE_DIR")
+assert base_dir is not None, "BASE_DIR environment variable is not set."
+result_dir = os.path.join(base_dir, "results")
 
 
 @mcp.tool()
@@ -36,7 +39,7 @@ def list_avail_problems() -> list[str]:
         list[(problem_id: str, problem_description: str, issue_type: str)]: A list of (problem_id, problem_description, issue_type) tuples.
     """
 
-    return _list_avail_problems()
+    return _list_avail_problems(LAB_PROBLEM_ID)
 
 
 @mcp.tool()
@@ -76,7 +79,7 @@ def submit(submission: Dict[str, Any]) -> List[str]:
     result = validated.model_dump()
     result["model"] = AGENT_NAME
 
-    with open(f"{RESULT_DIR}/{LAB_PROBLEM_ID}/{LAB_SESSION_ID}_submission.log", "a+") as log_file:
+    with open(f"{result_dir}/{LAB_PROBLEM_ID}/{LAB_SESSION_ID}_submission.log", "a+") as log_file:
         log_file.write(json.dumps(result))
 
     return ["Detection submission successful."]

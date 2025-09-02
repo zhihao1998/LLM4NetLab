@@ -1,6 +1,6 @@
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.simple_bmv2.lab import SimpleBmv2
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemBase
+from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaBMv2API, KatharaTCAPI
 
@@ -38,10 +38,11 @@ class P4PacketLossBaseTask:
 
 
 class P4PacketLossDetection(P4PacketLossBaseTask, DetectionTask):
-    META = ProblemBase(
+    META = ProblemMeta(
         id="packet_loss_detection",
         description="Detect if there is packet loss in a host interface.",
-        issue_type="network_issue",
+        issue_type=IssueType.CONNECTIVITY_LOSS,
+        problem_level=ProblemLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(

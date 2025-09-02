@@ -14,7 +14,7 @@ class KatharaBaseFaultInjector(BaseFaultInjector):
     def __init__(self, lab_name: str):
         super().__init__()
         self.kathara_api = KatharaAllInOneAPI(lab_name)
-        self.logger = logging.getLogger("fault_injector.kathara.base")
+        self.logger = logging.getLogger(__name__)
 
     def inject_packet_loss(self, host_name: str, interface: str, loss_percentage: int):
         """Inject packet loss into a specific interface of a switch."""

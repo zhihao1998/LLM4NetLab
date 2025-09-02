@@ -3,12 +3,6 @@ from enum import StrEnum
 from pydantic import BaseModel
 
 
-class ProblemBase(BaseModel):
-    id: str
-    description: str
-    issue_type: str
-
-
 class IssueType(StrEnum):
     DEVICE_FAILURE = "device_failure"  # Hardware or interface/module failure
     PERFORMANCE_DEGRADATION = "performance_degradation"  # High latency, packet loss, jitter, throughput drop
@@ -30,3 +24,16 @@ class IssueType(StrEnum):
     P4_RUNTIME_ERROR = "p4_runtime_error"  # Runtime update fails, table entry inconsistency
     SDN_CONTROLLER_FAILURE = "sdn_controller_failure"  # Controller crash, southbound API loss
     SDN_RULE_CONFLICT = "sdn_rule_conflict"  # Flow rule overlaps or shadowing causes blackhole/loop
+
+
+class ProblemLevel(StrEnum):
+    DETECTION = "detection"
+    LOCALIZATION = "localization"
+    MITIGATION = "mitigation"
+
+
+class ProblemMeta(BaseModel):
+    id: str
+    description: str
+    issue_type: IssueType
+    problem_level: ProblemLevel

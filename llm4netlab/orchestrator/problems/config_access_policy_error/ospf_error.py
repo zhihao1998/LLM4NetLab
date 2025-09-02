@@ -2,7 +2,7 @@ import time
 
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_multi_area.lab import OspfMultiArea
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemBase
+from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaNFTableAPI
 
@@ -37,10 +37,11 @@ class OspfAclBlockBaseTask:
 
 
 class OspfAclBlockDetection(OspfAclBlockBaseTask, DetectionTask):
-    META = ProblemBase(
+    META = ProblemMeta(
         id="ospf_acl_block_detection",
         description="Detect if there is an OSPF problem.",
-        issue_type="ospf_issue",
+        issue_type=IssueType.CONFIG_ACCESS_POLICY_ERROR,
+        problem_level=ProblemLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(

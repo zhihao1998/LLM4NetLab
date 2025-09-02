@@ -9,7 +9,7 @@ from llm4netlab.orchestrator.problems.config_routing_policy_error.bgp_error impo
 from llm4netlab.orchestrator.problems.config_routing_policy_error.ospf_error import OspfMisconfigDetection
 from llm4netlab.orchestrator.problems.connectivity_loss.p4_packet_loss import P4PacketLossDetection
 from llm4netlab.orchestrator.problems.device_failure.bmv2_failure import Bmv2DownDetection
-from llm4netlab.orchestrator.problems.device_failure.frr_failure import FrrDownDetection
+from llm4netlab.orchestrator.problems.device_failure.frr_failure import FrrDownDetection, FrrDownLocalization
 from llm4netlab.orchestrator.problems.p4_runtime_error.p4_tbl_entry_missing import P4TableEntryMissingDetection
 from llm4netlab.orchestrator.problems.performance_degradation.p4_int import P4IntHopDelayHighDetection
 from llm4netlab.orchestrator.tasks.base import TaskBase
@@ -19,6 +19,7 @@ _PROBLEMS: Dict[str, Type[TaskBase]] = {
     #  Generic device failure issues
     ####################
     FrrDownDetection.META.id: FrrDownDetection,
+    FrrDownLocalization.META.id: FrrDownLocalization,
     Bmv2DownDetection.META.id: Bmv2DownDetection,
     ####################
     #  BGP issues
@@ -63,18 +64,26 @@ def get_submit_instruction(problem_id: str) -> str:
         raise ValueError(f"Problem ID {problem_id} not found in the pool.")
 
 
-def list_avail_problems() -> list[str]:
-    return [
-        json.dumps(
-            {
-                "id": prob.META.id,
-                "description": prob.META.description,
-                "issue_type": prob.META.issue_type,
-            },
-            ensure_ascii=False,
-        )
-        for prob in _PROBLEMS.values()
-    ]
+def list_avail_problems(problem_id: str) -> list[str]:
+    """To provide the agent choices for solution submission."""
+    if problem_id not in _PROBLEMS:
+        raise ValueError(f"Problem ID {problem_id} not found in the pool.")
+
+    all_avail_problems = []
+
+    for prob in _PROBLEMS.values():
+        if prob.META.problem_level == _PROBLEMS[problem_id].META.problem_level:
+            all_avail_problems.append(
+                json.dumps(
+                    {
+                        "id": prob.META.id,
+                        "description": prob.META.description,
+                        "issue_type": prob.META.issue_type,
+                    },
+                    ensure_ascii=False,
+                )
+            )
+    return all_avail_problems
 
 
 def get_problem_instance(problem_id: str) -> TaskBase:
@@ -108,4 +117,5 @@ def get_submission_template(problem_id: str) -> BaseModel:
 
 
 if __name__ == "__main__":
-    print(get_submission_template("frr_down_detection"))
+    # print(get_submission_template("frr_down_detection"))
+    print(list_avail_problems("frr_down_localization"))

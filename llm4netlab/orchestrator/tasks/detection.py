@@ -1,7 +1,5 @@
 """Define and query information about an Detection task."""
 
-import textwrap
-
 from pydantic import BaseModel, Field
 
 from llm4netlab.net_env.base import NetworkEnvBase
@@ -22,13 +20,10 @@ class DetectionTask(TaskBase):
         self.net_summary = self.net_env.net_summary()
 
         self.task_desc = """\
-            The network you are working with today is described below:
+            The network you are working with is described below:
             {net_summary}
 
-            You will begin by analyzing the network's state, and detect anomalies:
-            1. Detection: Indicate whether there is an anomaly in the network. No need for further analysis or mitigation.
+            You will begin by analyzing the network's state, and detect anomalies.
+            Indicate whether there is an anomaly in the network. No need for further analysis or mitigation.
             Once finished, call the appropriate submission tool and submit your findings.
             """
-
-    def get_task_description(self):
-        return textwrap.dedent(self.task_desc).format(net_summary=self.net_summary)

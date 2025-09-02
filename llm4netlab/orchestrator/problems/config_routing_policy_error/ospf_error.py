@@ -2,7 +2,7 @@ import time
 
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_multi_area.lab import OspfMultiArea
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemBase
+from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaFRRAPI
 
@@ -27,15 +27,16 @@ class OspfMisconfigBaseTask:
 
 
 class OspfMisconfigDetection(OspfMisconfigBaseTask, DetectionTask):
-    META = ProblemBase(
+    META = ProblemMeta(
         id="ospf_misconfig_detection",
         description="Detect if there is an OSPF misconfiguration problem.",
-        issue_type="ospf_issue",
+        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=ProblemLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_ACCESS_POLICY_ERROR,
+        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
         problem_id=META.id,
     )
 

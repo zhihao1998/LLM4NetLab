@@ -18,7 +18,7 @@ class Orchestrator:
 
         self.orchestration_start_time = None
         self.orchestration_end_time = None
-        self.logger = logging.getLogger("orchestrator")
+        self.logger = logging.getLogger(__name__)
 
     def init_problem(self, problem_id: str) -> tuple:
         """Initialize the problem to solve.

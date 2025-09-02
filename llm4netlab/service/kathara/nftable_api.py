@@ -9,7 +9,7 @@ class KtharaNFTableMixin:
     def nft_list_ruleset(
         self: _SupportsBase,
         host_name: str,
-    ) -> list[str]:
+    ) -> str:
         """
         List nftables rules in a specific table and chain on a host.
 
@@ -17,7 +17,7 @@ class KtharaNFTableMixin:
             host_name (str): Name of the host where the nftables rules are to be listed.
 
         Returns:
-            list[str]: The output of the nft list ruleset command.
+            str: The output of the nft list ruleset command.
         """
         command = "nft -a list ruleset"
         return self._run_cmd(host_name, command)
@@ -25,7 +25,7 @@ class KtharaNFTableMixin:
     def nft_list_tables(
         self: _SupportsBase,
         host_name: str,
-    ) -> list[str]:
+    ) -> str:
         """
         List nftables tables on a host.
 
@@ -41,7 +41,7 @@ class KtharaNFTableMixin:
     def nft_list_chains(
         self: _SupportsBase,
         host_name: str,
-    ) -> list[str]:
+    ) -> str:
         """
         List nftables chains in a specific table on a host.
 
@@ -60,7 +60,7 @@ class KtharaNFTableMixin:
         host_name: str,
         table_name: str,
         family: str = "inet",
-    ) -> list[str]:
+    ) -> str:
         """
         Add a table to nftables on a host.
 
@@ -84,7 +84,7 @@ class KtharaNFTableMixin:
         hook: str = None,
         type: str = None,
         policy: str = None,
-    ) -> list[str]:
+    ) -> str:
         """
         Add a chain to a specific table on a host. Must ensure the table exists.
 
@@ -114,7 +114,7 @@ class KtharaNFTableMixin:
         chain: str,
         rule: str,
         family: str = "inet",
-    ) -> list[str]:
+    ) -> str:
         """
         Add a rule to a specific table and chain on a host. Must ensure the table and chain exist.
 
@@ -136,7 +136,7 @@ class KtharaNFTableMixin:
         host_name: str,
         table_name: str,
         family: str = "inet",
-    ) -> list[str]:
+    ) -> str:
         """
         Delete a table from nftables on a host.
 
@@ -172,36 +172,37 @@ if __name__ == "__main__":
     kathara_api = KatharaNFTableAPI(lab_name)
     table_name = "filter"
     family = "inet"
-
-    kathara_api.nft_delete_table(host_name="router1", table=table_name)
-    print(kathara_api.nft_list_tables(host_name="router1"))
-
-    kathara_api.nft_add_table(host_name="router1", family=family, table=table_name)
-    print(kathara_api.nft_list_tables(host_name="router1"))
-
-    for chain_name in ["INPUT", "FORWARD"]:
-        kathara_api.nft_add_chain(
-            host_name="router1",
-            family=family,
-            table=table_name,
-            chain=chain_name,
-            hook="output",
-            type="filter",
-            policy="accept",
-        )
-        kathara_api.nft_add_rule(
-            host_name="router1",
-            family=family,
-            table=table_name,
-            chain=chain_name,
-            rule="tcp dport 179 drop",
-        )
-        kathara_api.nft_add_rule(
-            host_name="router1",
-            family=family,
-            table=table_name,
-            chain=chain_name,
-            rule="tcp sport 179 drop",
-        )
-
     print(kathara_api.nft_list_ruleset(host_name="router1"))
+
+    # kathara_api.nft_delete_table(host_name="router1", table=table_name)
+    # print(kathara_api.nft_list_tables(host_name="router1"))
+
+    # kathara_api.nft_add_table(host_name="router1", family=family, table=table_name)
+    # print(kathara_api.nft_list_tables(host_name="router1"))
+
+    # for chain_name in ["INPUT", "FORWARD"]:
+    #     kathara_api.nft_add_chain(
+    #         host_name="router1",
+    #         family=family,
+    #         table=table_name,
+    #         chain=chain_name,
+    #         hook="output",
+    #         type="filter",
+    #         policy="accept",
+    #     )
+    #     kathara_api.nft_add_rule(
+    #         host_name="router1",
+    #         family=family,
+    #         table=table_name,
+    #         chain=chain_name,
+    #         rule="tcp dport 179 drop",
+    #     )
+    #     kathara_api.nft_add_rule(
+    #         host_name="router1",
+    #         family=family,
+    #         table=table_name,
+    #         chain=chain_name,
+    #         rule="tcp sport 179 drop",
+    #     )
+
+    # print(kathara_api.nft_list_ruleset(host_name="router1"))

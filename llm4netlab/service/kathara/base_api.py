@@ -1,6 +1,7 @@
 import asyncio
 import re
-from typing import Dict, Protocol, runtime_checkable
+import time
+from typing import Dict, Literal, Protocol, runtime_checkable
 
 from Kathara.manager.docker.stats.DockerLinkStats import DockerLinkStats
 from Kathara.manager.Kathara import Kathara, Lab
@@ -12,7 +13,7 @@ class _SupportsBase(Protocol):
     instance: "Kathara"
     lab: "Lab"
 
-    def _run_cmd(self, machine_name: str, command: str) -> list[str]: ...
+    def _run_cmd(self, machine_name: str, command: str) -> str: ...
 
 
 class KatharaBaseAPI:
@@ -183,11 +184,16 @@ class KatharaBaseAPI:
         self._run_cmd(server_host_name, "pkill iperf3")
         return result
 
-    def systemctl_ops(self, host_name: str, service_name: str, operation: str) -> str:
+    def systemctl_ops(
+        self, host_name: str, service_name: str, operation: Literal["start", "stop", "restart", "status"]
+    ) -> str:
         """
         Perform systemctl operations (start, stop, restart, status) on a host.
         """
-        return self._run_cmd(host_name, f"systemctl {operation} {service_name} ")
+        result = self._run_cmd(host_name, f"systemctl {operation} {service_name}")
+        if operation != "status":
+            time.sleep(5)
+        return result
 
 
 async def main():

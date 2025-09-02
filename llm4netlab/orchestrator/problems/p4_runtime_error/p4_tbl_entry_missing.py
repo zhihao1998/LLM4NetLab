@@ -1,5 +1,5 @@
 from llm4netlab.net_env.kathara.l2_basic_forwarding.lab import L2BasicForwarding
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemBase
+from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaBMv2API
 
@@ -11,10 +11,11 @@ class P4TableEntryMissingBase:
 
 
 class P4TableEntryMissingDetection(P4TableEntryMissingBase, DetectionTask):
-    META = ProblemBase(
+    META = ProblemMeta(
         id="p4_table_entry_missing_detection",
         description="Detect if there is any missing P4 table entry.",
-        issue_type="p4_issue",
+        issue_type=IssueType.P4_RUNTIME_ERROR,
+        problem_level=ProblemLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(

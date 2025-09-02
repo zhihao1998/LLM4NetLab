@@ -2,7 +2,7 @@ import time
 
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.interdomain_routing.simple_bgp.lab import SimpleBGP
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemBase
+from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaFRRAPI
 
@@ -17,18 +17,19 @@ class BgpAsnMisconfigBaseTask:
 
     def inject_fault(self):
         self.injector.inject_bgp_misconfig(host_name="router1", correct_asn=1, wrong_asn=2)
-        time.sleep(5)
+        time.sleep(10)
 
     def recover_fault(self):
         self.injector.recover_bgp_misconfig(host_name="router1", correct_asn=1, wrong_asn=2)
-        time.sleep(5)
+        time.sleep(10)
 
 
 class BgpAsnMisconfigDetection(BgpAsnMisconfigBaseTask, DetectionTask):
-    META = ProblemBase(
+    META = ProblemMeta(
         id="bgp_asn_misconfig_detection",
         description="Detection problem to identify if there is BGP ASN misconfiguration.",
-        issue_type="bgp_issue",
+        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=ProblemLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(

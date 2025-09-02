@@ -64,7 +64,7 @@ class NetworkEnvBase:
         Generate a summary of the network configuration.
         """
         self.load_machines()
-        summary = f"Lab name: {self.name}\nDescription: {self.desc}\n"
+        summary = f"Network Description: {self.desc}\n"
         if self.bmv2_switches:
             summary += f"BMV2 switches: {', '.join(self.bmv2_switches)}\n"
         if self.ovs_switches:
