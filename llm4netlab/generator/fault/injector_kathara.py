@@ -87,13 +87,13 @@ class KatharaBaseFaultInjector(BaseFaultInjector):
 
     def inject_service_down(self, host_name: str, service_name: str):
         """Inject a fault by stopping a service on a host."""
-        self.kathara_api.systemctl_ops(host_name=host_name, service_name=service_name, operation="stop")
         self.logger.info(f"Injected service down fault on {host_name} for service {service_name}.")
+        self.kathara_api.systemctl_ops(host_name=host_name, service_name=service_name, operation="stop")
 
     def recover_service_down(self, host_name: str, service_name: str):
         """Recover from a fault by starting a service on a host."""
-        self.kathara_api.systemctl_ops(host_name=host_name, service_name=service_name, operation="start")
         self.logger.info(f"Recovered service down fault on {host_name} for service {service_name}.")
+        self.kathara_api.systemctl_ops(host_name=host_name, service_name=service_name, operation="start")
 
     def inject_bmv2_down(self, host_name: str):
         """Inject a fault by stopping the bmv2 service on a host."""

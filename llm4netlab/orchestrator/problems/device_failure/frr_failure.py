@@ -59,3 +59,10 @@ class FrrDownLocalization(FrrDownBase, LocalizationTask):
     def __init__(self):
         FrrDownBase.__init__(self)
         LocalizationTask.__init__(self, self.net_env)
+
+
+if __name__ == "__main__":
+    # Test the fault injection and recovery
+    problem = FrrDownLocalization()
+    print("Injecting fault...")
+    problem.inject_fault()

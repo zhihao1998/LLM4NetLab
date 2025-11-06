@@ -2,11 +2,25 @@ import os
 
 from mcp.server.fastmcp import FastMCP
 
-from llm4netlab.service.kathara import KatharaBaseAPI, KatharaNFTableAPI
+from llm4netlab.net_env.kathara.interdomain_routing.simple_bgp.lab import SimpleBGP
+from llm4netlab.service.kathara import KatharaBaseAPI
+from llm4netlab.service.kathara.frr_api import KatharaFRRAPI
 
 # Initialize FastMCP server
-mcp = FastMCP("kathara_base_mcp_server")
-LAB_NAME = os.getenv("LAB_NAME")
+mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000, log_level="DEBUG")
+LAB_NAME = os.getenv("LAB_NAME", "simple_bgp")
+
+
+@mcp.tool()
+def get_net_env_info() -> dict:
+    """Get basic information about the net_env, including hosts, routers, and links.
+
+    Returns:
+        dict: A dictionary containing the information of the network.
+    """
+    lab = SimpleBGP()
+    info = lab.net_summary()
+    return info
 
 
 @mcp.tool()
@@ -54,6 +68,20 @@ def get_host_net_config(host_name: str) -> dict:
 
 
 @mcp.tool()
+def frr_get_bgp_conf(router_name: str) -> str:
+    """Get the BGP configuration from the FRR router.
+
+    Args:
+        router_name (str): The name of the router.
+
+    Returns:
+        str: The BGP configuration from the FRR router.
+    """
+    kathara_api = KatharaFRRAPI(lab_name=LAB_NAME)
+    return kathara_api.frr_get_bgp_conf(router_name)
+
+
+@mcp.tool()
 def iperf_test(
     client_host_name: str,
     server_host_name: str,
@@ -84,21 +112,7 @@ def iperf_test(
     return result
 
 
-@mcp.tool()
-def nft_list_ruleset(host_name: str) -> str:
-    """Get the nftables ruleset for the lab.
-
-    Args:
-        host_name (str): The name of the host to get the ruleset for.
-
-    Returns:
-        list[str]: The nftables ruleset.
-    """
-    kathara_api = KatharaNFTableAPI(lab_name=LAB_NAME)
-    ruleset = kathara_api.nft_list_ruleset(host_name=host_name)
-    return ruleset
-
-
 if __name__ == "__main__":
     # Initialize and run the server
-    mcp.run(transport="stdio")
+    mcp.run(transport="sse")
+    # print(get_net_env_info())

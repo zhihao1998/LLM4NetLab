@@ -28,6 +28,9 @@ class Orchestrator:
 
         Returns:
             str: The task description.
+            str: The session ID.
+            str: The problem ID.
+            str: The lab name.
         """
         self.orchestration_start_time = time.time()
 
@@ -58,7 +61,7 @@ class Orchestrator:
             f"/home/p4/codes/AI4NetOps/results/{self.problem_id}/{self.session.session_id}_ground_truth.log", "a+"
         ) as log_file:
             log_file.write(self.problem.SUBMISSION.model_dump_json() + "\n")
-        return task_desc
+        return task_desc, self.session.session_id, self.problem_id, self.problem.net_env.name
 
     def register_agent(self, agent, agent_name) -> None:
         """Register an agent with the orchestrator.

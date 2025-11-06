@@ -42,15 +42,22 @@ This is the code repository for the paper [Towards a Playground to Democratize E
 
 ## Setup
 
-Clone the repository and install the dependencies. LLM4NetLab uses [Poetry](https://python-poetry.org/docs/) to manage the dependencies. Follow [Poetry installation instructions](https://python-poetry.org/docs/#installation) to install Poetry. You can also use a standard `pip install -e .` to install the dependencies.
+Clone the repository and install the dependencies. 
+LLM4NetLab uses [uv](https://docs.astral.sh/uv) to manage the dependencies. Follow [uv installation instructions](https://docs.astral.sh/uv/getting-started/installation/) to install uv. You can also use a standard `pip install -e .` to install the dependencies.
 
 ```shell
-git clone https://github.com/zhihao1998/LLM4NetLab.git  
-poetry env use python3.12
-export PATH="$HOME/.local/bin:$PATH" # export poetry to PATH if needed
-poetry install # -vvv for verbose output
-poetry self add poetry-plugin-shell # installs poetry shell plugin
-poetry shell
+# Clone the repository
+git clone https://github.com/zhihao1998/LLM4NetLab.git
+cd LLM4NetLab
+
+# Install dependencies
+uv sync
+
+# Activate the environment
+uv venv activate
+
+# (Optional) Run an interactive shell in the environment
+uv run bash
 ```
 
 The Kathará API relies on Docker to function properly. We recommend to add current user to docker group to avoid calling with `sudo`. **However, please be aware of the security implications of this action.**
@@ -202,6 +209,41 @@ LLM4NetLab provides a set of MCP servers and tools to facilitate network trouble
 💡 More tools are coming soon...
 
 You can also plug in your own MCP servers following the configuration instruction. Look for more MCP servers at [mcp.so](https://mcp.so/).
+
+### Plug in the servers to your Claude desktop
+
+#### Windows
+
+Since the network environment and kathará run on Linux, and Claude desktop runs on Windows, we need some tricks here.
+
+1. Modify the `xxx_mcp_server.py` files under `llm4netlab/service/mcp_server` as follows:
+   
+```python
+mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000)
+... # your tools can be kept as is
+mcp.run(transport="sse")
+```
+
+2. Run the server in VSCode terminal, it will automatically forward the port to Windows host, like 8000 -> 8000.
+
+1. Configure Claude's config file `xx/claude_desktop_config.json` as follows:
+
+```json
+{
+  "mcpServers": {
+    "kathara_base": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://127.0.0.1:8000/sse"
+      ]
+    }
+  }
+}
+```
+
+4. Enjoy!
+
 
 ## Logging and Observability
 

@@ -9,3 +9,4 @@ tmp/
 results/*
 config/config.yaml
 .env
+/.venv

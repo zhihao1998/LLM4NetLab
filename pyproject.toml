@@ -21,19 +21,12 @@ dependencies = [
     "mcp[cli] (>=1.13.0,<2.0.0)",
     "mcp-use (>=1.3.10,<2.0.0)",
     "langchain-mcp-adapters (>=0.1.9,<0.2.0)",
-    "google-api-python-client (>=2.179.0,<3.0.0)"
+    "google-api-python-client (>=2.179.0,<3.0.0)",
+    "setuptools (<80)",
+    "fs>=2.4.16",
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry]
-name = "llm4netlab"
-version = "0.1.0"
-packages = [{ include = "llm4netlab" }]
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.30.1"
-

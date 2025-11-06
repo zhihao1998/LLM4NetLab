@@ -72,7 +72,7 @@ class NetworkEnvBase:
         if self.hosts:
             summary += f"Hosts: {', '.join(self.hosts)}\n"
         if self.routers:
-            summary += f"Routers: {', '.join(self.routers)}\n"
+            summary += f"Routers (FRRRouting): {', '.join(self.routers)}\n"
         if self.links:
             summary += f"Links: {', '.join(self.links)}\n"
         summary += f"Topology: {', '.join(f'({a}, {b})' for a, b in self.get_topology())}"
