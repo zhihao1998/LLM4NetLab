@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from dotenv import load_dotenv
-from langchain_deepseek import ChatDeepSeek
+from langchain_google_genai import ChatGoogleGenerativeAI
 from mcp_use import MCPAgent, MCPClient
 
 from agent.base import AgentBase
@@ -39,11 +39,9 @@ async def main():
     task_desc, session_id, problem_id, lab_name = orchestrator.init_problem("frr_down_detection")
     # 2. Load MCP server and client
     mcp_server_config = MCPServer().load_config(session_id=session_id, problem_id=problem_id, lab_name=lab_name)
-    # 3. Create MCP client
     client = MCPClient.from_dict(mcp_server_config)
-
     # 4. Create and register Agent
-    llm = ChatDeepSeek(model="deepseek-reasoner")
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-pro")
     agent = AgentWithMCP(name="MCPAgent_DeepSeek", llm=llm, client=client, max_steps=20)
     orchestrator.register_agent(agent, agent.name)
     # 5. Ready? Go!
@@ -52,5 +50,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())

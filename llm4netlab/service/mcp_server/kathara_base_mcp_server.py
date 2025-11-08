@@ -114,5 +114,5 @@ def iperf_test(
 
 if __name__ == "__main__":
     # Initialize and run the server
-    mcp.run(transport="sse")
+    mcp.run(transport="stdio")
     # print(get_net_env_info())

@@ -144,6 +144,22 @@ class KatharaBaseFaultInjector(BaseFaultInjector):
             f"Recovered OSPF area misconfiguration on {host_name} from area {wrong_area} to {correct_area}."
         )
 
+    def inject_bgp_missing_route(self, host_name: str):
+        """Inject a BGP missing route by commenting out the network advertisement."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            "sed -i.bak -E 's/^([[:space:]]*)network /\1# network /' /etc/frr/frr.conf && systemctl restart frr",
+        )
+        self.logger.info(f"Injected BGP missing route on {host_name}.")
+
+    def recover_bgp_missing_route(self, host_name: str):
+        """Recover from a BGP missing route by recovering the backed up frr.conf file."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            "mv /etc/frr/frr.conf.bak /etc/frr/frr.conf && systemctl restart frr",
+        )
+        self.logger.info(f"Recovered BGP missing route on {host_name}.")
+
 
 if __name__ == "__main__":
     # Example usage

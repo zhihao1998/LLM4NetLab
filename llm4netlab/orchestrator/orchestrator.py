@@ -2,6 +2,7 @@ import logging
 import os
 import time
 
+from config import BASE_DIR
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
 from llm4netlab.utils.errors import SessionPrint
 from llm4netlab.utils.session import Session
@@ -55,11 +56,9 @@ class Orchestrator:
         # Get the problem description, instructions, and APIs
         task_desc = self.problem.get_task_description()
 
-        os.makedirs(f"/home/p4/codes/AI4NetOps/results/{self.problem_id}", exist_ok=True)
+        os.makedirs(f"{BASE_DIR}/results/{self.problem_id}", exist_ok=True)
         # Log the problem and descriptions as ground truth
-        with open(
-            f"/home/p4/codes/AI4NetOps/results/{self.problem_id}/{self.session.session_id}_ground_truth.log", "a+"
-        ) as log_file:
+        with open(f"{BASE_DIR}/results/{self.problem_id}/{self.session.session_id}_ground_truth.log", "a+") as log_file:
             log_file.write(self.problem.SUBMISSION.model_dump_json() + "\n")
         return task_desc, self.session.session_id, self.problem_id, self.problem.net_env.name
 

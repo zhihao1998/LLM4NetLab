@@ -7,7 +7,7 @@ from mcp.server.fastmcp import FastMCP
 # Initialize FastMCP server
 mcp = FastMCP("common_tools_mcp_server")
 
-load_dotenv("/home/p4/codes/AI4NetOps/.env")
+load_dotenv("/home/p4/codes/LLM4NetLab/.env")
 
 
 @mcp.tool()

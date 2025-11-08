@@ -50,10 +50,10 @@ class FrrDownLocalization(FrrDownBase, LocalizationTask):
         problem_level=ProblemLevel.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission.DeviceFailure(
+    SUBMISSION = LocalizationSubmission(
         issue_type=IssueType.DEVICE_FAILURE,
         problem_id=META.id,
-        failed_device=FrrDownBase.failed_device,
+        target_component_id=FrrDownBase.failed_device,
     )
 
     def __init__(self):

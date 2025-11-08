@@ -3,9 +3,14 @@ from typing import Dict, Type
 
 from pydantic import BaseModel
 
-from llm4netlab.orchestrator.problems.config_access_policy_error.bgp_error import BgpAclBlockDetection
+from llm4netlab.orchestrator.problems.config_access_policy_error.bgp_error import BGPAclBlockDetection
 from llm4netlab.orchestrator.problems.config_access_policy_error.ospf_error import OspfAclBlockDetection
-from llm4netlab.orchestrator.problems.config_routing_policy_error.bgp_error import BgpAsnMisconfigDetection
+from llm4netlab.orchestrator.problems.config_routing_policy_error.bgp_error import (
+    BGPAsnMisconfigDetection,
+    BGPAsnMisconfigLocalization,
+    BGPMissingRouteDetection,
+    BGPMissingRouteLocalization,
+)
 from llm4netlab.orchestrator.problems.config_routing_policy_error.ospf_error import OspfMisconfigDetection
 from llm4netlab.orchestrator.problems.connectivity_loss.p4_packet_loss import P4PacketLossDetection
 from llm4netlab.orchestrator.problems.device_failure.bmv2_failure import Bmv2DownDetection
@@ -24,11 +29,14 @@ _PROBLEMS: Dict[str, Type[TaskBase]] = {
     ####################
     #  BGP issues
     ####################
-    # ref: https://support.huawei.com/enterprise/en/doc/EDOC1000177634/31f2a647/case-study-a-bgp-peer-relationship-fails-to-be-established#EN-US_CONCEPT_0000001180501803
-    # An ACL filters out the packets carrying TCP port 179.
-    BgpAclBlockDetection.META.id: BgpAclBlockDetection,
-    # ASN misconfiguration can cause BGP peer relationship to fail.
-    BgpAsnMisconfigDetection.META.id: BgpAsnMisconfigDetection,
+    # Access policy error (BGP ACL block, port 179)
+    BGPAclBlockDetection.META.id: BGPAclBlockDetection,
+    # Routing policy misconfiguration
+    BGPAsnMisconfigDetection.META.id: BGPAsnMisconfigDetection,
+    BGPAsnMisconfigLocalization.META.id: BGPAsnMisconfigLocalization,
+    # Missing route advertisement in BGP configuration.
+    BGPMissingRouteDetection.META.id: BGPMissingRouteDetection,
+    BGPMissingRouteLocalization.META.id: BGPMissingRouteLocalization,
     ####################
     #  OSPF issues
     ####################
@@ -118,4 +126,4 @@ def get_submission_template(problem_id: str) -> BaseModel:
 
 if __name__ == "__main__":
     # print(get_submission_template("frr_down_detection"))
-    print(list_avail_problems("frr_down_localization"))
+    print(list_avail_problems("bgp_missing_route_detection"))

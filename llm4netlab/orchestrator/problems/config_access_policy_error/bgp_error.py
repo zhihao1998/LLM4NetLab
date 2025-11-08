@@ -7,7 +7,7 @@ from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, Detecti
 from llm4netlab.service.kathara import KatharaNFTableAPI
 
 
-class BgpAclBlockBaseTask:
+class BGPAclBlockBaseTask:
     """Base class for a packet loss problem."""
 
     def __init__(self):
@@ -34,7 +34,7 @@ class BgpAclBlockBaseTask:
         time.sleep(5)
 
 
-class BgpAclBlockDetection(BgpAclBlockBaseTask, DetectionTask):
+class BGPAclBlockDetection(BGPAclBlockBaseTask, DetectionTask):
     META = ProblemMeta(
         id="bgp_acl_block_detection",
         description="Detection problem to identify if there is BGP ACL block.",
@@ -49,5 +49,5 @@ class BgpAclBlockDetection(BgpAclBlockBaseTask, DetectionTask):
     )
 
     def __init__(self):
-        BgpAclBlockBaseTask.__init__(self)
+        BGPAclBlockBaseTask.__init__(self)
         DetectionTask.__init__(self, self.net_env)

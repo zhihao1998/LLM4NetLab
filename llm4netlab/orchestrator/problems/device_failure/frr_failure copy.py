@@ -5,11 +5,10 @@ from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission, L
 
 
 class FrrDownLocalization(LocalizationTask):
-    SUBMISSION = LocalizationSubmission.DeviceFailure(
+    SUBMISSION = LocalizationSubmission(
         issue_type=IssueType.DEVICE_FAILURE,
         problem_id="frr_down_localization",
-        failed_device="router1",
-        failed_service="frr",
+        target_component_id="router1",
     )
 
     def __init__(self):
@@ -21,5 +20,6 @@ class FrrDownLocalization(LocalizationTask):
 
     def recover_fault(self):
         self.injector.recover_service_down(host_name="router1", service_name="frr")
+
 
 True

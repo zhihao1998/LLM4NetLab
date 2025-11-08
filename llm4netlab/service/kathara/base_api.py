@@ -197,7 +197,7 @@ class KatharaBaseAPI:
 
 
 async def main():
-    api = KatharaBaseAPI(lab_name="ospf_multi_area")
+    api = KatharaBaseAPI(lab_name="ibgp_dc_4_level")
     result = await api.get_reachability()
     print("Reachability:", result)
 

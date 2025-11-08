@@ -6,15 +6,12 @@ from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.orchestrator.tasks.base import TaskBase
 
 
-class LocalizationSubmission:
-    class DeviceFailure(BaseModel):
-        issue_type: str = Field(
-            description="Type of issue detected. Must be selected from known available issue types."
-        )
-        problem_id: str = Field(
-            description="Type of problem detected. Must be selected from known available problem ids."
-        )
-        failed_device: str = Field(description="Name of the failed device.")
+class LocalizationSubmission(BaseModel):
+    issue_type: str = Field(description="Type of issue detected. Must be selected from known available issue types.")
+    problem_id: str = Field(description="Type of problem detected. Must be selected from known available problem ids.")
+    target_component_id: str = Field(
+        description="The identifier of the target component (e.g., device name, interface name)."
+    )
 
 
 class LocalizationTask(TaskBase):

@@ -1,6 +1,0 @@
-ip address add 10.0.5.1/31 dev eth0
-# to PC2
-ip address add 192.168.1.1/24 dev eth1
-# lo
-ip address add 10.255.3.1/32 dev lo
-systemctl start frr
