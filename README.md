@@ -121,7 +121,7 @@ config = {
     "mcpServers": {
         "kathara_base_mcp_server": {
             "command": "python3",
-            "args": [f"{base_dir}/llm4netlab/service/mcp_server/kathara_base_mcp_server.py"],
+            "args": [f"{base_dir}/src/llm4netlab/service/mcp_server/kathara_base_mcp_server.py"],
         },
         ...
     }
@@ -181,7 +181,7 @@ Check all available problems at `llm4netlab/orchestrator/problems`. Some of them
 
 ## MCP Servers and Tools
 
-LLM4NetLab provides a set of MCP servers and tools to facilitate network troubleshooting tasks. All servers are available under `llm4netlab/service/mcp_server`. These include:
+LLM4NetLab provides a set of MCP servers and tools to facilitate network troubleshooting tasks. All servers are available under `src/llm4netlab/service/mcp_server`. These include:
 
 - **base mcp server for Kathará**: This server provides the basic functionality for interacting with Kathará network scenarios, including
   - `get_reachability` to check the reachability by pinging all pairs of hosts.
@@ -216,7 +216,7 @@ You can also plug in your own MCP servers following the configuration instructio
 
 Since the network environment and kathará run on Linux, and Claude desktop runs on Windows, we need some tricks here.
 
-1. Modify the `xxx_mcp_server.py` files under `llm4netlab/service/mcp_server` as follows:
+1. Modify the `xxx_mcp_server.py` files under `src/llm4netlab/service/mcp_server` as follows:
    
 ```python
 mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000)

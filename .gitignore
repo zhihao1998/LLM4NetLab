@@ -6,7 +6,8 @@ cache_dir/
 **/pcap/**
 tmp/
 .vscode/
-results/*
+**/results/**
 config/config.yaml
 .env
 /.venv
+*.egg-info/
