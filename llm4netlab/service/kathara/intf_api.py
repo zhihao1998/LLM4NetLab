@@ -1,3 +1,5 @@
+from typing import Literal
+
 from llm4netlab.service.kathara.base_api import KatharaBaseAPI, _SupportsBase
 
 
@@ -6,18 +8,11 @@ class IntfAPIMixin:
     Interfaces to interact with host interfaces within Kathara.
     """
 
-    def intf_down(self: _SupportsBase, host_name: str, interface: str) -> list[str]:
+    def intf_on_off(self: _SupportsBase, host_name: str, interface: str, state: Literal["up", "down"]) -> list[str]:
         """
-        Set a specific interface of a host down.
+        Set a specific interface of a host on or off.
         """
-        command = f"ip link set {interface} down"
-        return self._run_cmd(host_name, command)
-
-    def intf_up(self: _SupportsBase, host_name: str, interface: str) -> list[str]:
-        """
-        Set a specific interface of a host up.
-        """
-        command = f"ip link set {interface} up"
+        command = f"ip link set {interface} {state}"
         return self._run_cmd(host_name, command)
 
     def intf_show(self: _SupportsBase, host_name: str, interface: str) -> list[str]:
@@ -39,7 +34,7 @@ class KatharaIntfAPI(KatharaBaseAPI, IntfAPIMixin):
 if __name__ == "__main__":
     lab_name = "ospf_frr_single_area"
     kathara_api = KatharaIntfAPI(lab_name)
-    kathara_api.intf_down("bb0", "eth0")
+    kathara_api.intf_on_off("bb0", "eth0", "down")
     print(kathara_api.intf_show("bb0", "eth0"))
-    kathara_api.intf_up("bb0", "eth0")
+    kathara_api.intf_on_off("bb0", "eth0", "up")
     print(kathara_api.intf_show("bb0", "eth0"))

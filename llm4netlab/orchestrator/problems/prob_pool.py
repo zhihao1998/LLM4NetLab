@@ -12,11 +12,11 @@ from llm4netlab.orchestrator.problems.config_routing_policy_error.bgp_error impo
     BGPMissingRouteLocalization,
 )
 from llm4netlab.orchestrator.problems.config_routing_policy_error.ospf_error import OspfMisconfigDetection
-from llm4netlab.orchestrator.problems.connectivity_loss.p4_packet_loss import P4PacketLossDetection
 from llm4netlab.orchestrator.problems.device_failure.bmv2_failure import Bmv2DownDetection
 from llm4netlab.orchestrator.problems.device_failure.frr_failure import FrrDownDetection, FrrDownLocalization
 from llm4netlab.orchestrator.problems.p4_runtime_error.p4_tbl_entry_missing import P4TableEntryMissingDetection
 from llm4netlab.orchestrator.problems.performance_degradation.p4_int import P4IntHopDelayHighDetection
+from llm4netlab.orchestrator.problems.performance_degradation.p4_packet_loss import P4PacketLossDetection
 from llm4netlab.orchestrator.tasks.base import TaskBase
 
 _PROBLEMS: Dict[str, Type[TaskBase]] = {

@@ -60,6 +60,34 @@ class IntfAPIMixin:
         command += ' -c "end" -c "write"'
         return self._run_cmd(device_name, command)
 
+    def frr_add_route(self: _SupportsBase, device_name: str, route: str, next_hop: str) -> list[str]:
+        """
+        Add a static route to the FRR instance.
+        """
+        command = f'vtysh -c "conf t" -c "ip route {route} {next_hop}" -c "end" -c "write"'
+        return self._run_cmd(device_name, command)
+
+    def frr_del_route(self: _SupportsBase, device_name: str, route: str, next_hop: str) -> list[str]:
+        """
+        Delete a static route from the FRR instance.
+        """
+        command = f'vtysh -c "conf t" -c "no ip route {route} {next_hop}" -c "end" -c "write"'
+        return self._run_cmd(device_name, command)
+
+    def frr_add_bgp_advertisement(self: _SupportsBase, device_name: str, network: str, as_path: str) -> list[str]:
+        """
+        Add a BGP network advertisement to the FRR instance.
+        """
+        command = f'vtysh -c "conf t" -c "router bgp {as_path}" -c "network {network}" -c "end" -c "write"'
+        return self._run_cmd(device_name, command)
+
+    def frr_del_bgp_advertisement(self: _SupportsBase, device_name: str, network: str, as_path: str) -> list[str]:
+        """
+        Delete a BGP network advertisement from the FRR instance.
+        """
+        command = f'vtysh -c "conf t" -c "router bgp {as_path}" -c "no network {network}" -c "end" -c "write"'
+        return self._run_cmd(device_name, command)
+
 
 class KatharaFRRAPI(KatharaBaseAPI, IntfAPIMixin):
     pass

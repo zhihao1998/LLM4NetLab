@@ -41,13 +41,13 @@ class P4PacketLossDetection(P4PacketLossBaseTask, DetectionTask):
     META = ProblemMeta(
         id="packet_loss_detection",
         description="Detect if there is packet loss in a host interface.",
-        issue_type=IssueType.CONNECTIVITY_LOSS,
+        issue_type=IssueType.PERFORMANCE_DEGRADATION,
         problem_level=ProblemLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONNECTIVITY_LOSS,
+        issue_type=IssueType.PERFORMANCE_DEGRADATION,
         problem_id=META.id,
     )
 

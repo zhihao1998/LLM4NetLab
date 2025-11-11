@@ -11,7 +11,7 @@ class LocalizationSubmission(BaseModel):
     problem_id: str = Field(description="Type of problem detected. Must be selected from known available problem ids.")
     target_component_ids: list[str] = Field(
         default_factory=list,
-        description="List of IDs of components identified as the source of the problem. e.g., ['router_1', 'eth0']",
+        description="List of IDs of components identified as the source of the problem.",
     )  # when eval, sort alphabetically to avoid order issues
 
 

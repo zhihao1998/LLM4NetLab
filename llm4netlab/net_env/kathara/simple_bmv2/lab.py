@@ -4,7 +4,7 @@ from Kathara.manager.Kathara import Kathara
 from Kathara.model.Lab import Lab
 
 from config import BASE_DIR
-from llm4netlab.net_env.base import NetworkEnvBase
+from llm4netlab.net_env.kathara. import NetworkEnvBase
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
 

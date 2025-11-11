@@ -1,3 +1,2 @@
-ip link set eth0 address 00:00:0a:00:00:02
 ip addr add 200.1.1.2/24 dev eth0
 ip route add default via 200.1.1.1 dev eth0

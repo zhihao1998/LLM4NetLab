@@ -42,23 +42,23 @@ class KatharaBaseFaultInjector(BaseFaultInjector):
         )
         self.logger.info(f"Injected delay of {delay}ms on {host_name}:{interface}")
 
-    def recover_delay(self, host_name: str, interface: str):
+    def recover_delay(self, host_name: str, intf_name: str):
         """Recover from a delay injection by removing traffic control settings."""
         self.kathara_api.tc_clear_intf(
             host_name=host_name,
-            interface=interface,
+            interface=intf_name,
         )
-        self.logger.info(f"Recovered delay (via clearing TC rules) on {host_name}:{interface}")
+        self.logger.info(f"Recovered delay (via clearing TC rules) on {host_name}:{intf_name}")
 
-    def inject_link_failure(self, host_name: str, interface: str):
-        """Inject a link failure by disabling the interface."""
-        self.kathara_api.intf_down(host_name=host_name, interface=interface)
-        self.logger.info(f"Injected link failure on {host_name}:{interface}")
+    def inject_intf_down(self, host_name: str, intf_name: str):
+        """Bring down a specific interface of a host."""
+        self.kathara_api.intf_on_off(host_name=host_name, interface=intf_name, state="down")
+        self.logger.info(f"Injected interface down on {host_name}:{intf_name}")
 
-    def recover_link_failure(self, host_name: str, interface: str):
-        """Recover from a link failure by enabling the interface."""
-        self.kathara_api.intf_up(host_name=host_name, interface=interface)
-        self.logger.info(f"Recovered link failure on {host_name}:{interface}")
+    def recover_intf_down(self, host_name: str, intf_name: str):
+        """Recover from an interface down by enabling the interface."""
+        self.kathara_api.intf_on_off(host_name=host_name, interface=intf_name, state="up")
+        self.logger.info(f"Recovered interface down on {host_name}:{intf_name}")
 
     def inject_acl_rule(self, host_name: str, rule: str, table_name: str = "filter"):
         """Inject an ACL rule into a specific host."""
@@ -160,27 +160,91 @@ class KatharaBaseFaultInjector(BaseFaultInjector):
         )
         self.logger.info(f"Recovered BGP missing route on {host_name}.")
 
+    def inject_default_route_missing(self, host_name: str, back_up_file: str = "/tmp/default_route_backup.txt"):
+        """Inject a fault by removing the default route on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            "ip route show default > " + back_up_file,
+        )
+        self.kathara_api.exec_cmd(
+            host_name,
+            "ip route del default",
+        )
+        self.logger.info(f"Injected removal of default route on {host_name}.")
+
+    def recover_default_route_missing(self, host_name: str, back_up_file: str = "/tmp/default_route_backup.txt"):
+        """Recover from a fault by adding the default route on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            "sh -c 'cat " + back_up_file + " | xargs ip route add'",
+        )
+        self.logger.info(f"Recovered removal of default route on {host_name}.")
+
+    def inject_add_route_blackhole_nexthop(self, host_name: str, network: str):
+        """Inject a fault by adding a static blackhole route on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"ip route add blackhole {network}",
+        )
+        self.logger.info(f"Injected addition of route {network} on {host_name}.")
+
+    def recover_add_route_blackhole_nexthop(self, host_name: str, network: str):
+        """Recover from a fault by deleting a static blackhole route on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"ip route del blackhole {network}",
+        )
+        self.logger.info(f"Recovered addition of route {network} on {host_name}.")
+
+    def inject_add_route_blackhole_advertise(self, host_name: str, network: str, AS: str):
+        cmd = (
+            "vtysh -c 'configure terminal' "
+            f"-c 'ip route {network} Null0' "
+            f"-c 'router bgp {AS}' "
+            f"-c 'network {network}' "
+            "-c 'end' "
+            "-c 'write memory' "
+        )
+        self.kathara_api.exec_cmd(
+            host_name,
+            cmd,
+        )
+        self.logger.info(f"Injected BGP advertise blackhole route on {host_name}: {network}.")
+
+    def recover_add_route_blackhole_advertise(self, host_name: str, network: str, AS: str):
+        cmd = (
+            "vtysh -c 'configure terminal' "
+            f"-c 'no ip route {network} Null0' "
+            f"-c 'router bgp {AS}' "
+            f"-c 'no network {network}' "
+            "-c 'end' "
+            "-c 'write memory' "
+        )
+        self.kathara_api.exec_cmd(
+            host_name,
+            cmd,
+        )
+        self.logger.info(f"Recovered BGP advertise blackhole route on {host_name}: {network}.")
+
+    def inject_rip_missing_route(self, host_name: str, network: str):
+        """Inject a RIP missing route by commenting out the network advertisement."""
+        cmd = f"vtysh -c 'configure terminal' -c 'router rip' -c 'no network {network}' -c 'end' -c 'write memory' && systemctl restart frr"
+        res = self.kathara_api.exec_cmd(
+            host_name,
+            cmd,
+        )
+        self.logger.info(f"Injected RIP missing route on {host_name}: {network}.")
+
+    def recover_rip_missing_route(self, host_name: str, network: str):
+        """Recover from a RIP missing route by recovering the backed up frr.conf file."""
+        cmd = f"vtysh -c 'configure terminal' -c 'router rip' -c 'network {network}' -c 'end' -c 'write memory' && systemctl restart frr"
+        self.kathara_api.exec_cmd(
+            host_name,
+            cmd,
+        )
+        self.logger.info(f"Recovered RIP missing route on {host_name}: {network}.")
+
 
 if __name__ == "__main__":
     # Example usage
-    injector = KatharaBaseFaultInjector("simple_bmv2")
-    # injector.inject_bmv2_down("s1")
-    # injector.recover_bmv2_down("s1")
-
-    # injector.inject_packet_loss("s1", "eth0", 50)
-    # print(injector.kathara_api.tc_show_intf("s1", "eth0"))
-    # injector.recover_packet_loss("s1", "eth0")
-    # print(injector.kathara_api.tc_show_intf("s1", "eth0"))
-    # injector = KatharaBaseFaultInjector("ospf_frr_single_area")
-    # device_name = "eth0"
-    # injector.inject_link_failure("bb0", device_name)
-    # print(injector.kathara_api.intf_show("bb0", device_name))
-    # injector.recover_link_failure("bb0", device_name)
-    # print(injector.kathara_api.intf_show("bb0", device_name))
-    # injector = KatharaBaseFaultInjector("simple_bgp")
-    # rule = "tcp dport 179 drop"
-    # injector.inject_acl_rule("router1", rule)
-    # rule = "tcp sport 179 drop"
-    # injector.inject_acl_rule("router1", rule)
-    # injector.recover_acl_rule("router1")
-    # injector.inject_service_down("router1", "frr")
+    injector = KatharaBaseFaultInjector("rip_small_internet")
