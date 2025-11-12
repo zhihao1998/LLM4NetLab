@@ -33,8 +33,6 @@ class FrrDownDetection(FrrDownBase, DetectionTask):
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.DEVICE_FAILURE,
-        problem_id=META.id,
     )
 
     def __init__(self):

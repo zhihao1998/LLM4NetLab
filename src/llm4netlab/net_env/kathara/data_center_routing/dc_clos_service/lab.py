@@ -408,7 +408,7 @@ class DCClosService(NetworkEnvBase):
 if __name__ == "__main__":
     dc_clos_service = DCClosService()
     print("Lab description:", dc_clos_service.desc)
-    print("lab net summary:", dc_clos_service.net_summary())
+    print("lab net summary:", dc_clos_service.get_info())
     if dc_clos_service.lab_exists():
         print("Lab exists, undeploying it...")
         dc_clos_service.undeploy()

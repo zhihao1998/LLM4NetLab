@@ -20,12 +20,12 @@ class LocalizationTask(TaskBase):
         super().__init__()
         self.net_env = net_env
         self.lab_name = net_env.name
-        self.net_summary = self.net_env.net_summary()
+        self.get_info = self.net_env.get_info()
         self.fault_desc = fault_desc  # Note: here we add the fault description to tell the agent what to localize, instead of asking it to figure it out from scratch
 
         self.task_desc = """\
             The network you are working with is described below:
-            {net_summary}
+            {get_info}
 
             You will begin by localizing the anomalies described below:
             {fault_desc}.

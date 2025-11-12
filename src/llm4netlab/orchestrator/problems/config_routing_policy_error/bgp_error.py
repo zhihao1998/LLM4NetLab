@@ -131,6 +131,7 @@ Problem: Nexthop router shades the right route advertised via BGP
 
 class BGPBadNexthopBaseTask:
     DEFAULT_ROUTER = "spine_0_0"
+    PROBLEM_DESC = ""
 
     def __init__(self):
         self.net_env = DCClosBGP()
@@ -276,7 +277,7 @@ class BGPConflictRouteBaseTask:
 
 
 if __name__ == "__main__":
-    task = BGPConflictRouteBaseTask()
+    task = BGPBadNexthopBaseTask()
     task.inject_fault()
     # perform detection steps...
     # task.recover_fault()

@@ -30,6 +30,7 @@ results_dir = os.getenv("RESULTS_DIR")
 assert base_dir is not None, "BASE_DIR environment variable is not set."
 assert results_dir is not None, "RESULTS_DIR environment variable is not set."
 
+
 @mcp.tool()
 def list_avail_problems() -> list[str]:
     """List available problems and their related information.
@@ -56,7 +57,7 @@ def get_submission_template(problem_id: str) -> dict:
 
 @mcp.tool()
 def submit(submission: Dict[str, Any]) -> List[str]:
-    """Submit a detection task solution.
+    """Submit a detection task solution. Before submission, call get_submission_template to get the expected submission format.
 
     Args:
         submission: The submission data for the detection task.
@@ -78,7 +79,7 @@ def submit(submission: Dict[str, Any]) -> List[str]:
     result = validated.model_dump()
     result["model"] = MODEL_NAME
 
-    with open(f"{results_dir}/{LAB_PROBLEM_ID}/{LAB_SESSION_ID}_submission.log", "a+") as log_file:
+    with open(f"{results_dir}/{LAB_PROBLEM_ID}/{LAB_SESSION_ID}_{MODEL_NAME}_submission.log", "a+") as log_file:
         log_file.write(json.dumps(result))
 
     return ["Detection submission successful."]

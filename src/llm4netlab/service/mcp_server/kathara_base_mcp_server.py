@@ -19,7 +19,7 @@ def get_net_env_info() -> dict:
         dict: A dictionary containing the information of the network.
     """
     lab = SimpleBGP()
-    info = lab.net_summary()
+    info = lab.get_info()
     return info
 
 

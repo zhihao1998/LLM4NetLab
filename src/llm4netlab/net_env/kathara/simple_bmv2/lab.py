@@ -170,7 +170,7 @@ class SimpleBmv2(NetworkEnvBase):
 
 if __name__ == "__main__":
     l2 = SimpleBmv2()
-    print(l2.net_summary())
+    print(l2.get_info())
 
     if l2.lab_exists():
         print("Lab exists, undeploying it...")

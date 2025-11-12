@@ -1,7 +1,8 @@
 class AgentBase:
     def __init__(self):
-        self.name = None
         self.agent = None
+        self.agent_name = None
+        self.backend_model = None  # LLM backend model name
 
     async def arun(self) -> str:
         """

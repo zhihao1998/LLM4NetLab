@@ -237,10 +237,10 @@ class DCClosBGP(NetworkEnvBase):
         for router_meta in tot_super_spines + tot_spines:
             # general conf for frr
             router_meta.machine.create_file_from_path(
-                os.path.join(BASE_DIR, "llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
             )
             router_meta.machine.create_file_from_path(
-                os.path.join(BASE_DIR, "llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
             )
             router_meta.frr_config = FRR_BASE_TEMPLATE.format(
                 hostname=router_meta.name,
@@ -262,10 +262,10 @@ class DCClosBGP(NetworkEnvBase):
         for router_meta in tot_leaves:
             # general conf for frr
             router_meta.machine.create_file_from_path(
-                os.path.join(BASE_DIR, "llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
             )
             router_meta.machine.create_file_from_path(
-                os.path.join(BASE_DIR, "llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
             )
             router_meta.frr_config = FRR_BASE_TEMPLATE.format(
                 hostname=router_meta.name,
@@ -294,7 +294,7 @@ class DCClosBGP(NetworkEnvBase):
 if __name__ == "__main__":
     dc_clos_bgp = DCClosBGP()
     print("Lab description:", dc_clos_bgp.desc)
-    print("lab net summary:", dc_clos_bgp.net_summary())
+    print("lab net summary:", dc_clos_bgp.get_info())
     if dc_clos_bgp.lab_exists():
         print("Lab exists, undeploying it...")
         dc_clos_bgp.undeploy()

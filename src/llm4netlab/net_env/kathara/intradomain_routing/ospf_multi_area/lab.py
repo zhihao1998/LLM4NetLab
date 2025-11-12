@@ -74,7 +74,7 @@ class OspfMultiArea(NetworkEnvBase):
 if __name__ == "__main__":
     ospf_multi_area = OspfMultiArea()
     print("Lab description:", ospf_multi_area.desc)
-    print("lab net summary:", ospf_multi_area.net_summary())
+    print("lab net summary:", ospf_multi_area.get_info())
     if ospf_multi_area.lab_exists():
         print("Lab exists, undeploying it...")
         ospf_multi_area.undeploy()

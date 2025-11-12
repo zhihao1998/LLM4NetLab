@@ -27,11 +27,11 @@ class MitigationTask(TaskBase):
         super().__init__()
         self.net_env = net_env
         self.lab_name = net_env.name
-        self.net_summary = self.net_env.net_summary()
+        self.get_info = self.net_env.get_info()
 
         self.task_desc = """\
             The network you are working with is described below:
-            {net_summary}
+            {get_info}
 
             You will propose a mitigation for a previously detected and localized anomaly.
             Based on the identified issue_type, problem_id, and target component(s),

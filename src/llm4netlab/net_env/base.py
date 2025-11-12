@@ -59,7 +59,7 @@ class NetworkEnvBase:
             topo_list.append((machines[0], machines[1]))
         return topo_list
 
-    def net_summary(self):
+    def get_info(self):
         """
         Generate a summary of the network configuration.
         """
@@ -82,7 +82,7 @@ class NetworkEnvBase:
         """
         Return a string representation of the network environment.
         """
-        return self.net_summary()
+        return self.get_info()
 
     def lab_exists(self):
         """Check if the lab exists"""

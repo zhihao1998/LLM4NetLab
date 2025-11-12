@@ -134,7 +134,7 @@ class P4INTLab(NetworkEnvBase):
 
 if __name__ == "__main__":
     p4_int_lab = P4INTLab()
-    print(p4_int_lab.net_summary())
+    print(p4_int_lab.get_info())
     if p4_int_lab.lab_exists():
         print("Lab exists, undeploying it...")
         p4_int_lab.undeploy()

@@ -8,14 +8,19 @@
 
 """Session wrapper to manage the an agent's session with the orchestrator."""
 
+import datetime
 import json
 import time
-import uuid
 
 from pydantic import BaseModel
 
 from llm4netlab.config import RESULTS_DIR
 from llm4netlab.orchestrator.tasks.base import TaskBase
+
+
+def generate_code():
+    time_str = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    return time_str
 
 
 class SessionItem(BaseModel):
@@ -32,7 +37,8 @@ class SessionItem(BaseModel):
 
 class Session:
     def __init__(self) -> None:
-        self.session_id = str(uuid.uuid4()).replace("-", "")
+        # self.session_id = str(uuid.uuid4()).replace("-", "")
+        self.session_id = generate_code()
         self.pid = None
         self.problem: TaskBase = None
         self.solution = None

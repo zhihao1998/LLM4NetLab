@@ -182,7 +182,7 @@ class RIPSmallInternet(NetworkEnvBase):
 if __name__ == "__main__":
     rip_small_internet = RIPSmallInternet()
     print("Lab description:", rip_small_internet.desc)
-    print("lab net summary:", rip_small_internet.net_summary())
+    print("lab net summary:", rip_small_internet.get_info())
     if rip_small_internet.lab_exists():
         print("Lab exists, undeploying it...")
         rip_small_internet.undeploy()

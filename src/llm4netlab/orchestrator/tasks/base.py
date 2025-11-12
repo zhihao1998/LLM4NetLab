@@ -3,12 +3,13 @@ import textwrap
 from pydantic import BaseModel
 
 from llm4netlab.net_env.base import NetworkEnvBase
+from llm4netlab.orchestrator.problems.problem_base import ProblemMeta
 
 
 class TaskBase:
     """Base class for all tasks."""
 
-    META: BaseModel = None
+    META: ProblemMeta = None
     SUBMISSION: BaseModel = None
 
     def __init__(self):
@@ -16,7 +17,7 @@ class TaskBase:
         self.net_env: NetworkEnvBase = None
 
     def inject_fault(self):
-        return NotImplementedError("")
+        return NotImplementedError()
 
     def get_instructions(self):
         raise NotImplementedError()
@@ -26,4 +27,14 @@ class TaskBase:
         self.results[key] = value
 
     def get_task_description(self):
-        return textwrap.dedent(self.task_desc).format(net_summary=self.net_summary)
+        return textwrap.dedent(self.task_desc).format(get_info=self.get_info)
+
+    def eval(self, submission: dict) -> float:
+        """Task-specific evaluation
+        Args:
+            submission: The submission to evaluate.
+
+        Returns:
+            float: The evaluation score.
+        """
+        return NotImplementedError()
