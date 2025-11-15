@@ -1,8 +1,8 @@
 import time
 
 from llm4netlab.generator.fault.injector_host import KatharaHostFaultInjector
-from llm4netlab.net_env.kathara.data_center_routing.dc_clos_bgp.lab import DCClosBGP
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
+from llm4netlab.net_env.kathara.interdomain_routing.simple_bgp.lab import SimpleBGP
+from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission, LocalizationTask
 from llm4netlab.service.kathara import KatharaBaseAPI
@@ -12,34 +12,32 @@ from llm4netlab.service.kathara import KatharaBaseAPI
 
 
 class HostIPMissingBaseTask:
-    DEFAULT_HOST = "pc_0_0"
+    DEFAULT_HOST = "pc1"
 
     def __init__(self):
-        self.net_env = DCClosBGP()
+        self.net_env = SimpleBGP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = KatharaHostFaultInjector(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
-        self.injector.inject_host_ip_missing(host_name=self.DEFAULT_HOST)
+        self.injector.inject_remove_ip(host_name=self.DEFAULT_HOST, ip_address="10.0.0.2/24", intf_name="eth0")
         time.sleep(2)
 
     def recover_fault(self):
-        self.injector.recover_host_ip_missing(host_name=self.DEFAULT_HOST)
+        self.injector.recover_remove_ip(host_name=self.DEFAULT_HOST, ip_address="10.0.0.2/24", intf_name="eth0")
         time.sleep(2)
 
 
 class HostIPMissingDetectionTask(HostIPMissingBaseTask, DetectionTask):
     META = ProblemMeta(
         id="host_ip_missing_detection",
-        description="Detection problem to identify if there is a missing IP address on the host.",
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_level=ProblemLevel.DETECTION,
+        description="Detect if there is an anomaly in the network.",
+        root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_id=META.id,
     )
 
     def __init__(self):
@@ -50,14 +48,12 @@ class HostIPMissingDetectionTask(HostIPMissingBaseTask, DetectionTask):
 class HostIPMissingLocalization(HostIPMissingBaseTask, LocalizationTask):
     META = ProblemMeta(
         id="host_ip_missing_localization",
-        description="Localization problem to identify if there is a missing IP address on the host.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.LOCALIZATION,
+        description=f"The IP address is missing on host {HostIPMissingBaseTask.DEFAULT_HOST}. Identify the host.",
+        root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
+        problem_level=TaskLevel.LOCALIZATION,
     )
 
     SUBMISSION = LocalizationSubmission(
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
         target_component_ids=[HostIPMissingBaseTask.DEFAULT_HOST],
     )
 
@@ -71,10 +67,10 @@ class HostIPMissingLocalization(HostIPMissingBaseTask, LocalizationTask):
 
 
 class HostDefaultRouteMissingBaseTask:
-    DEFAULT_HOST = "pc_0_0"
+    DEFAULT_HOST = "pc1"
 
     def __init__(self):
-        self.net_env = DCClosBGP()
+        self.net_env = SimpleBGP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = KatharaHostFaultInjector(lab_name=self.net_env.lab.name)
 
@@ -91,14 +87,12 @@ class HostDefaultRouteMissingDetectionTask(HostDefaultRouteMissingBaseTask, Dete
     META = ProblemMeta(
         id="host_default_route_missing_detection",
         description="Detection problem to identify if there is a missing default route on the host.",
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_level=ProblemLevel.DETECTION,
+        root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_id=META.id,
     )
 
     def __init__(self):
@@ -110,13 +104,11 @@ class HostDefaultRouteMissingLocalization(HostDefaultRouteMissingBaseTask, Local
     META = ProblemMeta(
         id="host_default_route_missing_localization",
         description="Localization problem to identify if there is a missing default route on the host.",
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_level=ProblemLevel.LOCALIZATION,
+        root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
+        problem_level=TaskLevel.LOCALIZATION,
     )
 
     SUBMISSION = LocalizationSubmission(
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_id=META.id,
         target_component_ids=[HostDefaultRouteMissingBaseTask.DEFAULT_HOST],
     )
 
@@ -163,10 +155,10 @@ class HostDefaultRouteMissingLocalization(HostDefaultRouteMissingBaseTask, Local
 
 
 class HostPrefixErrorBaseTask:
-    DEFAULT_HOST = "pc_0_0"
+    DEFAULT_HOST = "pc1"
 
     def __init__(self):
-        self.net_env = DCClosBGP()
+        self.net_env = SimpleBGP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = KatharaHostFaultInjector(lab_name=self.net_env.lab.name)
 
@@ -195,14 +187,14 @@ class HostPrefixErrorDetectionTask(HostPrefixErrorBaseTask, DetectionTask):
     META = ProblemMeta(
         id="host_prefix_error_detection",
         description="Detection problem to identify if there is an IP prefix error on the host.",
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_level=ProblemLevel.DETECTION,
+        root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
+        root_cause_type=META.id,
     )
 
     def __init__(self):
@@ -214,13 +206,13 @@ class HostPrefixErrorLocalization(HostPrefixErrorBaseTask, LocalizationTask):
     META = ProblemMeta(
         id="host_prefix_error_localization",
         description="Localization problem to identify if there is an IP prefix error on the host.",
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_level=ProblemLevel.LOCALIZATION,
+        root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
+        problem_level=TaskLevel.LOCALIZATION,
     )
 
     SUBMISSION = LocalizationSubmission(
-        issue_type=IssueType.CONFIG_HOST_ERROR,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
+        root_cause_type=META.id,
         target_component_ids=[HostPrefixErrorBaseTask.DEFAULT_HOST],
     )
 

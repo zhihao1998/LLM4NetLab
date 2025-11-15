@@ -1,3 +1,4 @@
+import json
 import os
 import re
 
@@ -20,6 +21,42 @@ class LLMJudge:
         self.llm = OllamaLLM(model="qwen3:32b")
         self.prompt = LLM_JUDGE_PROMPT_TEMPLATE
 
+    def _parse_trace(self, trace: str) -> str:
+        """Parse the agent's action history trace.
+        1. Remove generation info and usage metadata.
+
+        Args:
+            trace: The raw trace string.
+
+        Returns:
+            str: The parsed trace.
+        """
+        new_trace = []
+        for line in trace.splitlines():
+            line = json.loads(line)
+            if "event" in line:
+                if line["event"] == "llm_start":
+                    payload = line.get("prompts", "")
+                    new_trace.append(
+                        {
+                            "timestamp": line.get("timestamp", ""),
+                            "event": "LLM Prompt",
+                            "payload": payload,
+                        }
+                    )
+                elif line["event"] == "llm_end":
+                    payload = line.get("text", "")
+                    new_trace.append(
+                        {
+                            "timestamp": line.get("timestamp", ""),
+                            "event": "LLM Response",
+                            "payload": payload,
+                        }
+                    )
+                else:
+                    new_trace.append(line)
+        return json.dumps(new_trace, ensure_ascii=False)
+
     def evaluate_agent(self, problem_description: str, net_env_info: str, trace_path: str, save_path: str) -> str:
         """Evaluate the agent's performance based on the problem description, network environment info, and action history.
 
@@ -35,6 +72,7 @@ class LLMJudge:
         """
         with open(trace_path, "r") as f:
             trace = f.read()
+        trace = self._parse_trace(trace)
 
         self.prompt = self.prompt.format(
             problem_description=problem_description,
@@ -66,22 +104,20 @@ class LLMJudge:
 
 if __name__ == "__main__":
     judge = LLMJudge()
-    session_id = "3a770dcd10fd42e7acf2803b3d23b79b"
-    problem_id = "frr_down_localization"
-    eval_model_name = "gpt-oss:20b"
-    problem_instance = get_problem_instance(problem_id)
+    session_id = "20251113090058"
+    root_cause_type = "frr_down_localization"
+    eval_backend_model_name = "gpt-oss:20b"
+    problem_instance = get_problem_instance(root_cause_type)
     problem_description = problem_instance.META.description
     net_env_info = problem_instance.net_env.get_info()
 
-    trace_file = os.path.join(RESULTS_DIR, problem_id, f"{session_id}_{eval_model_name}_conversation.log")
-    with open(trace_file, "r") as f:
-        trace = f.read()
+    trace_file = os.path.join(RESULTS_DIR, root_cause_type, f"{session_id}_{eval_backend_model_name}_conversation.log")
 
     evaluation_content, score = judge.evaluate_agent(
         problem_description,
         net_env_info,
-        trace,
-        save_path=os.path.join(RESULTS_DIR, problem_id, f"{session_id}_{eval_model_name}_llm_judge.log"),
+        trace_file,
+        save_path=os.path.join(RESULTS_DIR, root_cause_type, f"{session_id}_{eval_backend_model_name}_llm_judge.log"),
     )
     print("Evaluation Result:", evaluation_content)
     print("Evaluation Score:", score)

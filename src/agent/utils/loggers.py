@@ -1,9 +1,9 @@
 import json
 import logging
+import traceback
 from datetime import datetime
 
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain_core.messages import AIMessage
+from langchain_core.callbacks.base import BaseCallbackHandler
 from langchain_core.outputs.generation import Generation
 
 
@@ -14,7 +14,7 @@ class FileLoggerHandler(BaseCallbackHandler):
         self.logger.setLevel(logging.INFO)
 
         if not self.logger.handlers:
-            file_handler = logging.FileHandler(log_path, encoding="utf-8")
+            file_handler = logging.FileHandler(log_path, encoding="utf-8", mode="a")
 
             formatter = logging.Formatter("%(message)s")
             file_handler.setFormatter(formatter)
@@ -34,31 +34,36 @@ class FileLoggerHandler(BaseCallbackHandler):
         )
 
     def on_llm_end(self, response, **kwargs):
+        payload = {}
         try:
             res: Generation = response.generations[0][0]
-        except Exception:
-            res = response
-            print("Warning: Unable to parse LLM response generations.")
-            print(response)
-        payload = {}
-        if res:
-            # TODO: Now only works for ollama_langchain, to adapt to other LLMs
-            if getattr(res, "text", None):
-                payload["text"] = res.text
-            if getattr(res, "generation_info", None):
-                payload["generation_info"] = res.generation_info
-            if getattr(res, "message", None):
-                message: AIMessage = res.message
-                tool_calls = getattr(message, "tool_call_chunks", None)
-                if tool_calls is not None:
-                    payload["tool_calls"] = {
-                        "tool_name": getattr(tool_calls[0], "tool_name", None),
-                        "tool_input": getattr(tool_calls[0], "tool_input", None),
-                    }
-                payload["invalid_tool_calls"] = getattr(message, "invalid_tool_calls", None)
-                payload["usage_metadata"] = getattr(message, "usage_metadata", None)
+            if res:
+                # TODO: Now only works for ollama_langchain, to adapt to other LLMs
+                text = getattr(res, "text", None)
+                if text:
+                    payload["text"] = res.text
+                generation_info = getattr(res, "generation_info", None)
+                if generation_info:
+                    payload["generation_info"] = res.generation_info
+                message = getattr(res, "message", None)
+                if message:
+                    # TODO: Check the tool call formats
+                    # tool_calls = getattr(message, "tool_call_chunks", []) or []
+                    # if tool_calls:
+                    #     for tool_call in tool_calls:
+                    #         payload["tool_calls"] = {
+                    #             "tool_name": getattr(tool_call, "tool_name", None),
+                    #             "tool_input": getattr(tool_call, "tool_input", None),
+                    #         }
 
-        self._log("llm_end", payload)
+                    payload["invalid_tool_calls"] = getattr(message, "invalid_tool_calls", None)
+                    payload["usage_metadata"] = getattr(message, "usage_metadata", None)
+                self._log("llm_end", payload)
+        except Exception as e:
+            self._log(
+                "llm_end_error",
+                {"error": str(e), "traceback": traceback.format_exc(), "response": str(response)},
+            )
 
     def on_tool_start(self, serialized, input_str, **kwargs):
         self._log(

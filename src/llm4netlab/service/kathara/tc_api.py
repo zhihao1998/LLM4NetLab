@@ -1,7 +1,7 @@
 from llm4netlab.service.kathara.base_api import KatharaBaseAPI, _SupportsBase
 
 
-class KatharaTCMixin:
+class TCMixin:
     """
     Interfaces to interact with Linux Traffic within Kathara.
     """
@@ -65,7 +65,7 @@ class KatharaTCMixin:
         return self._run_cmd(host_name, command)
 
 
-class KatharaTCAPI(KatharaBaseAPI, KatharaTCMixin):
+class KatharaTCAPI(KatharaBaseAPI, TCMixin):
     """
     Kathara Traffic Control API to manage traffic control settings on host interfaces.
     """

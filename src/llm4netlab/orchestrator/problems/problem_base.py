@@ -3,7 +3,7 @@ from enum import StrEnum
 from pydantic import BaseModel
 
 
-class IssueType(StrEnum):
+class RootCauseCategory(StrEnum):
     DEVICE_FAILURE = "device_failure"  # Hardware or interface/module failure
     PERFORMANCE_DEGRADATION = "performance_degradation"  # High latency, packet loss, jitter, throughput drop
 
@@ -26,15 +26,20 @@ class IssueType(StrEnum):
     SDN_RULE_CONFLICT = "sdn_rule_conflict"  # Flow rule overlaps or shadowing causes blackhole/loop
 
 
-class ProblemLevel(StrEnum):
-    DISCOVERY = "discovery"
+class TaskLevel(StrEnum):
     DETECTION = "detection"
     LOCALIZATION = "localization"
-    MITIGATION = "mitigation"
+    RCA = "root_cause_analysis"
+
+
+class TaskDescription(StrEnum):
+    DETECTION = "Detect if there is an anomaly in the network. Return True if an anomaly is present, otherwise False."
+    LOCALIZATION = "Localize the faulty component(s) in the network. Pinpoint where the anomaly occurs."
+    RCA = "Identify the root cause of the anomaly in the network. Explain why the anomaly occurred."
 
 
 class ProblemMeta(BaseModel):
-    id: str
+    root_cause_category: RootCauseCategory
+    root_cause_type: str
+    task_level: TaskLevel
     description: str
-    issue_type: IssueType
-    problem_level: ProblemLevel

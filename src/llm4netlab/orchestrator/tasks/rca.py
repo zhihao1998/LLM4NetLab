@@ -1,35 +1,74 @@
 """Define and query information about an Detection task."""
 
+from textwrap import dedent
+
 from pydantic import BaseModel, Field
 
-from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.orchestrator.tasks.base import TaskBase
 
 
-class LocalizationSubmission(BaseModel):
-    issue_type: str = Field(description="Type of issue detected. Must be selected from known available issue types.")
-    problem_id: str = Field(description="Type of problem detected. Must be selected from known available problem ids.")
-    target_component_ids: list[str] = Field(
-        default_factory=list,
-        description="List of IDs of components identified as the source of the problem.",
-    )  # when eval, sort alphabetically to avoid order issues
+class RCASubmission(BaseModel):
+    root_cause_category: str = Field(
+        ...,
+        description=(
+            dedent("""\
+            High-level category of the root cause (e.g. 'config_host_error',
+            'device_failure', 'performance_degradation').
+            You MUST first call list_avail_root_cause_categories() and pick exactly 
+            one value from the returned list.""")
+        ),
+    )
+    root_cause_type: str = Field(
+        ...,
+        description=(
+            dedent("""\
+            Concrete root cause type within the selected category
+            (e.g. 'bgp_asn_misconfiguration').
+            After choosing root_cause_category, you MUST call
+            list_avail_root_cause_types(root_cause_category) and pick exactly
+            one value from the returned list.""")
+        ),
+    )
 
 
-class LocalizationTask(TaskBase):
-    def __init__(self, net_env: NetworkEnvBase, fault_desc: str = ""):
+class RCATask(TaskBase):
+    def __init__(self):
         super().__init__()
-        self.net_env = net_env
-        self.lab_name = net_env.name
-        self.get_info = self.net_env.get_info()
-        self.fault_desc = fault_desc  # Note: here we add the fault description to tell the agent what to localize, instead of asking it to figure it out from scratch
-
         self.task_desc = """\
             The network you are working with is described below:
-            {get_info}
+            {net_desc}
 
-            You will begin by localizing the anomalies described below:
-            {fault_desc}.
-            Pinpoint the faulty component(s), such as device, interface, link, prefix, neighbor, or path segment.
-            Do not analyze root causes or propose mitigations.
-            Once identified, call the appropriate submission tool and submit your findings.
+            The following symptoms have been observed in the network (if any):
+            {symptom_desc}
+
+            Your task is to perform root-cause analysis (RCA). Focus on *why* the anomaly occurs.
             """
+
+    def eval(self, submission: dict) -> float:
+        """Evaluate the localization task submission.
+
+        Args:
+            submission: The submission to evaluate. Expected schema:
+                {
+                    "root_cause_category": str,
+                    "root_cause_type": str,
+                }
+
+        Returns:
+            float: The evaluation score in [0, 1], or -1.0 if submission is invalid.
+        """
+        root_cause_category = submission.get("root_cause_category", None)
+        root_cause_type = submission.get("root_cause_type", None)
+
+        # if there is no required field, return -1 score
+        if root_cause_category is None or root_cause_type is None:
+            return -1.0
+
+        gt_root_cause_category = getattr(self.SUBMISSION, "root_cause_category", "")
+        gt_root_cause_type = getattr(self.SUBMISSION, "root_cause_type", "")
+        accuracy = 0.0
+        if root_cause_category == gt_root_cause_category:
+            accuracy += 0.5
+            if root_cause_type == gt_root_cause_type:
+                accuracy += 0.5
+        return accuracy

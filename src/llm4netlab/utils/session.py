@@ -19,7 +19,7 @@ from llm4netlab.orchestrator.tasks.base import TaskBase
 
 
 def generate_code():
-    time_str = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    time_str = datetime.datetime.now().strftime("%m%d%H%M%S")
     return time_str
 
 
@@ -39,7 +39,7 @@ class Session:
     def __init__(self) -> None:
         # self.session_id = str(uuid.uuid4()).replace("-", "")
         self.session_id = generate_code()
-        self.pid = None
+        self.root_cause_type = None
         self.problem: TaskBase = None
         self.solution = None
         self.results = {}
@@ -48,15 +48,15 @@ class Session:
         self.end_time = None
         self.agent_name = None
 
-    def set_problem(self, problem, pid=None):
+    def set_problem(self, problem: TaskBase, root_cause_type: str):
         """Set the problem instance for the session.
 
         Args:
-            problem (Task): The problem instance to set.
-            pid (str): The problem ID.
+            problem (TaskBase): The problem instance to set.
+            root_cause_type (str): The root cause type.
         """
         self.problem = problem
-        self.pid = pid
+        self.root_cause_type = root_cause_type
 
     def set_solution(self, solution):
         """Set the solution shared by the agent.
@@ -123,7 +123,7 @@ class Session:
         summary = {
             "agent": self.agent_name,
             "session_id": str(self.session_id),
-            "problem_id": self.pid,
+            "root_cause_type": self.root_cause_type,
             "start_time": self.start_time,
             "end_time": self.end_time,
             "trace": [item.model_dump() for item in self.history],

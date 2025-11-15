@@ -2,7 +2,7 @@ import time
 
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.interdomain_routing.simple_bgp.lab import SimpleBGP
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
+from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaNFTableAPI
 
@@ -38,14 +38,14 @@ class BGPAclBlockDetection(BGPAclBlockBaseTask, DetectionTask):
     META = ProblemMeta(
         id="bgp_acl_block_detection",
         description="Detection problem to identify if there is BGP ACL block.",
-        issue_type=IssueType.CONFIG_ACCESS_POLICY_ERROR,
-        problem_level=ProblemLevel.DETECTION,
+        root_cause_category=RootCauseCategory.CONFIG_ACCESS_POLICY_ERROR,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_ACCESS_POLICY_ERROR,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.CONFIG_ACCESS_POLICY_ERROR,
+        root_cause_type=META.id,
     )
 
     def __init__(self):

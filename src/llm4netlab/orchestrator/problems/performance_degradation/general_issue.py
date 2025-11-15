@@ -3,7 +3,7 @@ import time
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.data_center_routing.dc_clos_bgp.lab import DCClosBGP
 from llm4netlab.orchestrator.problems.config_host_error.host_error import HostPrefixErrorBaseTask
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
+from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.orchestrator.tasks.rca import LocalizationSubmission, LocalizationTask
 from llm4netlab.service.kathara import KatharaBaseAPI
@@ -37,18 +37,18 @@ class LinkLatencyBaseTask:
         time.sleep(2)
 
 
-class LinkFailureDetectionTask(LinkFailureBaseTask, DetectionTask):
+class LinkFailureDetectionTask(LinkLatencyBaseTask, DetectionTask):
     META = ProblemMeta(
-        id=f"{LinkFailureBaseTask.PROBLEM_ID}_detection",
+        id=f"{LinkLatencyBaseTask.PROBLEM_ID}_detection",
         description="Detection problem to identify if there is a link failure.",
-        issue_type=IssueType.DEVICE_FAILURE,
-        problem_level=ProblemLevel.DETECTION,
+        root_cause_category=RootCauseCategory.DEVICE_FAILURE,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.DEVICE_FAILURE,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.DEVICE_FAILURE,
+        root_cause_type=META.id,
     )
 
     def __init__(self):
@@ -56,27 +56,27 @@ class LinkFailureDetectionTask(LinkFailureBaseTask, DetectionTask):
         DetectionTask.__init__(self, self.net_env)
 
 
-class LinkFailureLocalization(LinkFailureBaseTask, LocalizationTask):
+class LinkFailureLocalization(LinkLatencyBaseTask, LocalizationTask):
     META = ProblemMeta(
-        id=f"{LinkFailureBaseTask.PROBLEM_ID}_localization",
+        id=f"{LinkLatencyBaseTask.PROBLEM_ID}_localization",
         description="Localization a link failure.",
-        issue_type=IssueType.DEVICE_FAILURE,
-        problem_level=ProblemLevel.LOCALIZATION,
+        root_cause_category=RootCauseCategory.DEVICE_FAILURE,
+        problem_level=TaskLevel.LOCALIZATION,
     )
 
     SUBMISSION = LocalizationSubmission(
-        issue_type=IssueType.DEVICE_FAILURE,
-        problem_id=META.id,
-        target_component_ids=[LinkFailureBaseTask.DEFAULT_DEVICE, LinkFailureBaseTask.DEFAULT_DEVICE_INTF],
+        root_cause_category=RootCauseCategory.DEVICE_FAILURE,
+        root_cause_type=META.id,
+        target_component_ids=[LinkLatencyBaseTask.DEFAULT_DEVICE, LinkLatencyBaseTask.DEFAULT_DEVICE_INTF],
     )
 
     def __init__(self):
-        LinkFailureBaseTask.__init__(self)
+        LinkLatencyBaseTask.__init__(self)
         LocalizationTask.__init__(self, self.net_env)
 
 
 if __name__ == "__main__":
-    task = LinkFailureBaseTask()
+    task = LinkLatencyBaseTask()
     # task.inject_fault()
     # Here you would typically run your detection logic
     task.recover_fault()

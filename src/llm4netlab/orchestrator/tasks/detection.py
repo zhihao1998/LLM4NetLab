@@ -2,7 +2,6 @@
 
 from pydantic import BaseModel, Field
 
-from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.orchestrator.tasks.base import TaskBase
 
 
@@ -11,20 +10,22 @@ class DetectionSubmission(BaseModel):
 
 
 class DetectionTask(TaskBase):
-    def __init__(self, net_env: NetworkEnvBase):
+    def __init__(self):
         super().__init__()
-        self.net_env = net_env
-        self.lab_name = net_env.name
-        self.get_info = self.net_env.get_info()
+        self.net_desc = self.net_env.get_info()
+        # Description of the symptoms observed in the network
+        self.symptom_desc = ""
 
         self.task_desc = """\
             The network you are working with is described below:
-            {get_info}
+            {net_desc}
 
-            You will begin by analyzing the network's state, and detect anomalies.
-            Indicate whether there is an anomaly in the network. No need for further analysis or mitigation.
-            Once finished, call the appropriate submission tool and submit your findings.
-            Do not end the session until you have submitted your solution through the API.
+            The following symptoms have been observed in the network (if any):
+            {symptom_desc}
+
+            Your task is to analyze the current network state and detect anomalies.
+            Indicate whether there is an anomaly in the network (True/False).
+            No need for further analysis, localization or mitigation.
             """
 
     def eval(self, submission: dict) -> float:
@@ -44,6 +45,6 @@ class DetectionTask(TaskBase):
             is_anomaly = False
         else:
             return 0.0
-        if is_anomaly == self.META.is_anomaly:
+        if is_anomaly == self.SUBMISSION.is_anomaly:
             return 1.0
         return 0.0

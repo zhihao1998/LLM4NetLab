@@ -36,7 +36,7 @@ class KatharaHostFaultInjector(BaseFaultInjector):
         )
         self.logger.info(f"Recovered removal of default route on {host_name}.")
 
-    def inject_ip_missing(self, host_name: str, ip_address: str, intf_name: str):
+    def inject_remove_ip(self, host_name: str, ip_address: str, intf_name: str):
         """Inject a fault by removing an IP address from a host interface."""
         self.kathara_api.exec_cmd(
             host_name,
@@ -44,7 +44,7 @@ class KatharaHostFaultInjector(BaseFaultInjector):
         )
         self.logger.info(f"Injected removal of IP {ip_address} on {host_name}:{intf_name}.")
 
-    def recover_ip_missing(self, host_name: str, ip_address: str, intf_name: str):
+    def recover_remove_ip(self, host_name: str, ip_address: str, intf_name: str):
         """Recover from a fault by adding an IP address to a host interface."""
         self.kathara_api.exec_cmd(
             host_name,

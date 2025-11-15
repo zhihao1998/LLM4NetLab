@@ -1,7 +1,7 @@
 from llm4netlab.service.kathara.base_api import KatharaBaseAPI, _SupportsBase
 
 
-class KtharaNFTableMixin:
+class NFTableMixin:
     """
     Interfaces to interact with nftables within Kathara.
     """
@@ -152,7 +152,7 @@ class KtharaNFTableMixin:
         return self._run_cmd(host_name, command)
 
 
-class KatharaNFTableAPI(KatharaBaseAPI, KtharaNFTableMixin):
+class KatharaNFTableAPI(KatharaBaseAPI, NFTableMixin):
     """
     Kathara Traffic Control API to manage nftables within Kathara.
     """

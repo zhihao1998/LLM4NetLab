@@ -6,9 +6,9 @@ from langchain_deepseek import ChatDeepSeek
 from mcp_use import MCPAgent, MCPClient
 
 from agent.base import AgentBase
+from agent.utils.mcp_servers import MCPServerConfig
 from agent.utils.template import MCP_PROMPT_TEMPLATE
 from llm4netlab.orchestrator.orchestrator import Orchestrator
-from llm4netlab.service.mcp_servers import MCPServer
 
 # Load environment variables
 load_dotenv()
@@ -36,9 +36,11 @@ class AgentWithMCP(AgentBase):
 async def main():
     # 1. Initialize orchestrator and problem
     orchestrator = Orchestrator()
-    task_desc, session_id, problem_id, lab_name = orchestrator.init_problem("frr_down_detection")
+    task_desc, session_id, root_cause_type, lab_name = orchestrator.init_problem("frr_down_detection")
     # 2. Load MCP server and client
-    mcp_server_config = MCPServer().load_config(session_id=session_id, problem_id=problem_id, lab_name=lab_name)
+    mcp_server_config = MCPServerConfig().load_config(
+        session_id=session_id, root_cause_type=root_cause_type, lab_name=lab_name
+    )
     # 3. Create MCP client
     client = MCPClient.from_dict(mcp_server_config)
 

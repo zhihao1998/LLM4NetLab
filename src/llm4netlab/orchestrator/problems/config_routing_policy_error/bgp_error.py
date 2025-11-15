@@ -2,7 +2,7 @@ import time
 
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.data_center_routing.dc_clos_bgp.lab import DCClosBGP
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
+from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission, LocalizationTask
 from llm4netlab.service.kathara import KatharaFRRAPI
@@ -18,25 +18,23 @@ class BGPAsnMisconfigBaseTask:
 
     def inject_fault(self):
         self.injector.inject_bgp_misconfig(host_name="leaf_0_0", correct_asn=65200, wrong_asn=60000)
-        time.sleep(10)
+        time.sleep(2)
 
     def recover_fault(self):
         self.injector.recover_bgp_misconfig(host_name="leaf_0_0", correct_asn=65200, wrong_asn=60000)
-        time.sleep(10)
+        time.sleep(2)
 
 
 class BGPAsnMisconfigDetection(BGPAsnMisconfigBaseTask, DetectionTask):
     META = ProblemMeta(
         id="bgp_asn_misconfig_detection",
-        description="Detection problem to identify if there is BGP ASN misconfiguration.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.DETECTION,
+        description="Detect if there is an anomaly in the network.",
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
     )
 
     def __init__(self):
@@ -48,13 +46,11 @@ class BGPAsnMisconfigLocalization(BGPAsnMisconfigBaseTask, LocalizationTask):
     META = ProblemMeta(
         id="bgp_asn_misconfig_localization",
         description="Localization problem to identify if there is BGP ASN misconfiguration.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.LOCALIZATION,
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=TaskLevel.LOCALIZATION,
     )
 
     SUBMISSION = LocalizationSubmission(
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
         target_component_ids=["spine_0_0"],
     )
 
@@ -69,6 +65,8 @@ class BGPAsnMisconfigLocalization(BGPAsnMisconfigBaseTask, LocalizationTask):
 class BGPMissingRouteBaseTask:
     """Base class for a BGP missing route problem."""
 
+    faulty_router = "leaf_0_0"
+
     def __init__(self):
         self.net_env = DCClosBGP()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
@@ -76,26 +74,24 @@ class BGPMissingRouteBaseTask:
 
     def inject_fault(self):
         # find the line in frr.conf that broadcasts the network and comment it out
-        self.injector.inject_bgp_missing_route(host_name="leaf_0_0")
-        time.sleep(10)
+        self.injector.inject_bgp_missing_route(host_name=self.faulty_router)
+        time.sleep(2)
 
     def recover_fault(self):
-        self.injector.recover_bgp_missing_route(host_name="leaf_0_0")
-        time.sleep(10)
+        self.injector.recover_bgp_missing_route(host_name=self.faulty_router)
+        time.sleep(2)
 
 
 class BGPMissingRouteDetection(BGPAsnMisconfigBaseTask, DetectionTask):
     META = ProblemMeta(
         id="bgp_missing_route_detection",
-        description="Detection problem to identify if there is a missing BGP route.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.DETECTION,
+        description="Detect if there is an anomaly in the network.",
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
     )
 
     def __init__(self):
@@ -106,15 +102,13 @@ class BGPMissingRouteDetection(BGPAsnMisconfigBaseTask, DetectionTask):
 class BGPMissingRouteLocalization(BGPAsnMisconfigBaseTask, LocalizationTask):
     META = ProblemMeta(
         id="bgp_missing_route_localization",
-        description="Localization problem to identify if there is a missing BGP route.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.LOCALIZATION,
+        description=f"The BGP deamon of router {BGPMissingRouteBaseTask.faulty_router} is not working. The task is to localize this faulty device.",
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=TaskLevel.LOCALIZATION,
     )
 
     SUBMISSION = LocalizationSubmission(
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
-        target_component_ids=["leaf_0_0"],
+        target_component_ids=[BGPMissingRouteBaseTask.faulty_router],
     )
 
     def __init__(self):
@@ -151,14 +145,14 @@ class BGPBadNexthopDetection(BGPBadNexthopBaseTask, DetectionTask):
     META = ProblemMeta(
         id="bgp_bad_nexthop_detection",
         description="Detection problem to identify if there is a bad BGP nexthop.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.DETECTION,
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        root_cause_type=META.id,
     )
 
     def __init__(self):
@@ -170,13 +164,13 @@ class BGPBadNexthopLocalization(BGPBadNexthopBaseTask, LocalizationTask):
     META = ProblemMeta(
         id="bgp_bad_nexthop_localization",
         description="Localization problem to identify if there is a bad BGP nexthop.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.LOCALIZATION,
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=TaskLevel.LOCALIZATION,
     )
 
     SUBMISSION = LocalizationSubmission(
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        root_cause_type=META.id,
         target_component_ids=[BGPBadNexthopBaseTask.DEFAULT_ROUTER],
     )
 
@@ -214,14 +208,12 @@ class BGPRemoteBlackholeDetection(BGPRemoteBlackholeBaseTask, DetectionTask):
     META = ProblemMeta(
         id="bgp_remote_blackhole_detection",
         description="Detection problem to identify if there is a remote blackhole route advertised via BGP.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.DETECTION,
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
     )
 
     def __init__(self):
@@ -233,13 +225,13 @@ class BGPRemoteBlackholeLocalization(BGPRemoteBlackholeBaseTask, LocalizationTas
     META = ProblemMeta(
         id="bgp_remote_blackhole_localization",
         description="Localization problem to identify if there is a remote blackhole route advertised via BGP.",
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_level=ProblemLevel.LOCALIZATION,
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        problem_level=TaskLevel.LOCALIZATION,
     )
 
     SUBMISSION = LocalizationSubmission(
-        issue_type=IssueType.CONFIG_ROUTING_POLICY_ERROR,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
+        root_cause_type=META.id,
         target_component_ids=[BGPRemoteBlackholeBaseTask.DEFAULT_ROUTER],
     )
 
@@ -277,7 +269,7 @@ class BGPConflictRouteBaseTask:
 
 
 if __name__ == "__main__":
-    task = BGPBadNexthopBaseTask()
+    task = BGPMissingRouteBaseTask()
     task.inject_fault()
     # perform detection steps...
     # task.recover_fault()

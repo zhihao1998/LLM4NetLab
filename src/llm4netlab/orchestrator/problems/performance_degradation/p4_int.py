@@ -1,6 +1,6 @@
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.p4_int.lab import P4INTLab
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
+from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaTCAPI
 
@@ -25,14 +25,14 @@ class P4IntHopDelayHighDetection(P4IntHopDelayHighBaseTask, DetectionTask):
     META = ProblemMeta(
         id="p4_int_hop_delay_high_detection",
         description="Detect if there is high hop delay.",
-        issue_type=IssueType.PERFORMANCE_DEGRADATION,
-        problem_level=ProblemLevel.DETECTION,
+        root_cause_category=RootCauseCategory.PERFORMANCE_DEGRADATION,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.PERFORMANCE_DEGRADATION,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.PERFORMANCE_DEGRADATION,
+        root_cause_type=META.id,
     )
 
     def __init__(self):

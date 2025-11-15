@@ -1,6 +1,6 @@
 from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
 from llm4netlab.net_env.kathara.simple_bmv2.lab import SimpleBmv2
-from llm4netlab.orchestrator.problems.problem_base import IssueType, ProblemLevel, ProblemMeta
+from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
 from llm4netlab.service.kathara import KatharaBaseAPI
 
@@ -25,14 +25,14 @@ class Bmv2DownDetection(Bmv2DownBaseTask, DetectionTask):
     META = ProblemMeta(
         id="bmv2_down_detection",
         description="Detection problem to identify if there is a down bmv2 device.",
-        issue_type=IssueType.DEVICE_FAILURE,
-        problem_level=ProblemLevel.DETECTION,
+        root_cause_category=RootCauseCategory.DEVICE_FAILURE,
+        problem_level=TaskLevel.DETECTION,
     )
 
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
-        issue_type=IssueType.DEVICE_FAILURE,
-        problem_id=META.id,
+        root_cause_category=RootCauseCategory.DEVICE_FAILURE,
+        root_cause_type=META.id,
     )
 
     def __init__(self):

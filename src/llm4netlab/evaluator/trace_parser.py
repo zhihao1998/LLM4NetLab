@@ -27,6 +27,7 @@ class AgentTraceParser:
 
                 if entry.get("event") == "tool_start":
                     self.tool_calls += 1
+                # TODO: there are some validation errors from MCP, also handle this
                 elif entry.get("event") == "tool_error":
                     self.tool_errors += 1
                 elif entry.get("event") == "llm_end":

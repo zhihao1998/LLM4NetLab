@@ -4,10 +4,12 @@ from typing import Any, Dict, List
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from pydantic import BaseModel
 
 from llm4netlab.orchestrator.problems.prob_pool import get_submission_template as _get_submission_template
-from llm4netlab.orchestrator.problems.prob_pool import list_avail_problems as _list_avail_problems
+from llm4netlab.orchestrator.problems.prob_pool import (
+    list_avail_root_cause_categories as _list_avail_root_cause_categories,
+)
+from llm4netlab.orchestrator.problems.prob_pool import list_avail_root_cause_types as _list_avail_root_cause_types
 
 # Initialize FastMCP server
 mcp = FastMCP(
@@ -22,67 +24,73 @@ mcp = FastMCP(
 #     message: str = Field(description="Submission message.")
 load_dotenv(verbose=True)
 
+# The following environment variables should be passed from the MCP client (i.e., the agent)
 LAB_SESSION_ID = os.getenv("LAB_SESSION_ID")
-LAB_PROBLEM_ID = os.getenv("LAB_PROBLEM_ID")
-MODEL_NAME = os.getenv("MODEL_NAME")
+ROOT_CAUSE_TYPE = os.getenv("ROOT_CAUSE_TYPE")
+TASK_LEVEL = os.getenv("TASK_LEVEL")
+BACKEND_MODEL_NAME = os.getenv("BACKEND_MODEL_NAME")
+AGENT_NAME = os.getenv("AGENT_NAME")
+
 base_dir = os.getenv("BASE_DIR")
 results_dir = os.getenv("RESULTS_DIR")
-assert base_dir is not None, "BASE_DIR environment variable is not set."
-assert results_dir is not None, "RESULTS_DIR environment variable is not set."
 
 
 @mcp.tool()
-def list_avail_problems() -> list[str]:
-    """List available problems and their related information.
+def list_avail_root_cause_categories() -> list[str]:
+    """List available root cause categories.
 
     Returns:
-        list[(problem_id: str, problem_description: str, issue_type: str)]: A list of (problem_id, problem_description, issue_type) tuples.
+        list[str]: List of available root cause categories.
     """
-
-    return _list_avail_problems(LAB_PROBLEM_ID)
+    return _list_avail_root_cause_categories()
 
 
 @mcp.tool()
-def get_submission_template(problem_id: str) -> dict:
-    """Get the submission template for a specific problem.
+def list_avail_root_cause_types(root_cause_category: str) -> list[str]:
+    """List available root cause types for a specific root cause category.
 
     Args:
-        problem_id (str): The ID of the problem.
+        root_cause_category (str): The root cause category.
+    Returns:
+        list[str]: List of available root cause types.
+    """
+
+    return _list_avail_root_cause_types(root_cause_category)
+
+
+@mcp.tool()
+def get_submission_template(root_cause_type: str) -> str:
+    """Get the submission instruction for a specific problem.
+
+    Args:
+        root_cause_type: The root cause type.
 
     Returns:
-        dict: The submission inputSchema for the problem.
+        str: The submission instruction.
     """
-    return _get_submission_template(problem_id).model_json_schema()
+    return _get_submission_template(root_cause_type, task_level=TASK_LEVEL)
 
 
 @mcp.tool()
 def submit(submission: Dict[str, Any]) -> List[str]:
-    """Submit a detection task solution. Before submission, call get_submission_template to get the expected submission format.
+    """Submit a task solution. Before submission, call get_submission_template to get the expected submission format.
 
     Args:
-        submission: The submission data for the detection task.
+        submission: The submission data for the task.
 
     Returns:
-        str: The result of the submission.
+        bool: Indicates whether the submission was successful.
     """
-    sub_template: BaseModel = _get_submission_template(submission["problem_id"])
-    if not sub_template:
-        return ["Submission validation failed: Invalid problem ID."]
-
-    # validate the submission
-    try:
-        validated = sub_template.model_validate(submission)
-    except Exception as e:
-        return [f"Submission validation failed: {e}"]
-
     # record the result for evaluation
-    result = validated.model_dump()
-    result["model"] = MODEL_NAME
+    submission["backend_model_name"] = BACKEND_MODEL_NAME
+    submission["agent_name"] = AGENT_NAME
 
-    with open(f"{results_dir}/{LAB_PROBLEM_ID}/{LAB_SESSION_ID}_{MODEL_NAME}_submission.log", "a+") as log_file:
-        log_file.write(json.dumps(result))
+    with open(
+        f"{results_dir}/{ROOT_CAUSE_TYPE}/{LAB_SESSION_ID}_{BACKEND_MODEL_NAME}_submission.log", "a+"
+    ) as log_file:
+        log_file.write(json.dumps(submission))
 
-    return ["Detection submission successful."]
+    return ["Submission success."]
 
 
 if __name__ == "__main__":

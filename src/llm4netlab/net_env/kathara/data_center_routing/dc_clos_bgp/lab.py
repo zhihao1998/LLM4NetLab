@@ -70,7 +70,7 @@ class DCClosBGP(NetworkEnvBase):
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "An data center network with 4 levels using BGP routing protocol."
-        SUPER_SPINE_COUNT = 2
+        SUPER_SPINE_COUNT = 1
         SPINE_COUNT = 2  # per super spine
         LEAF_COUNT = 4  # per pod
 

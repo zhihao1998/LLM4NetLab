@@ -3,12 +3,12 @@ import logging
 import os
 import time
 
-from llm4netlab.config import BASE_DIR, RESULTS_DIR
+from llm4netlab.config import RESULTS_DIR
 from llm4netlab.evaluator.llm_judge import LLMJudge
 from llm4netlab.evaluator.result_log import EvalResult, record_eval_result
 from llm4netlab.evaluator.trace_parser import AgentTraceParser
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
-from llm4netlab.utils.errors import SessionPrint
+from llm4netlab.orchestrator.problems.problem_base import TaskLevel
 from llm4netlab.utils.session import Session
 
 """Orchestrator class that interfaces with the agent and the environment."""
@@ -18,34 +18,36 @@ class Orchestrator:
     def __init__(self):
         self.agent = None
         self.session = None
-        self.session_print = SessionPrint()
         self.problem = None
 
         self.orchestration_start_time = None
         self.orchestration_end_time = None
         self.logger = logging.getLogger(__name__)
 
-    def init_problem(self, problem_id: str) -> tuple:
+    def init_problem(self, root_cause_type: str, task_level: TaskLevel) -> tuple:
         """Initialize the problem to solve.
 
         Args:
-            problem_id: The problem ID.
+            root_cause_type: The root cause type.
+            task_level: The task level.
 
         Returns:
-            str: The task description.
-            str: The session ID.
-            str: The problem ID.
-            str: The lab name.
+            A tuple containing the root cause category, task description, session ID, and lab name.
         """
         self.orchestration_start_time = time.time()
 
         self.session = Session()
         self.logger.info(f"Initialized ID: {self.session.session_id}")
 
-        self.problem_id = problem_id
-        self.problem = get_problem_instance(problem_id)
-        self.session.set_problem(self.problem, problem_id)
-        # self.session.set_agent(self.agent_name)
+        self.root_cause_type = root_cause_type
+        self.task_level = task_level
+
+        self.problem = get_problem_instance(root_cause_type, task_level)
+        self.session.set_problem(self.problem, root_cause_type)
+
+        self.root_cause_category = self.problem.META.root_cause_category
+        self.log_dir = f"{RESULTS_DIR}/{self.root_cause_type}/{self.task_level.value}"
+        self.log_prefix = f"{self.session.session_id}_{self.agent.backend_model}"
 
         # deploy the network environment
         # check if the environment is already deployed
@@ -60,14 +62,11 @@ class Orchestrator:
         # Get the problem description, instructions, and APIs
         task_desc = self.problem.get_task_description()
 
-        # get the network environment information
-        # net_env_info = self.problem.net_env.get_info()
-
-        os.makedirs(f"{BASE_DIR}/results/{self.problem_id}", exist_ok=True)
+        os.makedirs(self.log_dir, exist_ok=True)
         # Log the problem and descriptions as ground truth
-        with open(f"{BASE_DIR}/results/{self.problem_id}/{self.session.session_id}_groundtruth.log", "a+") as log_file:
+        with open(f"{self.log_dir}/{self.log_prefix}_groundtruth.log", "a+") as log_file:
             log_file.write(self.problem.SUBMISSION.model_dump_json() + "\n")
-        return task_desc, self.session.session_id, self.problem_id, self.problem.net_env.name
+        return self.root_cause_category, task_desc, self.session.session_id, self.problem.net_env.name
 
     def register_agent(self, agent) -> None:
         """Register an agent with the orchestrator.
@@ -89,9 +88,9 @@ class Orchestrator:
             self.problem.net_env.undeploy()
             self.logger.info(f"Undeployed network environment {self.problem.net_env.name}.")
 
-    def eval(self):
-        # Check if there is valid submission
-        sub_log_path = f"{RESULTS_DIR}/{self.problem_id}/{self.session.session_id}_{self.backend_model}_submission.log"
+    def eval_problem(self):
+        """Evaluate the problem solution and log the results."""
+        sub_log_path = f"{self.log_dir}/{self.log_prefix}_submission.log"
         if not os.path.exists(sub_log_path):
             evaluator_score = -1
         else:
@@ -101,9 +100,7 @@ class Orchestrator:
             evaluator_score = self.problem.eval(submission=submission)
 
         # agent trace
-        trace_path = os.path.join(
-            RESULTS_DIR, self.problem_id, f"{self.session.session_id}_{self.backend_model}_conversation.log"
-        )
+        trace_path = os.path.join(self.log_dir, f"{self.log_prefix}_agent_trace.log")
 
         # llm as judge evaluation
         llm_judge = LLMJudge()
@@ -111,7 +108,7 @@ class Orchestrator:
             problem_description=self.problem.META.description,
             net_env_info=self.problem.net_env.get_info(),
             trace_path=trace_path,
-            save_path=f"{RESULTS_DIR}/{self.problem_id}/{self.session.session_id}_{self.backend_model}_llm_judge.log",
+            save_path=f"{self.log_dir}/{self.log_prefix}_llm_judge.log",
         )
 
         # parse agent trace
@@ -119,19 +116,22 @@ class Orchestrator:
         trace_metrics = trace_parser.parse_trace()
 
         # log evaluation results
-        eval_result = EvalResult()
-        eval_result.agent_name = self.agent_name
-        eval_result.model_name = self.backend_model
-        eval_result.problem_id = self.problem_id
-        eval_result.net_env = self.problem.net_env.name
-        eval_result.session_id = self.session.session_id
-        eval_result.in_tokens = trace_metrics["in_tokens"]
-        eval_result.out_tokens = trace_metrics["out_tokens"]
-        eval_result.steps = trace_metrics["steps"]
-        eval_result.tool_calls = trace_metrics["tool_calls"]
-        eval_result.tool_errors = trace_metrics["tool_errors"]
-        eval_result.time_taken = trace_metrics["time_taken"]
-        eval_result.llm_judge_score = llm_score
-        eval_result.evaluator_score = evaluator_score
+        eval_result = EvalResult(
+            agent_name=self.agent_name,
+            backend_model_name=self.backend_model,
+            root_cause_category=self.root_cause_category,
+            root_cause_type=self.root_cause_type,
+            task_level=self.task_level.value,
+            net_env=self.problem.net_env.name,
+            session_id=self.session.session_id,
+            in_tokens=trace_metrics.get("in_tokens", None),
+            out_tokens=trace_metrics.get("out_tokens", None),
+            steps=trace_metrics.get("steps", None),
+            tool_calls=trace_metrics.get("tool_calls", None),
+            tool_errors=trace_metrics.get("tool_errors", None),
+            time_taken=self.orchestration_end_time - self.orchestration_start_time,
+            llm_judge_score=llm_score,
+            evaluator_score=evaluator_score,
+        )
 
         record_eval_result(eval_result)

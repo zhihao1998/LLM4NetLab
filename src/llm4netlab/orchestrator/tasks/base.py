@@ -15,6 +15,7 @@ class TaskBase:
     def __init__(self):
         self.results = {}
         self.net_env: NetworkEnvBase = None
+        self.symptom_desc = ""
 
     def inject_fault(self):
         return NotImplementedError()
@@ -26,8 +27,16 @@ class TaskBase:
         """Add an evaluation result to the task."""
         self.results[key] = value
 
-    def get_task_description(self):
-        return textwrap.dedent(self.task_desc).format(get_info=self.get_info)
+    def get_task_description(self) -> str:
+        """Get the task description with network and symptom details.
+
+        Returns:
+            str: The formatted task description.
+        """
+        return textwrap.dedent(self.task_desc).format(
+            net_desc=self.net_env.get_info(),
+            symptom_desc=self.symptom_desc,
+        )
 
     def eval(self, submission: dict) -> float:
         """Task-specific evaluation

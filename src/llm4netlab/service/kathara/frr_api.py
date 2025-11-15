@@ -1,9 +1,9 @@
 from llm4netlab.service.kathara.base_api import KatharaBaseAPI, _SupportsBase
 
 
-class IntfAPIMixin:
+class FRRAPIMixin:
     """
-    Interfaces to interact with Linux Traffic within Kathara.
+    Interfaces to interact with FRR routing daemon within Kathara labs.
     """
 
     def frr_show_route(self: _SupportsBase, device_name: str) -> list[str]:
@@ -89,7 +89,7 @@ class IntfAPIMixin:
         return self._run_cmd(device_name, command)
 
 
-class KatharaFRRAPI(KatharaBaseAPI, IntfAPIMixin):
+class KatharaFRRAPI(KatharaBaseAPI, FRRAPIMixin):
     pass
 
 

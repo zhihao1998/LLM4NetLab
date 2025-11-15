@@ -7,10 +7,10 @@ from mcp_use import MCPAgent, MCPClient
 from agent.base import AgentBase
 from agent.llm.langchain_ollama import OllamaLLM
 from agent.utils.loggers import FileLoggerHandler
+from agent.utils.mcp_servers import MCPServerConfig
 from agent.utils.template import MCP_PROMPT_TEMPLATE
 from llm4netlab.config import RESULTS_DIR
 from llm4netlab.orchestrator.orchestrator import Orchestrator
-from llm4netlab.service.mcp_servers import MCPServer
 
 
 # define agent
@@ -40,36 +40,38 @@ class AgentWithMCP(AgentBase):
 async def main():
     # 1. Initialize orchestrator and problem
     orchestrator = Orchestrator()
-    # model_name = "qwen3:32b"
-    model_name = "gpt-oss:20b"
+    backend_model_name = "gpt-oss:20b"
 
-    task_desc, session_id, problem_id, lab_name = orchestrator.init_problem("frr_down_localization")
+    task_desc, session_id, root_cause_type, lab_name = orchestrator.init_problem("frr_down_localization")
     # 2. Load MCP server and client
-    mcp_server_config = MCPServer(model_name=model_name).load_config(
-        session_id=session_id, problem_id=problem_id, lab_name=lab_name
-    )
+    mcp_server_config = MCPServerConfig(
+        backend_model_name=backend_model_name, session_id=session_id, root_cause_type=root_cause_type, lab_name=lab_name
+    ).load_config()
     # 3. Create MCP client
     client = MCPClient.from_dict(mcp_server_config)
 
     # 4. Create and register Agent
-    llm = OllamaLLM(model=model_name)
+    llm = OllamaLLM(model=backend_model_name)
 
-    log_path = os.path.join(f"{RESULTS_DIR}/{problem_id}/{session_id}_{model_name}_conversation.log")
+    log_path = os.path.join(f"{RESULTS_DIR}/{root_cause_type}/{session_id}_{backend_model_name}_conversation.log")
     agent = AgentWithMCP(
-        agent_name=f"ReAct_Ollama_{model_name}",
-        backend_model=model_name,
+        agent_name=f"ReAct_Ollama_{backend_model_name}",
+        backend_model=backend_model_name,
         llm=llm,
         client=client,
         max_steps=20,
         log_path=log_path,
     )
     orchestrator.register_agent(agent)
-    # 5. Ready? Go!
+
+    # 5. GO
     result = await agent.arun(task_desc)
     print("\n\nFinal Result:", result)
 
+    # 6. Evaluation
     orchestrator.eval()
 
+    # 7. Stop problem and cleanup
     orchestrator.stop_problem(cleanup=True)
 
 
