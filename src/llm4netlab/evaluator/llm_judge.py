@@ -105,19 +105,19 @@ class LLMJudge:
 if __name__ == "__main__":
     judge = LLMJudge()
     session_id = "20251113090058"
-    root_cause_type = "frr_down_localization"
+    root_cause_name = "frr_down_localization"
     eval_backend_model_name = "gpt-oss:20b"
-    problem_instance = get_problem_instance(root_cause_type)
+    problem_instance = get_problem_instance(root_cause_name)
     problem_description = problem_instance.META.description
     net_env_info = problem_instance.net_env.get_info()
 
-    trace_file = os.path.join(RESULTS_DIR, root_cause_type, f"{session_id}_{eval_backend_model_name}_conversation.log")
+    trace_file = os.path.join(RESULTS_DIR, root_cause_name, f"{session_id}_{eval_backend_model_name}_conversation.log")
 
     evaluation_content, score = judge.evaluate_agent(
         problem_description,
         net_env_info,
         trace_file,
-        save_path=os.path.join(RESULTS_DIR, root_cause_type, f"{session_id}_{eval_backend_model_name}_llm_judge.log"),
+        save_path=os.path.join(RESULTS_DIR, root_cause_name, f"{session_id}_{eval_backend_model_name}_llm_judge.log"),
     )
     print("Evaluation Result:", evaluation_content)
     print("Evaluation Score:", score)

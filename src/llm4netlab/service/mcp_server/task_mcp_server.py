@@ -5,11 +5,10 @@ from typing import Any, Dict, List
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
-from llm4netlab.orchestrator.problems.prob_pool import get_submission_template as _get_submission_template
-from llm4netlab.orchestrator.problems.prob_pool import (
-    list_avail_root_cause_categories as _list_avail_root_cause_categories,
-)
-from llm4netlab.orchestrator.problems.prob_pool import list_avail_root_cause_types as _list_avail_root_cause_types
+from llm4netlab.orchestrator.problems.prob_pool import list_avail_root_causes as _list_avail_root_causes
+from llm4netlab.orchestrator.tasks.detection import DetectionSubmission
+from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission
+from llm4netlab.orchestrator.tasks.rca import RCASubmission
 
 # Initialize FastMCP server
 mcp = FastMCP(
@@ -17,15 +16,11 @@ mcp = FastMCP(
     instructions="This mcp server contains the apis to interact with tasks, for now using to submit your solution.",
 )
 
-
-# message returned to agent after submission, not used for now
-# class SubmissionOutput(BaseModel):
-#     success: bool = Field(description="Indicates whether the submission was successful.")
-#     message: str = Field(description="Submission message.")
 load_dotenv(verbose=True)
 
 # The following environment variables should be passed from the MCP client (i.e., the agent)
 LAB_SESSION_ID = os.getenv("LAB_SESSION_ID")
+ROOT_CAUSE_CATEGORY = os.getenv("ROOT_CAUSE_CATEGORY")
 ROOT_CAUSE_TYPE = os.getenv("ROOT_CAUSE_TYPE")
 TASK_LEVEL = os.getenv("TASK_LEVEL")
 BACKEND_MODEL_NAME = os.getenv("BACKEND_MODEL_NAME")
@@ -36,39 +31,31 @@ results_dir = os.getenv("RESULTS_DIR")
 
 
 @mcp.tool()
-def list_avail_root_cause_categories() -> list[str]:
-    """List available root cause categories.
+def list_avail_root_causes() -> list[str]:
+    """List all available root cause types.
 
     Returns:
-        list[str]: List of available root cause categories.
+        list[str]: A list of available root cause types.
     """
-    return _list_avail_root_cause_categories()
+    return _list_avail_root_causes()
 
 
 @mcp.tool()
-def list_avail_root_cause_types(root_cause_category: str) -> list[str]:
-    """List available root cause types for a specific root cause category.
-
-    Args:
-        root_cause_category (str): The root cause category.
-    Returns:
-        list[str]: List of available root cause types.
-    """
-
-    return _list_avail_root_cause_types(root_cause_category)
-
-
-@mcp.tool()
-def get_submission_template(root_cause_type: str) -> str:
+def get_submission_template() -> str:
     """Get the submission instruction for a specific problem.
-
-    Args:
-        root_cause_type: The root cause type.
 
     Returns:
         str: The submission instruction.
     """
-    return _get_submission_template(root_cause_type, task_level=TASK_LEVEL)
+    if TASK_LEVEL == "detection":
+        template = DetectionSubmission.model_json_schema()
+    elif TASK_LEVEL == "localization":
+        template = LocalizationSubmission.model_json_schema()
+    elif TASK_LEVEL == "rca":
+        template = RCASubmission.model_json_schema()
+    else:
+        raise ValueError(f"Unsupported task level: {TASK_LEVEL}")
+    return json.dumps(template)
 
 
 @mcp.tool()
@@ -84,9 +71,13 @@ def submit(submission: Dict[str, Any]) -> List[str]:
     # record the result for evaluation
     submission["backend_model_name"] = BACKEND_MODEL_NAME
     submission["agent_name"] = AGENT_NAME
-
+    os.makedirs(
+        f"{results_dir}/{ROOT_CAUSE_CATEGORY}/{ROOT_CAUSE_TYPE}/{TASK_LEVEL}/",
+        exist_ok=True,
+    )
     with open(
-        f"{results_dir}/{ROOT_CAUSE_TYPE}/{LAB_SESSION_ID}_{BACKEND_MODEL_NAME}_submission.log", "a+"
+        f"{results_dir}/{ROOT_CAUSE_CATEGORY}/{ROOT_CAUSE_TYPE}/{TASK_LEVEL}/{LAB_SESSION_ID}_{BACKEND_MODEL_NAME}_submission.log",
+        "a+",
     ) as log_file:
         log_file.write(json.dumps(submission))
 

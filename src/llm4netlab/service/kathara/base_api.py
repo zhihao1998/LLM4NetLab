@@ -156,6 +156,13 @@ class KatharaBaseAPI:
             result.append(f"{host_i} ping {host_j}: {is_success}")
         return str(result)
 
+    def ping_pair(self, host_a: str, host_b: str, count: int = 4) -> str:
+        """
+        Ping from one host to another in the lab.
+        """
+        command = f"ping -c {count} {self.get_host_ip(host_b)}"
+        return self._run_cmd(host_a, command)
+
     def traceroute(self, host_name: str, dst_ip: str) -> str:
         """
         Run a traceroute from a host to a destination IP.
@@ -195,11 +202,67 @@ class KatharaBaseAPI:
             time.sleep(5)
         return result
 
+    def netstat(self, host_name: str, args: str = "-tuln") -> str:
+        """
+        Run netstat command on a host with given arguments.
+        Example: -s for statistics, -tuln for listening ports.
+        """
+        command = f"netstat {args}"
+        return self._run_cmd(host_name, command)
+
+    def ip_addr_statistics(self, host_name: str) -> str:
+        """
+        Get IP address statistics of a host.
+        """
+        command = "ip -s addr"
+        return self._run_cmd(host_name, command)
+
+    def ethtool(self, host_name: str, interface: str, args: str = "") -> str:
+        """
+        Run ethtool command on a specific interface of a host with given arguments.
+        """
+        command = f"ethtool {interface} {args}"
+        return self._run_cmd(host_name, command)
+
+    def curl_web_test(self, host_name: str, url: str, times: int = 5) -> str:
+        """
+        Perform a curl web test to a URL for several times and return timing statistics.
+        """
+        command = (
+            f"curl -w 'namelookup:%{{time_namelookup}}, "
+            f"connect:%{{time_connect}}, "
+            f"appconnect:%{{time_appconnect}}, "
+            f"pretransfer:%{{time_pretransfer}}, "
+            f"starttransfer:%{{time_starttransfer}}, "
+            f"total:%{{time_total}}\\n' "
+            f"-o /dev/null -s {url}"
+        )
+        res = ""
+        for _ in range(times):
+            res += self._run_cmd(host_name, command) + "\n"
+        return res.strip()
+
+    def ps(self, host_name: str, args: str = "aux") -> str:
+        """
+        Run ps command on a host with given arguments.
+        Example: aux for all processes.
+        """
+        command = f"ps {args}"
+        return self._run_cmd(host_name, command)
+
+    def show_dns_config(self, host_name: str) -> str:
+        """
+        Show DNS configuration of a host.
+        """
+        command = "cat /etc/resolv.conf"
+        return self._run_cmd(host_name, command)
+
 
 async def main():
-    api = KatharaBaseAPI(lab_name="ibgp_dc_4_level")
-    result = await api.get_reachability()
-    print("Reachability:", result)
+    api = KatharaBaseAPI(lab_name="dc_clos_service")
+    result = api.curl_web_test("client_0", "http://web0.pod0")
+    # result = await api.ping_pair("client_0", "webserver0_pod0", count=4)
+    print(result)
 
 
 if __name__ == "__main__":

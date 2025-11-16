@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import traceback
 from datetime import datetime
 
@@ -14,6 +15,7 @@ class FileLoggerHandler(BaseCallbackHandler):
         self.logger.setLevel(logging.INFO)
 
         if not self.logger.handlers:
+            os.makedirs(os.path.dirname(log_path), exist_ok=True)
             file_handler = logging.FileHandler(log_path, encoding="utf-8", mode="a")
 
             formatter = logging.Formatter("%(message)s")

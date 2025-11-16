@@ -1,6 +1,6 @@
 import time
 
-from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
+from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_multi_area.lab import OspfMultiArea
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
@@ -13,7 +13,7 @@ class OspfMisconfigBaseTask:
     def __init__(self):
         self.net_env = OspfMultiArea()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_ospf_area_misconfig(host_name="router1", correct_area=0, wrong_area=66)
@@ -37,7 +37,7 @@ class OspfMisconfigDetection(OspfMisconfigBaseTask, DetectionTask):
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
         root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
     )
 
     def __init__(self):

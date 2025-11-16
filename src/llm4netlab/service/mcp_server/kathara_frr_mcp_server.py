@@ -24,6 +24,32 @@ def frr_get_bgp_conf(router_name: str) -> str:
 
 
 @mcp.tool()
+def frr_show_running_config(router_name: str) -> str:
+    """Get the running configuration from the FRR router.
+
+    Args:
+        router_name (str): The name of the router.
+    Returns:
+        str: The running configuration from the FRR router.
+    """
+    kathara_api = KatharaFRRAPI(lab_name=LAB_NAME)
+    return kathara_api.frr_show_running_config(router_name)
+
+
+@mcp.tool()
+def frr_show_ip_route(router_name: str) -> str:
+    """Get the IP routing table from the FRR router.
+
+    Args:
+        router_name (str): The name of the router.
+    Returns:
+        str: The IP routing table from the FRR router.
+    """
+    kathara_api = KatharaFRRAPI(lab_name=LAB_NAME)
+    return kathara_api.frr_show_route(router_name)
+
+
+@mcp.tool()
 def frr_get_ospf_conf(router_name: str) -> str:
     """Get the OSPF configuration from the FRR router.
 
@@ -35,6 +61,13 @@ def frr_get_ospf_conf(router_name: str) -> str:
     """
     kathara_api = KatharaFRRAPI(lab_name=LAB_NAME)
     return kathara_api.frr_get_ospf_conf(router_name)
+
+
+@mcp.tool()
+def frr_exec(router_name: str, command: str) -> str:
+    """Execute a vtysh command on a FRR router."""
+    kathara_api = KatharaFRRAPI(lab_name=LAB_NAME)
+    return kathara_api.frr_exec(router_name, command)
 
 
 if __name__ == "__main__":

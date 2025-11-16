@@ -13,6 +13,20 @@ class FRRAPIMixin:
         command = "vtysh -c 'show ip route'"
         return self._run_cmd(device_name, command)
 
+    def frr_exec(self: _SupportsBase, device_name: str, command: str) -> list[str]:
+        """
+        Execute a vtysh command on the FRR instance.
+        """
+        full_command = f"vtysh -c '{command}'"
+        return self._run_cmd(device_name, full_command)
+
+    def frr_show_running_config(self: _SupportsBase, device_name: str) -> list[str]:
+        """
+        Show the running configuration of the FRR instance.
+        """
+        command = "vtysh -c 'show running-config'"
+        return self._run_cmd(device_name, command)
+
     # OSPF related commands
     def frr_get_ospf_conf(self: _SupportsBase, device_name: str) -> list[str]:
         """

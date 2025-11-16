@@ -1,6 +1,6 @@
 import time
 
-from llm4netlab.generator.fault.injector_host import KatharaHostFaultInjector
+from llm4netlab.generator.fault.injector_host import FaultInjectorHost
 from llm4netlab.net_env.kathara.interdomain_routing.simple_bgp.lab import SimpleBGP
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
@@ -17,7 +17,7 @@ class HostIPMissingBaseTask:
     def __init__(self):
         self.net_env = SimpleBGP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaHostFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_remove_ip(host_name=self.DEFAULT_HOST, ip_address="10.0.0.2/24", intf_name="eth0")
@@ -72,7 +72,7 @@ class HostDefaultRouteMissingBaseTask:
     def __init__(self):
         self.net_env = SimpleBGP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaHostFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_host_default_route_missing(host_name=self.DEFAULT_HOST)
@@ -128,7 +128,7 @@ class HostDefaultRouteMissingLocalization(HostDefaultRouteMissingBaseTask, Local
 #     def __init__(self):
 #         self.net_env = DCClosBGP()
 #         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
-#         self.injector = KatharaHostFaultInjector(lab_name=self.net_env.lab.name)
+#         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
 
 #     def inject_fault(self):
 #         self.injector.inject_ip_change(
@@ -160,7 +160,7 @@ class HostPrefixErrorBaseTask:
     def __init__(self):
         self.net_env = SimpleBGP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaHostFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_ip_change(
@@ -194,7 +194,7 @@ class HostPrefixErrorDetectionTask(HostPrefixErrorBaseTask, DetectionTask):
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
         root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
     )
 
     def __init__(self):
@@ -212,7 +212,7 @@ class HostPrefixErrorLocalization(HostPrefixErrorBaseTask, LocalizationTask):
 
     SUBMISSION = LocalizationSubmission(
         root_cause_category=RootCauseCategory.CONFIG_HOST_ERROR,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
         target_component_ids=[HostPrefixErrorBaseTask.DEFAULT_HOST],
     )
 

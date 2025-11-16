@@ -95,7 +95,7 @@ class DCClosService(NetworkEnvBase):
 
         for ss in range(SUPER_SPINE_COUNT):
             ss_name = f"super_spine_{ss}"
-            router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr"})
+            router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"})
             router_ss_meta = RouterMeta(
                 name=ss_name,
                 machine=router_ss,
@@ -109,7 +109,9 @@ class DCClosService(NetworkEnvBase):
             pod_spines[pod] = []
             for spine_id in range(SPINE_COUNT):
                 spine_name = f"spine_{pod}_{spine_id}"
-                router_spine = self.lab.new_machine(spine_name, **{"image": "kathara/frr"})
+                router_spine = self.lab.new_machine(
+                    spine_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                )
                 spine_meta = RouterMeta(
                     name=spine_name,
                     machine=router_spine,
@@ -123,7 +125,9 @@ class DCClosService(NetworkEnvBase):
             pod_leaves[pod] = []
             for leaf_id in range(LEAF_COUNT):
                 leaf_name = f"leaf_{pod}_{leaf_id}"
-                router_leaf = self.lab.new_machine(leaf_name, **{"image": "kathara/frr"})
+                router_leaf = self.lab.new_machine(
+                    leaf_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                )
                 leaf_meta = RouterMeta(
                     name=leaf_name,
                     machine=router_leaf,
@@ -136,8 +140,8 @@ class DCClosService(NetworkEnvBase):
 
             pod_dns[pod] = []
             # a dns and three webserver per pod
-            dns_name = f"dns_{pod}"
-            dns_machine = self.lab.new_machine(dns_name, **{"image": "kathara/base"})
+            dns_name = f"dns_pod{pod}"
+            dns_machine = self.lab.new_machine(dns_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
             dns_meta = HostMeta(
                 name=dns_name,
                 machine=dns_machine,
@@ -148,9 +152,11 @@ class DCClosService(NetworkEnvBase):
             tot_dns.append(dns_meta)
 
             pod_webservers[pod] = []
-            for host in range(1, LEAF_COUNT):
-                web_name = f"webserver_{pod}_{host}"
-                web_machine = self.lab.new_machine(web_name, **{"image": "kathara/base"})
+            for host in range(LEAF_COUNT - 1):
+                web_name = f"webserver{host}_pod{pod}"
+                web_machine = self.lab.new_machine(
+                    web_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+                )
                 web_meta = HostMeta(
                     name=web_name,
                     machine=web_machine,
@@ -163,7 +169,9 @@ class DCClosService(NetworkEnvBase):
         # add two client hosts outside the DC
         for client_id in range(SUPER_SPINE_COUNT):
             client_name = f"client_{client_id}"
-            client_machine = self.lab.new_machine(client_name, **{"image": "kathara/base"})
+            client_machine = self.lab.new_machine(
+                client_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+            )
             client_meta = HostMeta(
                 name=client_name,
                 machine=client_machine,
@@ -293,10 +301,10 @@ class DCClosService(NetworkEnvBase):
         for router_meta in tot_spines:
             # general conf for frr
             router_meta.machine.create_file_from_path(
-                os.path.join(BASE_DIR, "llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
             )
             router_meta.machine.create_file_from_path(
-                os.path.join(BASE_DIR, "llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
             )
             router_meta.frr_config = FRR_BASE_TEMPLATE.format(
                 hostname=router_meta.name,
@@ -318,10 +326,10 @@ class DCClosService(NetworkEnvBase):
         for router_meta in tot_leaves + tot_super_spines:
             # general conf for frr
             router_meta.machine.create_file_from_path(
-                os.path.join(BASE_DIR, "llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
             )
             router_meta.machine.create_file_from_path(
-                os.path.join(BASE_DIR, "llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
             )
             router_meta.frr_config = FRR_BASE_TEMPLATE.format(
                 hostname=router_meta.name,

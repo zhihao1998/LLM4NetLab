@@ -24,11 +24,11 @@ class Orchestrator:
         self.orchestration_end_time = None
         self.logger = logging.getLogger(__name__)
 
-    def init_problem(self, root_cause_type: str, task_level: TaskLevel) -> tuple:
+    def init_problem(self, root_cause_name: str, task_level: TaskLevel) -> tuple:
         """Initialize the problem to solve.
 
         Args:
-            root_cause_type: The root cause type.
+            root_cause_name: The root cause type.
             task_level: The task level.
 
         Returns:
@@ -39,15 +39,14 @@ class Orchestrator:
         self.session = Session()
         self.logger.info(f"Initialized ID: {self.session.session_id}")
 
-        self.root_cause_type = root_cause_type
+        self.root_cause_name = root_cause_name
         self.task_level = task_level
 
-        self.problem = get_problem_instance(root_cause_type, task_level)
-        self.session.set_problem(self.problem, root_cause_type)
+        self.problem = get_problem_instance(root_cause_name, task_level)
+        self.session.set_problem(self.problem, root_cause_name)
 
         self.root_cause_category = self.problem.META.root_cause_category
-        self.log_dir = f"{RESULTS_DIR}/{self.root_cause_type}/{self.task_level.value}"
-        self.log_prefix = f"{self.session.session_id}_{self.agent.backend_model}"
+        self.log_dir = f"{RESULTS_DIR}/{self.root_cause_category}/{self.root_cause_name}/{self.task_level}"
 
         # deploy the network environment
         # check if the environment is already deployed
@@ -64,7 +63,7 @@ class Orchestrator:
 
         os.makedirs(self.log_dir, exist_ok=True)
         # Log the problem and descriptions as ground truth
-        with open(f"{self.log_dir}/{self.log_prefix}_groundtruth.log", "a+") as log_file:
+        with open(f"{self.log_dir}/{self.session.session_id}_groundtruth.log", "a+") as log_file:
             log_file.write(self.problem.SUBMISSION.model_dump_json() + "\n")
         return self.root_cause_category, task_desc, self.session.session_id, self.problem.net_env.name
 
@@ -77,6 +76,7 @@ class Orchestrator:
         self.agent = agent
         self.agent_name = agent.agent_name
         self.backend_model = agent.backend_model
+        self.log_prefix = f"{self.session.session_id}_{self.agent.backend_model}"
 
     def stop_problem(self, cleanup=False):
         """Stop the problem."""
@@ -120,8 +120,8 @@ class Orchestrator:
             agent_name=self.agent_name,
             backend_model_name=self.backend_model,
             root_cause_category=self.root_cause_category,
-            root_cause_type=self.root_cause_type,
-            task_level=self.task_level.value,
+            root_cause_name=self.root_cause_name,
+            task_level=self.task_level,
             net_env=self.problem.net_env.name,
             session_id=self.session.session_id,
             in_tokens=trace_metrics.get("in_tokens", None),

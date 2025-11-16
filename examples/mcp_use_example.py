@@ -36,10 +36,10 @@ class AgentWithMCP(AgentBase):
 async def main():
     # 1. Initialize orchestrator and problem
     orchestrator = Orchestrator()
-    task_desc, session_id, root_cause_type, lab_name = orchestrator.init_problem("frr_down_detection")
+    task_desc, session_id, root_cause_name, lab_name = orchestrator.init_problem("frr_down_detection")
     # 2. Load MCP server and client
     mcp_server_config = MCPServerConfig().load_config(
-        session_id=session_id, root_cause_type=root_cause_type, lab_name=lab_name
+        session_id=session_id, root_cause_name=root_cause_name, lab_name=lab_name
     )
     # 3. Create MCP client
     client = MCPClient.from_dict(mcp_server_config)

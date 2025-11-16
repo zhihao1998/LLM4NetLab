@@ -9,12 +9,10 @@
 """Session wrapper to manage the an agent's session with the orchestrator."""
 
 import datetime
-import json
 import time
 
 from pydantic import BaseModel
 
-from llm4netlab.config import RESULTS_DIR
 from llm4netlab.orchestrator.tasks.base import TaskBase
 
 
@@ -23,40 +21,37 @@ def generate_code():
     return time_str
 
 
-class SessionItem(BaseModel):
-    """SessionItem represents a single item in the session history.
-
-    Attributes:
-        role (str): The role of the item (system, user, assistant, env).
-        content (str): The content of the item.
-    """
-
-    role: str
-    content: str
+class SessionKey(BaseModel):
+    lab_name: str
+    session_id: str
+    root_cause_category: str
+    root_cause_name: str
+    task_level: str
+    backend_model_name: str
+    agent_name: str
 
 
 class Session:
     def __init__(self) -> None:
         # self.session_id = str(uuid.uuid4()).replace("-", "")
         self.session_id = generate_code()
-        self.root_cause_type = None
+        self.root_cause_name = None
         self.problem: TaskBase = None
         self.solution = None
         self.results = {}
-        self.history: list[SessionItem] = []
         self.start_time = None
         self.end_time = None
         self.agent_name = None
 
-    def set_problem(self, problem: TaskBase, root_cause_type: str):
+    def set_problem(self, problem: TaskBase, root_cause_name: str):
         """Set the problem instance for the session.
 
         Args:
             problem (TaskBase): The problem instance to set.
-            root_cause_type (str): The root cause type.
+            root_cause_name (str): The root cause type.
         """
         self.problem = problem
-        self.root_cause_type = root_cause_type
+        self.root_cause_name = root_cause_name
 
     def set_solution(self, solution):
         """Set the solution shared by the agent.
@@ -82,29 +77,6 @@ class Session:
         """
         self.agent_name = agent_name
 
-    def add(self, item):
-        """Add an item into the session history.
-
-        Args:
-            item: The item to inject into the session history.
-        """
-        if not item:
-            return
-
-        if isinstance(item, SessionItem):
-            self.history.append(item)
-        elif isinstance(item, dict):
-            self.history.append(SessionItem.model_validate(item))
-        elif isinstance(item, list):
-            for sub_item in item:
-                self.add(sub_item)
-        else:
-            raise TypeError("Unsupported type %s" % type(item))
-
-    def clear(self):
-        """Clear the session history."""
-        self.history = []
-
     def start(self):
         """Start the session."""
         self.start_time = time.time()
@@ -117,36 +89,3 @@ class Session:
         """Get the duration of the session."""
         duration = self.end_time - self.start_time
         return duration
-
-    def to_dict(self):
-        """Return the session history as a dictionary."""
-        summary = {
-            "agent": self.agent_name,
-            "session_id": str(self.session_id),
-            "root_cause_type": self.root_cause_type,
-            "start_time": self.start_time,
-            "end_time": self.end_time,
-            "trace": [item.model_dump() for item in self.history],
-            "results": self.results,
-        }
-
-        return summary
-
-    def to_json(self):
-        """Save the session to a JSON file."""
-        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-
-        with open(RESULTS_DIR / f"{self.session_id}_{self.start_time}.json", "w") as f:
-            json.dump(self.to_dict(), f, indent=4)
-
-    def from_json(self, filename: str):
-        """Load a session from a JSON file."""
-
-        with open(RESULTS_DIR / filename, "r") as f:
-            data = json.load(f)
-
-        self.session_id = data.get("session_id")
-        self.start_time = data.get("start_time")
-        self.end_time = data.get("end_time")
-        self.results = data.get("results")
-        self.history = [SessionItem.model_validate(item) for item in data.get("trace")]

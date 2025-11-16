@@ -1,6 +1,6 @@
 import time
 
-from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
+from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.kathara.data_center_routing.dc_clos_bgp.lab import DCClosBGP
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
@@ -14,7 +14,7 @@ class BGPAsnMisconfigBaseTask:
     def __init__(self):
         self.net_env = DCClosBGP()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_bgp_misconfig(host_name="leaf_0_0", correct_asn=65200, wrong_asn=60000)
@@ -70,7 +70,7 @@ class BGPMissingRouteBaseTask:
     def __init__(self):
         self.net_env = DCClosBGP()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         # find the line in frr.conf that broadcasts the network and comment it out
@@ -130,7 +130,7 @@ class BGPBadNexthopBaseTask:
     def __init__(self):
         self.net_env = DCClosBGP()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_add_route_blackhole_nexthop(host_name=self.DEFAULT_ROUTER, network="10.0.0.0/24")
@@ -152,7 +152,7 @@ class BGPBadNexthopDetection(BGPBadNexthopBaseTask, DetectionTask):
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
         root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
     )
 
     def __init__(self):
@@ -170,7 +170,7 @@ class BGPBadNexthopLocalization(BGPBadNexthopBaseTask, LocalizationTask):
 
     SUBMISSION = LocalizationSubmission(
         root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
         target_component_ids=[BGPBadNexthopBaseTask.DEFAULT_ROUTER],
     )
 
@@ -189,7 +189,7 @@ class BGPRemoteBlackholeBaseTask:
     def __init__(self):
         self.net_env = DCClosBGP()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_add_route_blackhole_advertise(
@@ -231,7 +231,7 @@ class BGPRemoteBlackholeLocalization(BGPRemoteBlackholeBaseTask, LocalizationTas
 
     SUBMISSION = LocalizationSubmission(
         root_cause_category=RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
         target_component_ids=[BGPRemoteBlackholeBaseTask.DEFAULT_ROUTER],
     )
 
@@ -251,7 +251,7 @@ class BGPConflictRouteBaseTask:
     def __init__(self):
         self.net_env = DCClosBGP()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         res = self.kathara_api.frr_add_route(device_name=self.DEFAULT_ROUTER_2, route="10.0.0.0/24", next_hop="eth2")

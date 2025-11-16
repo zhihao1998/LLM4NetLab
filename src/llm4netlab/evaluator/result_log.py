@@ -13,7 +13,7 @@ class EvalResult:
     agent_name: str = None
     backend_model_name: str = None
     root_cause_category: str = None
-    root_cause_type: str = None
+    root_cause_name: str = None
     task_level: str = None
     net_env: str = None
     session_id: str = None

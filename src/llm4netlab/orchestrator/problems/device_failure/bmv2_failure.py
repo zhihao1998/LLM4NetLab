@@ -1,4 +1,4 @@
-from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
+from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.kathara.simple_bmv2.lab import SimpleBmv2
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
@@ -12,7 +12,7 @@ class Bmv2DownBaseTask:
         self.net_env = SimpleBmv2()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
 
-        self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_bmv2_down(host_name="s1")
@@ -32,7 +32,7 @@ class Bmv2DownDetection(Bmv2DownBaseTask, DetectionTask):
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
         root_cause_category=RootCauseCategory.DEVICE_FAILURE,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
     )
 
     def __init__(self):

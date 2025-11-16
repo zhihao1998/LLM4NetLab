@@ -1,6 +1,6 @@
 import time
 
-from llm4netlab.generator.fault.injector_kathara import KatharaBaseFaultInjector
+from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.kathara.data_center_routing.dc_clos_bgp.lab import DCClosBGP
 from llm4netlab.orchestrator.problems.config_host_error.host_error import HostPrefixErrorBaseTask
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskLevel
@@ -20,7 +20,7 @@ class LinkLatencyBaseTask:
     def __init__(self):
         self.net_env = DCClosBGP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
-        self.injector = KatharaBaseFaultInjector(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
         self.injector.inject_intf_down(
@@ -48,7 +48,7 @@ class LinkFailureDetectionTask(LinkLatencyBaseTask, DetectionTask):
     SUBMISSION = DetectionSubmission(
         is_anomaly=True,
         root_cause_category=RootCauseCategory.DEVICE_FAILURE,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
     )
 
     def __init__(self):
@@ -66,7 +66,7 @@ class LinkFailureLocalization(LinkLatencyBaseTask, LocalizationTask):
 
     SUBMISSION = LocalizationSubmission(
         root_cause_category=RootCauseCategory.DEVICE_FAILURE,
-        root_cause_type=META.id,
+        root_cause_name=META.id,
         target_component_ids=[LinkLatencyBaseTask.DEFAULT_DEVICE, LinkLatencyBaseTask.DEFAULT_DEVICE_INTF],
     )
 

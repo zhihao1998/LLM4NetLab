@@ -1,32 +1,35 @@
 import os
 
+from llm4netlab.utils.session import SessionKey
+
 
 class MCPServerConfig:
     def __init__(
         self,
-        session_id: str,
-        root_cause_category: str,
-        root_cause_type: str,
-        task_level: str,
-        lab_name: str,
-        backend_model_name: str,
-        agent_name: str = "ReAct",
+        session_key: SessionKey,
     ):
         # load paths
         base_dir = os.getenv("BASE_DIR")
         self.mcp_server_dir = os.path.join(base_dir, "src/llm4netlab/service/mcp_server")
-        self.backend_model_name = backend_model_name
-        self.agent_name = agent_name
-        self.session_id = session_id
-        self.task_level = task_level
-        self.root_cause_category = root_cause_category
-        self.root_cause_type = root_cause_type
-        self.lab_name = lab_name
+        self.backend_model_name = session_key.backend_model_name
+        self.agent_name = session_key.agent_name
+        self.session_id = session_key.session_id
+        self.task_level = session_key.task_level
+        self.root_cause_category = session_key.root_cause_category
+        self.root_cause_name = session_key.root_cause_name
+        self.lab_name = session_key.lab_name
 
-    def load_config(self):
-        # Create configuration dictionary
-        config = {
-            "mcpServers": {
+    def load_config(self, if_submit: bool = False) -> dict:
+        if if_submit:
+            config = {
+                "task_mcp_server": {
+                    "command": "python3",
+                    "args": [f"{self.mcp_server_dir}/task_mcp_server.py"],
+                    "transport": "stdio",
+                },
+            }
+        else:
+            config = {
                 "kathara_base_mcp_server": {
                     "command": "python3",
                     "args": [f"{self.mcp_server_dir}/kathara_base_mcp_server.py"],
@@ -42,20 +45,14 @@ class MCPServerConfig:
                     "args": [f"{self.mcp_server_dir}/kathara_frr_mcp_server.py"],
                     "transport": "stdio",
                 },
-                "task_mcp_server": {
-                    "command": "python3",
-                    "args": [f"{self.mcp_server_dir}/task_mcp_server.py"],
-                    "transport": "stdio",
-                },
-            },
-        }
+            }
 
         # add env to every server for the submission
-        for server in config["mcpServers"].values():
+        for server in config.values():
             server["env"] = {
                 "LAB_SESSION_ID": self.session_id,
                 "ROOT_CAUSE_CATEGORY": self.root_cause_category,
-                "ROOT_CAUSE_TYPE": self.root_cause_type,
+                "ROOT_CAUSE_TYPE": self.root_cause_name,
                 "TASK_LEVEL": self.task_level,
                 "LAB_NAME": self.lab_name,
                 "BACKEND_MODEL_NAME": self.backend_model_name,

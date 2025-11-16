@@ -42,10 +42,10 @@ async def main():
     orchestrator = Orchestrator()
     backend_model_name = "gpt-oss:20b"
 
-    task_desc, session_id, root_cause_type, lab_name = orchestrator.init_problem("frr_down_localization")
+    task_desc, session_id, root_cause_name, lab_name = orchestrator.init_problem("frr_down_localization")
     # 2. Load MCP server and client
     mcp_server_config = MCPServerConfig(
-        backend_model_name=backend_model_name, session_id=session_id, root_cause_type=root_cause_type, lab_name=lab_name
+        backend_model_name=backend_model_name, session_id=session_id, root_cause_name=root_cause_name, lab_name=lab_name
     ).load_config()
     # 3. Create MCP client
     client = MCPClient.from_dict(mcp_server_config)
@@ -53,7 +53,7 @@ async def main():
     # 4. Create and register Agent
     llm = OllamaLLM(model=backend_model_name)
 
-    log_path = os.path.join(f"{RESULTS_DIR}/{root_cause_type}/{session_id}_{backend_model_name}_conversation.log")
+    log_path = os.path.join(f"{RESULTS_DIR}/{root_cause_name}/{session_id}_{backend_model_name}_conversation.log")
     agent = AgentWithMCP(
         agent_name=f"ReAct_Ollama_{backend_model_name}",
         backend_model=backend_model_name,

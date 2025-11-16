@@ -6,7 +6,7 @@ class TCMixin:
     Interfaces to interact with Linux Traffic within Kathara.
     """
 
-    def tc_set_intf(
+    def tc_set_netem(
         self: _SupportsBase,
         host_name: str,
         interface: str,
@@ -57,11 +57,39 @@ class TCMixin:
         command = f"tc qdisc show dev {interface}"
         return self._run_cmd(host_name, command)
 
+    def tc_show_statistics(self: _SupportsBase, host_name: str, interface: str) -> list[str]:
+        """
+        Show traffic control (tc) statistics on a specific interface of a host.
+        """
+        command = f"tc -s qdisc show dev {interface}"
+        return self._run_cmd(host_name, command)
+
     def tc_clear_intf(self: _SupportsBase, host_name: str, interface: str) -> list[str]:
         """
         Clear traffic control (tc) parameters on a specific interface of a host.
         """
         command = f"tc qdisc del dev {interface} root"
+        return self._run_cmd(host_name, command)
+
+    def tc_set_tbf(
+        self: _SupportsBase,
+        host_name: str,
+        interface: str,
+        rate: str,
+        burst: str,
+        limit: str,
+    ) -> list[str]:
+        """
+        Set Token Bucket Filter (tbf) parameters on a specific interface of a host.
+
+        Args:
+        host_name (str): Name of the host where the interface is located. (could be a switch or normal host)
+        interface (str): Interface name (e.g., eth0, eth1).
+        rate (str): Rate limit in bits per second (e.g., "100mbit").
+        burst (str): Burst size (e.g., "32kbit").
+        limit (str): Limit size (e.g., "10000").
+        """
+        command = f"tc qdisc add dev {interface} root tbf rate {rate} burst {burst} limit {limit}"
         return self._run_cmd(host_name, command)
 
 
@@ -84,7 +112,7 @@ if __name__ == "__main__":
     lab_name = "simple_bmv2"
     kathara_api = KatharaTCAPI(lab_name)
     print(kathara_api.get_reachability())
-    kathara_api.tc_set_intf(
+    kathara_api.tc_set_netem(
         host_name="s1",
         interface="eth1",
         loss=90,

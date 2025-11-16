@@ -3,6 +3,7 @@ import os
 from Kathara.manager.Kathara import Kathara
 from Kathara.model.Lab import Lab
 
+from llm4netlab.config import BASE_DIR
 from llm4netlab.net_env.base import NetworkEnvBase
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
@@ -17,11 +18,12 @@ class SimpleBGP(NetworkEnvBase):
         self.instance = Kathara.get_instance()
         self.desc = "A simple BGP network with two routers and two hosts."
 
-        router1 = self.lab.new_machine("router1", **{"image": "kathara/frr"})
-        router2 = self.lab.new_machine("router2", **{"image": "kathara/frr"})
+        router1 = self.lab.new_machine("router1", **{"image": "kathara/frr-stress", "cpus": 1})
+        router2 = self.lab.new_machine("router2", **{"image": "kathara/frr-stress", "cpus": 1})
 
-        pc1 = self.lab.new_machine("pc1", **{"image": "kathara/base"})
-        pc2 = self.lab.new_machine("pc2", **{"image": "kathara/base"})
+        pc1 = self.lab.new_machine("pc1", **{"image": "kathara/base-stress"})
+
+        pc2 = self.lab.new_machine("pc2", **{"image": "kathara/base-stress"})
 
         self.lab.connect_machine_to_link(router1.name, "A")
         self.lab.connect_machine_to_link(router2.name, "A")
@@ -35,6 +37,12 @@ class SimpleBGP(NetworkEnvBase):
         # Add basic configuration to the machines
         for i, router in enumerate([router1, router2], start=1):
             router.copy_directory_from_path(os.path.join(cur_path, f"router{i}/etc"), "/etc")
+            router.create_file_from_path(
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/daemons"), "/etc/frr/daemons"
+            )
+            router.create_file_from_path(
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/bgp/vtysh.conf"), "/etc/frr/vtysh.conf"
+            )
             # to create the startup file, use self.lab instead of host
             self.lab.create_file_from_path(os.path.join(cur_path, f"router{i}.startup"), f"router{i}.startup")
 

@@ -12,16 +12,11 @@ class DetectionSubmission(BaseModel):
 class DetectionTask(TaskBase):
     def __init__(self):
         super().__init__()
-        self.net_desc = self.net_env.get_info()
         # Description of the symptoms observed in the network
-        self.symptom_desc = ""
 
         self.task_desc = """\
             The network you are working with is described below:
             {net_desc}
-
-            The following symptoms have been observed in the network (if any):
-            {symptom_desc}
 
             Your task is to analyze the current network state and detect anomalies.
             Indicate whether there is an anomaly in the network (True/False).
