@@ -13,9 +13,6 @@ class RootCauseCategory(StrEnum):
     DEVICE_FAILURE = ("device_failure", "Hardware or interface/module failure")
     PERFORMANCE_DEGRADATION = ("performance_degradation", "High latency, packet loss, jitter, throughput drop")
 
-    CONTROL_PLANE_FAILURE = ("control_plane_failure", "Routing/neighbor flap, convergence issues")
-    DATA_PLANE_ANOMALY = ("data_plane_anomaly", "Forwarding anomalies: blackhole, ECMP imbalance, MTU mismatch")
-
     CONFIG_ROUTING_POLICY_ERROR = ("config_routing_policy_error", "Wrong BGP/OSPF/EVPN policy, metric misconfig")
     CONFIG_ACCESS_POLICY_ERROR = ("config_access_policy_error", "ACL / firewall / security group misconfig")
     CONFIG_TOPOLOGY_ERROR = ("config_topology_error", "VLAN mismatch, trunk misconfig, spanning tree")

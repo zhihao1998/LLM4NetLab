@@ -16,7 +16,6 @@ class TCMixin:
         duplicate: int = None,
         corrupt: int = None,
         reorder: int = None,
-        rate: int = None,
     ) -> list[str]:
         """
         Set traffic control (tc) parameters on a specific interface of a host.
@@ -30,7 +29,6 @@ class TCMixin:
         duplicate (int, optional): Duplicate percentage (0-100). Defaults to None.
         reorder (int, optional): Reorder percentage (0-100). Defaults to None.
         corrupt (int, optional): Corruption percentage (0-100). Defaults to None.
-        rate (str, optional): Rate limit in bits per second (e.g., "100"). Defaults to None.
         """
         command = f"tc qdisc add dev {interface} root netem"
         if loss is not None:
@@ -46,8 +44,6 @@ class TCMixin:
             command += f" reorder {reorder}%"
         if corrupt is not None:
             command += f" corrupt {corrupt}%"
-        if rate is not None:
-            command += f" rate {rate}mbit"
         return self._run_cmd(host_name, command)
 
     def tc_show_intf(self: _SupportsBase, host_name: str, interface: str) -> list[str]:

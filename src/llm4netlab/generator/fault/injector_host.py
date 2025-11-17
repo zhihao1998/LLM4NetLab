@@ -143,27 +143,24 @@ class FaultInjectorHost:
         )
         self.logger.info(f"Recovered high I/O usage on {host_name}.")
 
+    def inject_dns_misconfiguration(self, host_name: str, fake_dns_ip: str = "8.8.8.8"):
+        """Inject a fault by misconfiguring DNS on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"echo 'nameserver {fake_dns_ip}' > /etc/resolv.conf",
+        )
+        self.logger.info(f"Injected DNS misconfiguration on {host_name} with fake DNS {fake_dns_ip}.")
+
+    def recover_dns_misconfiguration(self, host_name: str, original_dns_ip: str):
+        """Recover from DNS misconfiguration on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"echo 'nameserver {original_dns_ip}' > /etc/resolv.conf",
+        )
+        self.logger.info(f"Recovered DNS misconfiguration on {host_name} with original DNS {original_dns_ip}.")
+
 
 if __name__ == "__main__":
     # Example usage
-    injector = FaultInjectorHost("simple_bmv2")
-    # injector.inject_bmv2_down("s1")
-    # injector.recover_bmv2_down("s1")
-
-    # injector.inject_packet_loss("s1", "eth0", 50)
-    # print(injector.kathara_api.tc_show_intf("s1", "eth0"))
-    # injector.recover_packet_loss("s1", "eth0")
-    # print(injector.kathara_api.tc_show_intf("s1", "eth0"))
-    # injector = FaultInjectorBase("ospf_frr_single_area")
-    # device_name = "eth0"
-    # injector.inject_link_failure("bb0", device_name)
-    # print(injector.kathara_api.intf_show("bb0", device_name))
-    # injector.recover_link_failure("bb0", device_name)
-    # print(injector.kathara_api.intf_show("bb0", device_name))
-    # injector = FaultInjectorBase("simple_bgp")
-    # rule = "tcp dport 179 drop"
-    # injector.inject_acl_rule("router1", rule)
-    # rule = "tcp sport 179 drop"
-    # injector.inject_acl_rule("router1", rule)
-    # injector.recover_acl_rule("router1")
-    # injector.inject_service_down("router1", "frr")
+    injector = FaultInjectorHost("dc_clos_service")
+    injector.recover_dns_misconfiguration("client_0", original_dns_ip="10.0.0.2")

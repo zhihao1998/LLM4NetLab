@@ -156,11 +156,11 @@ class KatharaBaseAPI:
             result.append(f"{host_i} ping {host_j}: {is_success}")
         return str(result)
 
-    def ping_pair(self, host_a: str, host_b: str, count: int = 4) -> str:
+    def ping_pair(self, host_a: str, host_b: str, count: int = 4, args: str = "") -> str:
         """
         Ping from one host to another in the lab.
         """
-        command = f"ping -c {count} {self.get_host_ip(host_b)}"
+        command = f"ping -c {count} {self.get_host_ip(host_b)} {args}"
         return self._run_cmd(host_a, command)
 
     def traceroute(self, host_name: str, dst_ip: str) -> str:

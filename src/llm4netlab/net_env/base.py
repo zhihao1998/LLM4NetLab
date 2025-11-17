@@ -1,6 +1,7 @@
 from collections import defaultdict
+from typing import Dict
 
-from Kathara.manager.Kathara import Kathara
+from Kathara.manager.Kathara import Kathara, Machine
 
 
 class NetworkEnvBase:
@@ -25,7 +26,10 @@ class NetworkEnvBase:
         self.hosts = []
         self.routers = []
         self.links = []
-        machines = self.lab.machines
+        self.switches = []
+        self.servers = defaultdict(list)
+
+        machines: Dict[str, Machine] = self.lab.machines
         for machine, machine_obj in machines.items():
             image = machine_obj.get_image()
             if "p4" in image:
@@ -33,7 +37,17 @@ class NetworkEnvBase:
             elif "frr" in image:
                 self.routers.append(machine)
             elif "base" in image:
-                self.hosts.append(machine)
+                if "pc" in machine or "host" in machine:
+                    self.hosts.append(machine)
+                elif "switch" in machine or "sw" in machine:
+                    self.switches.append(machine)
+                elif "dns" in machine:
+                    self.servers["dns"].append(machine)
+                elif "dhcp" in machine:
+                    self.servers["dhcp"].append(machine)
+                elif "web" in machine:
+                    self.servers["web"].append(machine)
+
             elif "influxdb" in image:
                 self.hosts.append(machine)
             elif "sdn" in image:
@@ -69,8 +83,13 @@ class NetworkEnvBase:
             summary += f"BMV2 switches: {', '.join(self.bmv2_switches)}\n"
         if self.ovs_switches:
             summary += f"OVS switches: {', '.join(self.ovs_switches)}\n"
+        if self.switches:
+            summary += f"Switches: {', '.join(self.switches)}\n"
         if self.hosts:
             summary += f"Hosts: {', '.join(self.hosts)}\n"
+        if self.servers:
+            for server_type, server_list in self.servers.items():
+                summary += f"{server_type.capitalize()} Servers: {', '.join(server_list)}\n"
         if self.routers:
             summary += f"Routers (FRRRouting): {', '.join(self.routers)}\n"
         if self.links:

@@ -1,5 +1,9 @@
 import logging
+import os
 
+import docker
+
+from llm4netlab.config import BASE_DIR
 from llm4netlab.service.kathara import KatharaAPIALL
 
 """ Fault injector for Kathara """
@@ -19,6 +23,83 @@ class FaultInjectorBase:
         """Recover from an interface down by enabling the interface."""
         self.kathara_api.intf_on_off(host_name=host_name, interface=intf_name, state="up")
         self.logger.info(f"Recovered interface down on {host_name}:{intf_name}")
+
+    def inject_link_flap(self, host_name: str, intf_name: str, down_time: int = 1, up_time: int = 1):
+        """Inject link flap on a specific interface of a host."""
+        with open(os.path.join(BASE_DIR, "src/llm4netlab/generator/fault/utils/link_flap.sh"), "r") as f:
+            script = f.read()
+        write_cmd = f"cat <<'EOF' > /tmp/link_flap.sh\n{script}\nEOF\nchmod +x /tmp/link_flap.sh"
+        self.kathara_api.exec_cmd(host_name, write_cmd)
+
+        # kill the previous link flap process if any
+        self.kathara_api.exec_cmd(
+            host_name, "if [ -f /tmp/link_flap.pid ]; then kill $(cat /tmp/link_flap.pid) 2>/dev/null; fi"
+        )
+
+        # start the link flap script
+        start_cmd = (
+            f"nohup /tmp/link_flap.sh {intf_name} {down_time} {up_time} "
+            f"> /tmp/link_flap_{intf_name}.log 2>&1 & echo $! > /tmp/link_flap.pid"
+        )
+        self.kathara_api.exec_cmd(host_name, start_cmd)
+
+        self.logger.info(f"Injected link flap on {host_name}:{intf_name} (down_time={down_time}, up_time={up_time})")
+
+    def recover_link_flap(self, host_name: str, intf_name: str):
+        # kill process & restore interface
+        stop_cmd = (
+            "if [ -f /tmp/link_flap.pid ]; then "
+            "  kill $(cat /tmp/link_flap.pid) 2>/dev/null || true; "
+            "  rm -f /tmp/link_flap.pid; "
+            f"  ip link set {intf_name} up; "
+            "fi"
+        )
+        self.kathara_api.exec_cmd(host_name, stop_cmd)
+        self.logger.info(f"Stopped link flap on {host_name}:{intf_name}")
+
+    def inject_link_detach(self, host_name: str, link_name: str):
+        """Detach a specific interface of a host.
+        Note: link_name is the name of the collision domain that the interface is connected to.
+        """
+        machine_obj = self.kathara_api.lab.get_machine(host_name)
+        link_obj = self.kathara_api.lab.get_link(link_name)
+        self.kathara_api.instance.disconnect_machine_from_link(machine=machine_obj, link=link_obj)
+        self.logger.info(f"Injected link detach on {host_name}:{link_name}")
+
+    def recover_link_detach(self, host_name: str, link_name: str):
+        """Recover from a link detach by re-attaching the interface to the link.
+        Note: link_name is the name of the collision domain that the interface is connected to.
+        TODO: Fix, not working
+        """
+        # machine_obj = self.kathara_api.lab.get_machine(host_name)
+        # link_obj = self.kathara_api.lab.get_link(link_name)
+        # machine_obj.remove_interface(link_obj)
+        # machine_obj.add_interface(link_obj)
+        # self.kathara_api.instance.connect_machine_to_link(machine=machine_obj, link=link_obj)
+        # self.logger.info(f"Recovered link detach on {host_name}:{link_name}")
+        pass
+
+    def inject_host_down(self, host_name: str):
+        """Inject a fault by stopping a host."""
+        docker_client = docker.from_env()
+        container_name = docker_client.containers.list(filters={"name": f"{host_name}"})[0]
+        container_name.pause()
+        self.logger.info(f"Injected host down fault on {host_name}.")
+
+    def recover_host_down(self, host_name: str):
+        """Recover from a fault by starting a host."""
+        docker_client = docker.from_env()
+        container_name = docker_client.containers.list(filters={"name": f"{host_name}"})[0]
+        container_name.unpause()
+        self.logger.info(f"Recovered host down fault on {host_name}.")
+
+    def inject_fragmentation_disabled(self, host_name: str, mtu: int = 100):
+        self.kathara_api.exec_cmd(host_name, f"iptables -A OUTPUT -m length --length {mtu}:65535 -j DROP")
+        self.logger.info(f"Injected fragmentation disabled on {host_name} with MTU {mtu}.")
+
+    def recover_fragmentation_disabled(self, host_name: str):
+        self.kathara_api.exec_cmd(host_name, "iptables -F OUTPUT")
+        self.logger.info(f"Recovered fragmentation disabled on {host_name}.")
 
     def inject_acl_rule(self, host_name: str, rule: str, table_name: str = "filter"):
         """Inject an ACL rule into a specific host."""
@@ -207,4 +288,6 @@ class FaultInjectorBase:
 
 if __name__ == "__main__":
     # Example usage
-    injector = FaultInjectorBase("rip_small_internet")
+    injector = FaultInjectorBase("simple_bgp")
+    # injector.inject_fragmentation_disabled("router1", mtu=100)
+    injector.recover_fragmentation_disabled("router1")
