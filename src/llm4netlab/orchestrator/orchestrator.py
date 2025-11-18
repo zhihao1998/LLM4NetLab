@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import textwrap
 import time
 
 from llm4netlab.config import RESULTS_DIR
@@ -16,7 +17,6 @@ from llm4netlab.utils.session import Session
 
 class Orchestrator:
     def __init__(self):
-        self.agent = None
         self.session = None
         self.problem = None
 
@@ -24,7 +24,15 @@ class Orchestrator:
         self.orchestration_end_time = None
         self.logger = logging.getLogger(__name__)
 
-    def init_problem(self, root_cause_name: str, task_level: TaskLevel) -> tuple:
+    def init_problem(
+        self,
+        root_cause_name: str,
+        task_level: TaskLevel,
+        agent_name: str = None,
+        backend_model_name: str = None,
+        session_id: str = None,
+        if_inject: bool = True,
+    ) -> tuple:
         """Initialize the problem to solve.
 
         Args:
@@ -36,17 +44,21 @@ class Orchestrator:
         """
         self.orchestration_start_time = time.time()
 
-        self.session = Session()
+        self.session = Session(session_id=session_id)
         self.logger.info(f"Initialized ID: {self.session.session_id}")
 
         self.root_cause_name = root_cause_name
         self.task_level = task_level
+        self.agent_name = agent_name
+        self.backend_model = backend_model_name
+        self.log_prefix = f"{self.session.session_id}_{self.backend_model}"
 
         self.problem = get_problem_instance(root_cause_name, task_level)
         self.session.set_problem(self.problem, root_cause_name)
 
         self.root_cause_category = self.problem.META.root_cause_category
         self.log_dir = f"{RESULTS_DIR}/{self.root_cause_category}/{self.root_cause_name}/{self.task_level}"
+        os.makedirs(self.log_dir, exist_ok=True)
 
         # deploy the network environment
         # check if the environment is already deployed
@@ -56,27 +68,16 @@ class Orchestrator:
         else:
             self.logger.info(f"Network environment {self.problem.net_env.name} already deployed. Skipping deployment.")
 
-        self.problem.inject_fault()
+        if if_inject:
+            self.problem.inject_fault()
 
         # Get the problem description, instructions, and APIs
         task_desc = self.problem.get_task_description()
 
-        os.makedirs(self.log_dir, exist_ok=True)
         # Log the problem and descriptions as ground truth
-        with open(f"{self.log_dir}/{self.session.session_id}_groundtruth.log", "a+") as log_file:
+        with open(f"{self.log_dir}/{self.session.session_id}_groundtruth.log", "w+") as log_file:
             log_file.write(self.problem.SUBMISSION.model_dump_json() + "\n")
         return self.root_cause_category, task_desc, self.session.session_id, self.problem.net_env.name
-
-    def register_agent(self, agent) -> None:
-        """Register an agent with the orchestrator.
-
-        Args:
-            agent: The agent to register.
-        """
-        self.agent = agent
-        self.agent_name = agent.agent_name
-        self.backend_model = agent.backend_model
-        self.log_prefix = f"{self.session.session_id}_{self.agent.backend_model}"
 
     def stop_problem(self, cleanup=False):
         """Stop the problem."""
@@ -97,16 +98,21 @@ class Orchestrator:
             with open(sub_log_path, "r") as f:
                 submission = json.load(f)
             # task-specific evaluation
-            evaluator_score = self.problem.eval(submission=submission)
+            evaluator_score = round(self.problem.eval(submission=submission), 2)
 
         # agent trace
-        trace_path = os.path.join(self.log_dir, f"{self.log_prefix}_agent_trace.log")
+        trace_path = os.path.join(self.log_dir, f"{self.log_prefix}_conversation.log")
 
+        self.logger.info(f"Evaluating session {self.session.session_id} using LLM-as-Judge.")
         # llm as judge evaluation
         llm_judge = LLMJudge()
         _, llm_score = llm_judge.evaluate_agent(
             problem_description=self.problem.META.description,
             net_env_info=self.problem.net_env.get_info(),
+            ground_truth=textwrap.dedent(f"""\
+                The root cause category is {self.problem.ROOT_CAUSE_CATEGORY}.
+                The root cause name is {self.problem.ROOT_CAUSE_NAME}.
+            """),
             trace_path=trace_path,
             save_path=f"{self.log_dir}/{self.log_prefix}_llm_judge.log",
         )
@@ -114,6 +120,8 @@ class Orchestrator:
         # parse agent trace
         trace_parser = AgentTraceParser(trace_path=trace_path)
         trace_metrics = trace_parser.parse_trace()
+
+        self.logger.info(f"All Done! LLM Judge Score: {llm_score}, Evaluator Score: {evaluator_score}")
 
         # log evaluation results
         eval_result = EvalResult(

@@ -14,6 +14,7 @@ LLM_JUDGE_PROMPT_TEMPLATE = """\
     You will assess the performance of an autonomous agent given:
     - Problem Description: {problem_description}
     - Network Environment Info: {net_env_info}
+    - Ground Truth: (not provided to the agent) {ground_truth}
     - Action History: {trace}
 
     Evaluation criteria (and weights): 

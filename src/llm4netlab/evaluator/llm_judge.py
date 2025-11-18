@@ -57,7 +57,9 @@ class LLMJudge:
                     new_trace.append(line)
         return json.dumps(new_trace, ensure_ascii=False)
 
-    def evaluate_agent(self, problem_description: str, net_env_info: str, trace_path: str, save_path: str) -> str:
+    def evaluate_agent(
+        self, problem_description: str, net_env_info: str, ground_truth: str, trace_path: str, save_path: str
+    ) -> str:
         """Evaluate the agent's performance based on the problem description, network environment info, and action history.
 
         Args:
@@ -77,6 +79,7 @@ class LLMJudge:
         self.prompt = self.prompt.format(
             problem_description=problem_description,
             net_env_info=net_env_info,
+            ground_truth=ground_truth,
             trace=trace,
         )
         evaluation: BaseMessage = self.llm.invoke(self.prompt)

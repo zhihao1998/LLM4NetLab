@@ -1,13 +1,3 @@
-# This file includes code adapted from the following open-source project:
-# https://github.com/microsoft/AIOpsLab
-# Licensed under the MIT License.
-
-# Original notice:
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
-
-"""Session wrapper to manage the an agent's session with the orchestrator."""
-
 import datetime
 import time
 
@@ -32,9 +22,8 @@ class SessionKey(BaseModel):
 
 
 class Session:
-    def __init__(self) -> None:
-        # self.session_id = str(uuid.uuid4()).replace("-", "")
-        self.session_id = generate_code()
+    def __init__(self, session_id: None) -> None:
+        self.session_id = generate_code() if session_id is None else session_id
         self.root_cause_name = None
         self.problem: TaskBase = None
         self.solution = None

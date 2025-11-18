@@ -105,5 +105,5 @@ if __name__ == "__main__":
 
     # print(get_submission_template(FrrDownDetection.META.root_cause_name, TaskLevel.RCA))
 
-    # print(list_avail_root_causes())
-    print(get_problem_instance("frr_service_down", "rca"))
+    print(list_avail_root_causes())
+    # print(get_problem_instance("frr_service_down", "rca"))

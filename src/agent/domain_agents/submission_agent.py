@@ -17,7 +17,9 @@ load_dotenv()
 
 SUBMIT_PROMPT_TEMPLATE = dedent("""\
     You are an expert network engineer.
-    Your task is to submit the final solution for this network problem.
+    Your task is to submit the final solution for this network problem based on the diagnosis results provided.
+    Carefully review the diagnosis results and ensure that your submission is accurate and complete.
+    Provide your final answer in the required format.
     You can use the tools to submit your solution.
 """).strip()
 

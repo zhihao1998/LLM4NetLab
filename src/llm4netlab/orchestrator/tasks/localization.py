@@ -32,6 +32,7 @@ class LocalizationTask(TaskBase):
             Focus strictly on *where* the anomaly occurs.
 
             Do not analyze or speculate about root causes. Do not propose mitigations.
+            Once you have identified the faulty component(s), provide your conclusion for submission.
             """
 
     def eval(self, submission: dict) -> float:

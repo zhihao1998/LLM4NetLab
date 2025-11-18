@@ -13,8 +13,8 @@ from llm4netlab.service.kathara import KatharaBaseAPI
 class FrrDownBase:
     """Base class for a FRR device down problem."""
 
-    root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
-    root_cause_name: str = "frr_service_down"
+    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
+    ROOT_CAUSE_NAME: str = "frr_service_down"
 
     failed_device: str = "router1"
     failed_service: str = "frr"
@@ -35,8 +35,8 @@ class FrrDownBase:
 
 class FrrDownDetection(FrrDownBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=FrrDownBase.root_cause_category,
-        root_cause_name=FrrDownBase.root_cause_name,
+        root_cause_category=FrrDownBase.ROOT_CAUSE_CATEGORY,
+        root_cause_name=FrrDownBase.ROOT_CAUSE_NAME,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -51,8 +51,8 @@ class FrrDownDetection(FrrDownBase, DetectionTask):
 
 class FrrDownLocalization(FrrDownBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=FrrDownBase.root_cause_category,
-        root_cause_name=FrrDownBase.root_cause_name,
+        root_cause_category=FrrDownBase.ROOT_CAUSE_CATEGORY,
+        root_cause_name=FrrDownBase.ROOT_CAUSE_NAME,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -67,15 +67,15 @@ class FrrDownLocalization(FrrDownBase, LocalizationTask):
 
 class FrrDownRCA(FrrDownBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=FrrDownBase.root_cause_category,
-        root_cause_name=FrrDownBase.root_cause_name,
+        root_cause_category=FrrDownBase.ROOT_CAUSE_CATEGORY,
+        root_cause_name=FrrDownBase.ROOT_CAUSE_NAME,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
 
     SUBMISSION = RCASubmission(
-        root_cause_category=FrrDownBase.root_cause_category,
-        root_cause_name=FrrDownBase.root_cause_name,
+        root_cause_category=FrrDownBase.ROOT_CAUSE_CATEGORY,
+        root_cause_name=FrrDownBase.ROOT_CAUSE_NAME,
     )
 
     def __init__(self):

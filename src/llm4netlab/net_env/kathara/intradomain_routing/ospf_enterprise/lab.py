@@ -145,6 +145,60 @@ class OSPFEnterprise(NetworkEnvBase):
                         )
                         access_hosts[access_key].append(host_meta)
 
+        """Add servers"""
+        servers = {}
+        tot_dns = []
+        web_server_count = 4  # total web servers
+        web_servers = []
+        server_network = IPv4Network("10.200.0.0/24")
+        server_ip_gen = server_network.hosts()
+        server_gateway_ip = next(server_ip_gen)
+
+        # dns
+        host_name = "dns_server"
+        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+        host_meta = HostMeta(
+            name=host_name,
+            machine=host_machine,
+            eth_index=0,
+            cmd_list=[],
+        )
+        servers[host_name] = host_meta
+        tot_dns.append(host_meta)
+        # web
+        for web_idx in range(web_server_count):
+            host_name = f"web_server_{web_idx}"
+            host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+            host_meta = HostMeta(
+                name=host_name,
+                machine=host_machine,
+                eth_index=0,
+                cmd_list=[],
+            )
+            servers[host_name] = host_meta
+            web_servers.append(host_meta)
+        # dhcp
+        host_name = "dhcp_server"
+        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+        host_meta = HostMeta(
+            name=host_name,
+            machine=host_machine,
+            eth_index=0,
+            cmd_list=[],
+        )
+        servers[host_name] = host_meta
+
+        # server access switch
+        server_switch = self.lab.new_machine(
+            "switch_server_access", **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+        )
+        server_access_meta = RouterMeta(
+            name="switch_server_access",
+            machine=server_switch,
+            eth_index=0,
+            cmd_list=[],
+        )
+
         # Now connect the layers and assign IPs and OSPF configs
         infra_pool = IPv4Network("172.16.0.0/16")
         # Create a generator of /31s
@@ -253,76 +307,23 @@ class OSPFEnterprise(NetworkEnvBase):
                         self.lab.connect_machine_to_link(
                             host_meta.machine.name, f"{access_meta.machine.name}_{host_meta.machine.name}"
                         )
-                        # assign IPs
-                        host_ip = next(host_ip_gen)
-                        host_meta.cmd_list.append(
-                            f"ip addr add {host_ip}/{dist_network.prefixlen} dev eth{host_meta.eth_index}"
-                        )
-                        host_meta.ip_address = str(host_ip)
+                        # assign IPs, here we use DHCP, so just attach to access switch
+                        # host_ip = next(host_ip_gen)
+                        # host_meta.cmd_list.append(
+                        #     f"ip addr add {host_ip}/{dist_network.prefixlen} dev eth{host_meta.eth_index}"
+                        # )
+                        # host_meta.ip_address = str(host_ip)
 
-                        # add default route
-                        host_meta.cmd_list.append(
-                            f"ip route add default via {default_gateway_ip} dev eth{host_meta.eth_index}"
-                        )
+                        # # add default route
+                        # host_meta.cmd_list.append(
+                        #     f"ip route add default via {default_gateway_ip} dev eth{host_meta.eth_index}"
+                        # )
                         host_meta.eth_index += 1
 
                         # attach to bridge
                         access_meta.cmd_list.append(f"brctl addif br0 eth{access_meta.eth_index}")
                         access_meta.eth_index += 1
 
-        """Add servers"""
-        servers = {}
-        tot_dns = []
-        web_server_count = 4  # total web servers
-        web_servers = []
-        server_network = IPv4Network("10.200.0.0/24")
-        server_ip_gen = server_network.hosts()
-        server_gateway_ip = next(server_ip_gen)
-
-        # dns
-        host_name = "dns_server"
-        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
-        host_meta = HostMeta(
-            name=host_name,
-            machine=host_machine,
-            eth_index=0,
-            cmd_list=[],
-        )
-        servers[host_name] = host_meta
-        tot_dns.append(host_meta)
-        # web
-        for web_idx in range(web_server_count):
-            host_name = f"web_server_{web_idx}"
-            host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
-            host_meta = HostMeta(
-                name=host_name,
-                machine=host_machine,
-                eth_index=0,
-                cmd_list=[],
-            )
-            servers[host_name] = host_meta
-            web_servers.append(host_meta)
-        # dhcp
-        host_name = "dhcp_server"
-        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
-        host_meta = HostMeta(
-            name=host_name,
-            machine=host_machine,
-            eth_index=0,
-            cmd_list=[],
-        )
-        servers[host_name] = host_meta
-
-        # server access switch
-        server_switch = self.lab.new_machine(
-            "switch_server_access", **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
-        )
-        server_access_meta = RouterMeta(
-            name="switch_server_access",
-            machine=server_switch,
-            eth_index=0,
-            cmd_list=[],
-        )
         server_access_meta.cmd_list.append("brctl addbr br0")
         server_access_meta.cmd_list.append("ip link set br0 up")
         # add ospf config
@@ -330,8 +331,9 @@ class OSPFEnterprise(NetworkEnvBase):
 
         # add default gateway to server access switch
         server_access_meta.cmd_list.append(f"ip addr add {server_gateway_ip}/{server_network.prefixlen} dev br0")
+
         # connect servers to access switch
-        for server_meta in servers.values():
+        for server_name, server_meta in servers.items():
             self.lab.connect_machine_to_link(
                 server_access_meta.machine.name, f"{server_access_meta.machine.name}_{server_meta.machine.name}"
             )
@@ -350,6 +352,15 @@ class OSPFEnterprise(NetworkEnvBase):
             server_meta.cmd_list.append(f"ip route add default via {server_gateway_ip} dev eth{server_meta.eth_index}")
             server_meta.eth_index += 1
             server_access_meta.eth_index += 1
+
+            # add dhcp relay
+            if "dhcp" in server_name:
+                for core_id in range(1, 3):
+                    for dist_id in range(1, DIST_SW_COUNT + 1):
+                        dist_meta = core_dists[core_id][dist_id - 1]
+                        dist_meta.cmd_list.append(
+                            f"dhcrelay  -i br0 -i eth0 {server_ip}"
+                        )  # make sure eth0 is connected to core router
 
         # connect server access switch to core3
         core3_meta = core_routers[3]
@@ -458,6 +469,7 @@ class OSPFEnterprise(NetworkEnvBase):
                     ns_add_cmd += f"nameserver {dns.ip_address}\n"
                 host_meta.machine.create_file_from_string(ns_add_cmd, "/etc/resolv.conf")
                 # startup file
+                host_meta.cmd_list.append("dhclient eth0")
                 self.lab.create_file_from_list(
                     host_meta.cmd_list,
                     f"{host_meta.machine.name}.startup",
@@ -520,19 +532,40 @@ class OSPFEnterprise(NetworkEnvBase):
 
         # add configurations for dhcp server
         dhcp_meta = servers["dhcp_server"]
-        # dhcp_config = textwrap.dedent(f"""\
-        #     default-lease-time 600;
-        #     max-lease-time 7200;
-        #     authoritative;
-
-        #     subnet {server_network.network_address} netmask {server_network.netmask} {{
-        #         range {server_gateway_ip + 1} {server_gateway_ip + 50};
-        #         option routers {server_gateway_ip};
-        #         option domain-name-servers {dns_meta.ip_address};
-        #     }}
-        # """)
-        # dhcp_meta.machine.create_file_from_string(dhcp_config, "/etc/dhcp/dhcpd.conf")
-        # dhcp_meta.cmd_list.append("systemctl start isc-dhcp-server")
+        dhcp_config = textwrap.dedent("""\
+            default-lease-time 600;
+            max-lease-time 7200;
+            authoritative;
+        """)
+        for core_id in range(1, 3):
+            for dist_id in range(1, DIST_SW_COUNT + 1):
+                dist_network = IPv4Network(f"10.{core_id}.{dist_id}.0/24")
+                dhcp_config += textwrap.dedent(
+                    f"""\
+                    subnet {dist_network.network_address} netmask {dist_network.netmask} {{
+                        range {dist_network.network_address + 10} {dist_network.network_address + 100};
+                        option routers {dist_network.network_address + 1};
+                        option domain-name-servers {" ,".join([dns.ip_address for dns in tot_dns])};
+                    }}
+                """
+                )
+        dhcp_config += textwrap.dedent("""\
+            subnet 10.200.0.0 netmask 255.255.255.0 {
+            # pass
+            }
+        """)
+        dhcp_meta.machine.create_file_from_string(dhcp_config, "/etc/dhcp/dhcpd.conf")
+        # attach to eth0
+        dhcp_meta.machine.create_file_from_string(
+            textwrap.dedent("""\
+            INTERFACESv4="eth0"
+            DHCPDv4_CONF=/etc/dhcp/dhcpd.conf
+            DHCPDv4_PID=/var/run/dhcpd.pid
+            """),
+            "/etc/default/isc-dhcp-server",
+        )
+        # startup file
+        dhcp_meta.cmd_list.append("systemctl start isc-dhcp-server")
         self.lab.create_file_from_list(
             dhcp_meta.cmd_list,
             f"{dhcp_meta.machine.name}.startup",
@@ -548,6 +581,6 @@ if __name__ == "__main__":
         ospf_enterprise.undeploy()
         print("Lab undeployed")
 
-    print("Deploying lab...")
-    ospf_enterprise.deploy()
-    print("Lab deployed")
+    # print("Deploying lab...")
+    # ospf_enterprise.deploy()
+    # print("Lab deployed")

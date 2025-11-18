@@ -21,6 +21,7 @@ class DetectionTask(TaskBase):
             Your task is to analyze the current network state and detect anomalies.
             Indicate whether there is an anomaly in the network (True/False).
             No need for further analysis, localization or mitigation.
+            Once you have determined whether there is an anomaly, provide your conclusion for submission.
             """
 
     def eval(self, submission: dict) -> float:
@@ -34,9 +35,9 @@ class DetectionTask(TaskBase):
         """
         # If there is no is_anomaly field, return -1 score
         is_anomaly = submission.get("is_anomaly", -1.0)
-        if is_anomaly in ["True", "true", "1", 1, True]:
+        if is_anomaly in ["True", "true", "1", 1, True, "yes", "Yes"]:
             is_anomaly = True
-        elif is_anomaly in ["False", "false", "0", 0, False]:
+        elif is_anomaly in ["False", "false", "0", 0, False, "no", "No"]:
             is_anomaly = False
         else:
             return 0.0

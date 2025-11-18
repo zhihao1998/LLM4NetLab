@@ -13,11 +13,11 @@ class RCASubmission(BaseModel):
 
     root_cause_category: str = Field(
         ...,
-        description="High-level category of the root cause (e.g. 'config_host_error', 'device_failure', 'performance_degradation').",
+        description="High-level category of the root cause.",
     )
     root_cause_name: str = Field(
         ...,
-        description="Concrete root cause name within the selected category (e.g. 'bgp_asn_misconfiguration').",
+        description="Concrete root cause name within the selected category.",
     )
 
 
@@ -32,6 +32,7 @@ class RCATask(TaskBase):
             {symptom_desc}
 
             Your task is to perform root-cause analysis (RCA). Focus on *why* the anomaly occurs.
+            Once you have determined the root cause, provide your conclusion for submission.
             """
 
     def eval(self, submission: dict) -> float:

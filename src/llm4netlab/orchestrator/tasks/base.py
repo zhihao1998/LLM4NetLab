@@ -9,6 +9,9 @@ from llm4netlab.orchestrator.problems.problem_base import ProblemMeta
 class TaskBase:
     """Base class for all tasks."""
 
+    ROOT_CAUSE_CATEGORY: str = None
+    ROOT_CAUSE_NAME: str = None
+
     META: ProblemMeta = None
     SUBMISSION: BaseModel = None
 
