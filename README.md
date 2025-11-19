@@ -13,7 +13,7 @@
 
 <h1 id="🤖overview">🤖 Overview</h1>
 
-![alt text](./assets/images/NIKA_architecture.png)
+![alt text](./assets/images/llm4netlab_architecture.png)
 
 NIKA (Network Incidents Benchmark for AI Agents) is a standardized, reproducible, and open benchmarking platform to build and evaluate AI agents on network troubleshooting with low operational effort. This platform primarily aims to *standardize* and *democratize* the experimentation with AI agents, by enabling researchers and practitioners -- including non domain-experts such as ML engineers and data scientists -- to focus on the evaluation of AI agents on curated problem sets, without concern for underlying operational complexities. Custom AI agents can be easily plugged through a single API and rapidly evaluated.
 
