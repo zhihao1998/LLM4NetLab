@@ -1,7 +1,7 @@
 import asyncio
-import re
+import json
 import time
-from typing import Dict, Literal, Protocol, runtime_checkable
+from typing import Dict, Literal, Optional, Protocol, runtime_checkable
 
 from Kathara.manager.docker.stats.DockerLinkStats import DockerLinkStats
 from Kathara.manager.Kathara import Kathara, Lab
@@ -13,7 +13,7 @@ class _SupportsBase(Protocol):
     instance: "Kathara"
     lab: "Lab"
 
-    def _run_cmd(self, machine_name: str, command: str) -> str: ...
+    def _run_cmd(self, host_name: str, command: str) -> str: ...
 
 
 class KatharaBaseAPI:
@@ -33,8 +33,9 @@ class KatharaBaseAPI:
         """
         hosts = []
         for name, machine in self.lab.machines.items():
+            host_keys = ["pc", "host", "client"]
             image = machine.get_image()
-            if "base" in image:
+            if "base" in image and any(key in name for key in host_keys):
                 hosts.append(name)
         return hosts
 
@@ -60,25 +61,82 @@ class KatharaBaseAPI:
                 switches.append(name)
         return switches
 
-    def get_host_ip(self, host_name: str) -> str:
+    def get_default_gateway(self, host_name: str) -> str | None:
         """
-        Get the IP address of a host.
+        Get the default gateway of a host using `ip -j route`.
         """
-        result = self._run_cmd(host_name, "ip addr")
-        ip_pattern = r"\b(?:\d{1,3}\.){3}\d{1,3}(?:/\d{1,2})?\b"
+        cmd = "ip -j route"
+        result = self._run_cmd(host_name, cmd)
 
-        ips = []
         if isinstance(result, list):
-            lines = "\n".join(result).splitlines()
+            output = "\n".join(result)
         else:
-            lines = result.splitlines()
+            output = result
 
-        for line in lines:
-            ips += re.findall(ip_pattern, line)
-        ips = [ip.split("/")[0] for ip in ips]
-        for ip in ips:
-            if not ip.startswith("127."):
-                return ip
+        try:
+            routes = json.loads(output)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"Failed to parse `ip -j route` output: {e}") from e
+
+        for r in routes:
+            if r.get("dst") == "default":
+                gw = r.get("gateway")
+                if gw:
+                    return gw
+
+        return None
+
+    def get_host_ip(self, host_name: str, iface: str = "eth0", with_prefix: bool = False) -> str | None:
+        """
+        Get the IPv4 address of a host via `ip -j addr`.
+        Prefer the given interface (default: eth0).
+
+        :param host_name: target host
+        :param iface:     interface name, default "eth0"
+        :param with_prefix: if True, return "ip/prefix" (e.g. 192.168.1.10/24)
+                            if False, return only "ip" (e.g. 192.168.1.10)
+        """
+
+        cmd = "ip -j addr"
+        result = self._run_cmd(host_name, cmd)
+
+        if isinstance(result, list):
+            output = "\n".join(result)
+        else:
+            output = result
+
+        try:
+            ifaces = json.loads(output)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"Failed to parse `ip -j addr` output: {e}") from e
+
+        def format_ip(ip: str, prefix: Optional[int]) -> str:
+            if with_prefix and prefix is not None:
+                return f"{ip}/{prefix}"
+            return ip
+
+        for link in ifaces:
+            if link.get("ifname") != iface:
+                continue
+
+            for addr in link.get("addr_info", []):
+                if addr.get("family") != "inet":
+                    continue
+                ip = addr.get("local")
+                prefix = addr.get("prefixlen")
+                if ip and not ip.startswith("127."):
+                    return format_ip(ip, prefix)
+
+        for link in ifaces:
+            for addr in link.get("addr_info", []):
+                if addr.get("family") != "inet":
+                    continue
+                ip = addr.get("local")
+                prefix = addr.get("prefixlen")
+                if ip and not ip.startswith("127."):
+                    return format_ip(ip, prefix)
+
+        return None
 
     def get_links(self) -> dict:
         """
@@ -91,15 +149,21 @@ class KatharaBaseAPI:
                 result[link.name] = (link.containers[0].labels["name"], link.containers[1].labels["name"])
         return result
 
-    def _run_cmd(self, machine_name: str, command: str) -> str:
+    def exec_cmd(self, host_name: str, command: str) -> str:
+        """
+        Run a command on a machine and return its output as a string.
+        """
+        cmd = "/bin/bash -c '{}'".format(command.replace("'", "'\\''").replace('"', '\\"'))
+        return self._run_cmd(host_name, cmd)
+
+    def _run_cmd(self, host_name: str, command: str) -> str:
         """
         Run a command on a machine and return its output as a string,
         decoding bytes and filtering out None/empty/zeros.
         """
         output_generator = self.instance.exec(
-            machine_name=machine_name, command=command, lab_name=self.lab.name, stream=False
+            machine_name=host_name, command=command, lab_name=self.lab.name, stream=False
         )
-
         for item in output_generator:
             if not item or item == b"" or isinstance(item, int) or item is None or item == "None":
                 continue
@@ -112,17 +176,10 @@ class KatharaBaseAPI:
 
         return ""
 
-    def exec_cmd(self, machine_name: str, command: str) -> str:
-        """
-        Run a command on a machine and return its output as a string.
-        """
-        cmd = "/bin/bash -c '{}'".format(command.replace("'", "'\\''").replace('"', '\\"'))
-        return self._run_cmd(machine_name, cmd)
-
     # asynchronous
-    async def _run_cmd_async(self, machine_name: str, command: str) -> list[str]:
+    async def _run_cmd_async(self, host_name: str, command: str) -> list[str]:
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self._run_cmd, machine_name, command)
+        return await loop.run_in_executor(None, self._run_cmd, host_name, command)
 
     async def _check_ping_success_async(self, host: str, dst_ip: str) -> bool:
         command = f"ping -c 4 {dst_ip}"
@@ -259,8 +316,9 @@ class KatharaBaseAPI:
 
 
 async def main():
-    api = KatharaBaseAPI(lab_name="dc_clos_service")
-    result = api.curl_web_test("client_0", "http://web0.pod0")
+    api = KatharaBaseAPI(lab_name="ospf_enterprise_static")
+    # result = api.curl_web_test("client_0", "http://web0.pod0")
+    result = api.get_host_ip("host_1_1_1_1", iface="eth0", with_prefix=True)
     # result = await api.ping_pair("client_0", "webserver0_pod0", count=4)
     print(result)
 

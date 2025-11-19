@@ -1,3 +1,4 @@
+import time
 from collections import defaultdict
 from typing import Dict
 
@@ -37,7 +38,8 @@ class NetworkEnvBase:
             elif "frr" in image:
                 self.routers.append(machine)
             elif "base" in image:
-                if "pc" in machine or "host" in machine:
+                host_keys = ["pc", "host", "client"]
+                if any(key in machine for key in host_keys):
                     self.hosts.append(machine)
                 elif "switch" in machine or "sw" in machine:
                     self.switches.append(machine)
@@ -117,6 +119,8 @@ class NetworkEnvBase:
             print(f"Lab {self.name} exists")
             return
         Kathara.get_instance().deploy_lab(lab=self.lab)
+        # sleep for a while to let the lab stabilize
+        time.sleep(5)
 
     def undeploy(self):
         """Undeploy the lab"""

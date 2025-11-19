@@ -1,5 +1,3 @@
-import textwrap
-
 from pydantic import BaseModel
 
 from llm4netlab.net_env.base import NetworkEnvBase
@@ -35,10 +33,7 @@ class TaskBase:
         Returns:
             str: The formatted task description.
         """
-        return textwrap.dedent(self.task_desc).format(
-            net_desc=self.net_env.get_info(),
-            symptom_desc=self.symptom_desc,
-        )
+        return self.task_desc()
 
     def eval(self, submission: dict) -> float:
         """Task-specific evaluation

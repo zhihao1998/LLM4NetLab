@@ -1,3 +1,5 @@
+import time
+
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.kathara.interdomain_routing.simple_bgp.lab import SimpleBGP
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
@@ -28,9 +30,11 @@ class FrrDownBase:
 
     def inject_fault(self):
         self.injector.inject_service_down(host_name=self.failed_device, service_name=self.failed_service)
+        time.sleep(2)
 
     def recover_fault(self):
         self.injector.recover_service_down(host_name=self.failed_device, service_name=self.failed_service)
+        time.sleep(2)
 
 
 class FrrDownDetection(FrrDownBase, DetectionTask):

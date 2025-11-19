@@ -183,17 +183,18 @@ def iperf_test(
 
 
 @mcp.tool()
-def show_dns_config(host_name: str) -> str:
-    """Show DNS configuration of a host.
+def cat_file(host_name: str, file_path: str) -> str:
+    """Show contents of a file on a host.
 
     Args:
         host_name (str): Name of the host.
+        file_path (str): Path to the file on the host.
 
     Returns:
-        str: The DNS configuration of the host.
+        str: The contents of the file on the host.
     """
     kathara_api = KatharaAPI(lab_name=LAB_NAME)
-    result = kathara_api.show_dns_config(host_name=host_name)
+    result = kathara_api.exec_cmd(host_name=host_name, command=f"cat {file_path}")
     return result
 
 

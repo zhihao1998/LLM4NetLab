@@ -1,12 +1,11 @@
 import json
 import os
-import re
 
 from dotenv import load_dotenv
-from langchain_core.messages import BaseMessage
+from langchain_ollama import ChatOllama
+from pydantic import BaseModel, Field
 
 # from agent.llm.langchain_deepseek import DeepSeekLLM
-from agent.llm.langchain_ollama import OllamaLLM
 from agent.utils.template import LLM_JUDGE_PROMPT_TEMPLATE
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
 
@@ -15,10 +14,37 @@ load_dotenv()
 RESULTS_DIR = os.getenv("RESULTS_DIR")
 
 
+class Score(BaseModel):
+    score: int = Field(..., ge=1, le=10, description="Score from 1 to 10.")
+    comment: str = Field(..., description="Comment explaining the rationale for the score.")
+
+
+class Scores(BaseModel):
+    relevance: Score = Field(..., description="How relevant the agent's actions were to the problem.")
+    correctness: Score = Field(..., description="How correct the tools/commands and actions were.")
+    efficiency: Score = Field(..., description="How efficient and well-ordered the agent’s actions were.")
+    clarity: Score = Field(..., description="How clear and well-explained the agent’s reasoning was.")
+    final_outcome: Score = Field(..., description="Whether the final outcome existed and matched the ground truth.")
+    overall_score: Score = Field(..., description="Overall final score summarizing the total performance.")
+
+
+class JudgeResponse(BaseModel):
+    scores: Scores = Field(..., description="Per-criterion scores and evaluator comments.")
+    overall_evaluation: str = Field(..., description="High-level summary of strengths and weaknesses.")
+    reasoning_for_overall_score: str = Field(..., description="Explanation of why this overall score was given.")
+
+
 class LLMJudge:
     def __init__(self):
         # self.llm = DeepSeekLLM()  # Note: good models required here
-        self.llm = OllamaLLM(model="qwen3:32b")
+        model = "qwen3:32b"
+        self.llm = ChatOllama(
+            model=model,
+            temperature=0,
+            validate_model_on_init=True,
+            base_url=os.getenv("OLLAMA_API_URL"),
+        )
+        self.llm = self.llm.with_structured_output(JudgeResponse)
         self.prompt = LLM_JUDGE_PROMPT_TEMPLATE
 
     def _parse_trace(self, trace: str) -> str:
@@ -82,27 +108,13 @@ class LLMJudge:
             ground_truth=ground_truth,
             trace=trace,
         )
-        evaluation: BaseMessage = self.llm.invoke(self.prompt)
-        evaluation_content = getattr(evaluation, "content")
-        score = self._extract_score(evaluation.content)
+        evaluation: JudgeResponse = self.llm.invoke(self.prompt)
 
         # Save evaluation result to file
         with open(save_path, "w+") as f:
-            f.write(evaluation_content)
+            f.write(evaluation.model_dump_json(indent=2))
 
-        return evaluation_content, score
-
-    def _extract_score(self, evaluation_result: str) -> int:
-        """Extract the score from the evaluation result.
-
-        Args:
-            evaluation_result: The evaluation result string.
-        """
-        one_score_pattern = re.compile(r"\[\[(\d+\.?\d*)\]\]")
-        match = one_score_pattern.search(evaluation_result)
-        if match:
-            return int(match.group(1))
-        return -1
+        return evaluation
 
 
 if __name__ == "__main__":

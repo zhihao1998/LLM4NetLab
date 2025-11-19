@@ -1,5 +1,7 @@
 """Define and query information about an Detection task."""
 
+import textwrap
+
 from pydantic import BaseModel, Field
 
 from llm4netlab.orchestrator.tasks.base import TaskBase
@@ -14,7 +16,7 @@ class DetectionTask(TaskBase):
         super().__init__()
         # Description of the symptoms observed in the network
 
-        self.task_desc = """\
+        self.task_desc_no_symptom = """\
             The network you are working with is described below:
             {net_desc}
 
@@ -23,6 +25,13 @@ class DetectionTask(TaskBase):
             No need for further analysis, localization or mitigation.
             Once you have determined whether there is an anomaly, provide your conclusion for submission.
             """
+
+    def task_desc(self, provide_symptom_desc: bool = False) -> str:
+        tmpl = textwrap.dedent(self.task_desc_no_symptom)
+        text = tmpl.format(
+            net_desc=self.net_env.get_info(),
+        ).strip()
+        return text
 
     def eval(self, submission: dict) -> float:
         """Evaluate the detection task submission.

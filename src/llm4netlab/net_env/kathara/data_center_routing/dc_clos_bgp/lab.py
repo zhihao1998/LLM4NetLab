@@ -70,7 +70,7 @@ class DCClosBGP(NetworkEnvBase):
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "An data center network with 4 levels using BGP routing protocol."
-        SUPER_SPINE_COUNT = 1
+        SUPER_SPINE_COUNT = 2
         SPINE_COUNT = 2  # per super spine
         LEAF_COUNT = 4  # per pod
 
@@ -88,8 +88,8 @@ class DCClosBGP(NetworkEnvBase):
         subnets31 = list(infra_pool.subnets(new_prefix=31))
 
         for ss in range(SUPER_SPINE_COUNT):
-            ss_name = f"super_spine_{ss}"
-            router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr"})
+            ss_name = f"super_spine_router_{ss}"
+            router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"})
             router_ss_meta = RouterMeta(
                 name=ss_name,
                 machine=router_ss,
@@ -102,8 +102,10 @@ class DCClosBGP(NetworkEnvBase):
         for pod in range(SUPER_SPINE_COUNT):
             pod_spines[pod] = []
             for spine_id in range(SPINE_COUNT):
-                spine_name = f"spine_{pod}_{spine_id}"
-                router_spine = self.lab.new_machine(spine_name, **{"image": "kathara/frr"})
+                spine_name = f"spine_router_{pod}_{spine_id}"
+                router_spine = self.lab.new_machine(
+                    spine_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                )
                 spine_meta = RouterMeta(
                     name=spine_name,
                     machine=router_spine,
@@ -116,8 +118,10 @@ class DCClosBGP(NetworkEnvBase):
 
             pod_leaves[pod] = []
             for leaf_id in range(LEAF_COUNT):
-                leaf_name = f"leaf_{pod}_{leaf_id}"
-                router_leaf = self.lab.new_machine(leaf_name, **{"image": "kathara/frr"})
+                leaf_name = f"leaf_router_{pod}_{leaf_id}"
+                router_leaf = self.lab.new_machine(
+                    leaf_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                )
                 leaf_meta = RouterMeta(
                     name=leaf_name,
                     machine=router_leaf,
@@ -131,7 +135,7 @@ class DCClosBGP(NetworkEnvBase):
             pod_hosts[pod] = []
             for host in range(LEAF_COUNT):
                 host_name = f"pc_{pod}_{host}"
-                host = self.lab.new_machine(host_name, **{"image": "kathara/base"})
+                host = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
                 host_meta = HostMeta(
                     name=host_name,
                     machine=host,

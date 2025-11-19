@@ -165,27 +165,7 @@ class FaultInjectorBase:
         )
         self.logger.info(f"Recovered BGP ASN misconfiguration on {host_name} from ASN {wrong_asn} to {correct_asn}.")
 
-    def inject_ospf_area_misconfig(self, host_name: str, correct_area: int, wrong_area: int):
-        """Inject a OSPF area misconfiguration by changing the area on a router, from real_area to target_area."""
-        self.kathara_api.exec_cmd(
-            host_name,
-            f"vtysh -c 'show running-config' | sed -E 's/(area )({correct_area})$/\\1{wrong_area}/' > /etc/frr/frr.conf && systemctl restart frr",
-        )
-        self.logger.info(
-            f"Injected OSPF area misconfiguration on {host_name} from area {correct_area} to {wrong_area}."
-        )
-
-    def recover_ospf_area_misconfig(self, host_name: str, correct_area: int, wrong_area: int):
-        """Recover from a OSPF area misconfiguration by resetting the area on a router."""
-        self.kathara_api.exec_cmd(
-            host_name,
-            f"vtysh -c 'show running-config' | sed -E 's/(area )({wrong_area})$/\\1{correct_area}/' > /etc/frr/frr.conf && systemctl restart frr",
-        )
-        self.logger.info(
-            f"Recovered OSPF area misconfiguration on {host_name} from area {wrong_area} to {correct_area}."
-        )
-
-    def inject_bgp_missing_route(self, host_name: str):
+    def inject_bgp_remove_advertisement(self, host_name: str):
         """Inject a BGP missing route by commenting out the network advertisement."""
         self.kathara_api.exec_cmd(
             host_name,
@@ -193,7 +173,7 @@ class FaultInjectorBase:
         )
         self.logger.info(f"Injected BGP missing route on {host_name}.")
 
-    def recover_bgp_missing_route(self, host_name: str):
+    def recover_bgp_remove_advertisement(self, host_name: str):
         """Recover from a BGP missing route by recovering the backed up frr.conf file."""
         self.kathara_api.exec_cmd(
             host_name,
@@ -223,10 +203,11 @@ class FaultInjectorBase:
 
     def inject_add_route_blackhole_nexthop(self, host_name: str, network: str):
         """Inject a fault by adding a static blackhole route on a host."""
-        self.kathara_api.exec_cmd(
+        res = self.kathara_api.exec_cmd(
             host_name,
             f"ip route add blackhole {network}",
         )
+        print(res)
         self.logger.info(f"Injected addition of route {network} on {host_name}.")
 
     def recover_add_route_blackhole_nexthop(self, host_name: str, network: str):

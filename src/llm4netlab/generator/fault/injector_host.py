@@ -60,7 +60,9 @@ class FaultInjectorHost:
             host_name,
             f"ip route add default via {new_gateway}",
         )
-        self.logger.info(f"Injected IP change from {old_ip} to {new_ip} on {host_name}:{intf_name}.")
+        self.logger.info(
+            f"Injected IP change from {old_ip} to {new_ip} on {host_name}:{intf_name}, default gateway changed to {new_gateway}."
+        )
 
     def recover_ip_change(self, host_name: str, old_ip: str, new_ip: str, intf_name: str, old_gateway: str = None):
         """Recover from a fault by reverting an IP address change on a host interface."""
@@ -83,7 +85,7 @@ class FaultInjectorHost:
         """Inject a fault by causing high CPU usage on a host."""
         self.kathara_api.exec_cmd(
             host_name,
-            f"stress-ng --cpu 0 --timeout {duration} &",
+            f"stress-ng --cpu 0  --cpu-load 100 --timeout {duration} &",
         )
         self.logger.info(f"Injected high CPU usage on {host_name} for {duration} seconds.")
 
@@ -113,10 +115,11 @@ class FaultInjectorHost:
 
     def inject_high_socket(self, host_name: str, duration: int = 300):
         """Inject a fault by causing high socket usage on a host."""
-        self.kathara_api.exec_cmd(
+        res = self.kathara_api.exec_cmd(
             host_name,
-            f"stress-ng --socket 10 --timeout {duration} &",
+            f"stress-ng --sock 0 --timeout {duration} &",
         )
+        print(res)
         self.logger.info(f"Injected high socket usage on {host_name} for {duration} seconds.")
 
     def recover_high_socket(self, host_name: str):

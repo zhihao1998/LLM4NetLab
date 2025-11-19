@@ -5,7 +5,7 @@ import textwrap
 import time
 
 from llm4netlab.config import RESULTS_DIR
-from llm4netlab.evaluator.llm_judge import LLMJudge
+from llm4netlab.evaluator.llm_judge import JudgeResponse, LLMJudge
 from llm4netlab.evaluator.result_log import EvalResult, record_eval_result
 from llm4netlab.evaluator.trace_parser import AgentTraceParser
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
@@ -42,7 +42,6 @@ class Orchestrator:
         Returns:
             A tuple containing the root cause category, task description, session ID, and lab name.
         """
-        self.orchestration_start_time = time.time()
 
         self.session = Session(session_id=session_id)
         self.logger.info(f"Initialized ID: {self.session.session_id}")
@@ -77,6 +76,10 @@ class Orchestrator:
         # Log the problem and descriptions as ground truth
         with open(f"{self.log_dir}/{self.session.session_id}_groundtruth.log", "w+") as log_file:
             log_file.write(self.problem.SUBMISSION.model_dump_json() + "\n")
+
+        # record the start time
+        self.orchestration_start_time = time.time()
+
         return self.root_cause_category, task_desc, self.session.session_id, self.problem.net_env.name
 
     def stop_problem(self, cleanup=False):
@@ -106,7 +109,7 @@ class Orchestrator:
         self.logger.info(f"Evaluating session {self.session.session_id} using LLM-as-Judge.")
         # llm as judge evaluation
         llm_judge = LLMJudge()
-        _, llm_score = llm_judge.evaluate_agent(
+        judge_response: JudgeResponse = llm_judge.evaluate_agent(
             problem_description=self.problem.META.description,
             net_env_info=self.problem.net_env.get_info(),
             ground_truth=textwrap.dedent(f"""\
@@ -116,12 +119,17 @@ class Orchestrator:
             trace_path=trace_path,
             save_path=f"{self.log_dir}/{self.log_prefix}_llm_judge.log",
         )
+        relevance_score = judge_response.scores.relevance.score
+        correctness_score = judge_response.scores.correctness.score
+        efficiency_score = judge_response.scores.efficiency.score
+        clarity_score = judge_response.scores.clarity.score
+        final_outcome_score = judge_response.scores.final_outcome.score
 
         # parse agent trace
         trace_parser = AgentTraceParser(trace_path=trace_path)
         trace_metrics = trace_parser.parse_trace()
 
-        self.logger.info(f"All Done! LLM Judge Score: {llm_score}, Evaluator Score: {evaluator_score}")
+        self.logger.info(f"All Done! LLM Judge Score: {final_outcome_score}, Evaluator Score: {evaluator_score}")
 
         # log evaluation results
         eval_result = EvalResult(
@@ -137,8 +145,12 @@ class Orchestrator:
             steps=trace_metrics.get("steps", None),
             tool_calls=trace_metrics.get("tool_calls", None),
             tool_errors=trace_metrics.get("tool_errors", None),
-            time_taken=self.orchestration_end_time - self.orchestration_start_time,
-            llm_judge_score=llm_score,
+            time_taken=round(self.orchestration_end_time - self.orchestration_start_time, 2),
+            llm_judge_relevance_score=relevance_score,
+            llm_judge_correctness_score=correctness_score,
+            llm_judge_efficiency_score=efficiency_score,
+            llm_judge_clarity_score=clarity_score,
+            llm_judge_final_outcome_score=final_outcome_score,
             evaluator_score=evaluator_score,
         )
 

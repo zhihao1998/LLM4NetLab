@@ -23,7 +23,11 @@ class EvalResult:
     tool_calls: int = None
     tool_errors: int = None
     time_taken: float = None
-    llm_judge_score: float = None
+    llm_judge_relevance_score: int = None
+    llm_judge_correctness_score: int = None
+    llm_judge_efficiency_score: int = None
+    llm_judge_clarity_score: int = None
+    llm_judge_final_outcome_score: int = None
     evaluator_score: float = None
 
 

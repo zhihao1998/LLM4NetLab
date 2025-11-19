@@ -17,10 +17,7 @@ class LocalizationSubmission(BaseModel):
     )
 
 
-class LocalizationTask(TaskBase):
-    def __init__(self):
-        super().__init__()
-        self.task_desc = """\
+LOCAL_TASK_INSTRUCTION = """\
             The network you are working with is described below:
             {net_desc}
 
@@ -34,6 +31,41 @@ class LocalizationTask(TaskBase):
             Do not analyze or speculate about root causes. Do not propose mitigations.
             Once you have identified the faulty component(s), provide your conclusion for submission.
             """
+
+LOCAL_TASK_INSTRUCTION_NO_SYMPTOM = """\
+            The network you are working with is described below:
+            {net_desc}
+
+            Your task is to localize the anomaly.
+            Pinpoint the faulty component(s), such as device, interface, link, prefix, neighbor, or path segment.
+            Focus strictly on *where* the anomaly occurs.
+
+            Do not analyze or speculate about root causes. Do not propose mitigations.
+            Once you have identified the faulty component(s), provide your conclusion for submission.
+            """
+
+
+class LocalizationTask(TaskBase):
+    def __init__(self):
+        super().__init__()
+        self._task_desc_with_symptom = LOCAL_TASK_INSTRUCTION
+        self._task_desc_no_symptom = LOCAL_TASK_INSTRUCTION_NO_SYMPTOM
+
+    def task_desc(self, provide_symptom_desc: bool = False) -> str:
+        if provide_symptom_desc:
+            assert hasattr(self, "symptom_desc")
+            tmpl = textwrap.dedent(self._task_desc_with_symptom)
+            text = tmpl.format(
+                net_desc=self.net_env.get_info(),
+                symptom_desc=self.symptom_desc,
+            ).strip()
+            return text
+        else:
+            tmpl = textwrap.dedent(self._task_desc_no_symptom)
+            text = tmpl.format(
+                net_desc=self.net_env.get_info(),
+            ).strip()
+            return text
 
     def eval(self, submission: dict) -> float:
         """Evaluate the localization task submission.

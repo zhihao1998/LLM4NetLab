@@ -464,10 +464,10 @@ class OSPFEnterprise(NetworkEnvBase):
         for access_key, host_metas in access_hosts.items():
             for host_meta in host_metas:
                 # add dns config
-                ns_add_cmd = ""
-                for dns in tot_dns:
-                    ns_add_cmd += f"nameserver {dns.ip_address}\n"
-                host_meta.machine.create_file_from_string(ns_add_cmd, "/etc/resolv.conf")
+                # ns_add_cmd = ""
+                # for dns in tot_dns:
+                #     ns_add_cmd += f"nameserver {dns.ip_address}\n"
+                # host_meta.machine.create_file_from_string(ns_add_cmd, "/etc/resolv.conf")
                 # startup file
                 host_meta.cmd_list.append("dhclient eth0")
                 self.lab.create_file_from_list(
@@ -477,7 +477,7 @@ class OSPFEnterprise(NetworkEnvBase):
 
         # add configurations for dns server
         dns_meta = servers["dns_server"]
-        zone_name = "enterprise.local"
+        zone_name = "local"
         ns_name = "ns1"
         name_config = textwrap.dedent(
             f"""\
@@ -533,8 +533,8 @@ class OSPFEnterprise(NetworkEnvBase):
         # add configurations for dhcp server
         dhcp_meta = servers["dhcp_server"]
         dhcp_config = textwrap.dedent("""\
-            default-lease-time 600;
-            max-lease-time 7200;
+            default-lease-time 30;
+            max-lease-time 60;
             authoritative;
         """)
         for core_id in range(1, 3):

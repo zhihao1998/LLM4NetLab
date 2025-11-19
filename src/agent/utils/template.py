@@ -9,28 +9,24 @@ OVERALL_DIAGNOSIS_PROMPT = """\
     - Do not provide mitigation unless explicitly required.
 """
 
-LLM_JUDGE_PROMPT_TEMPLATE = """\
-    You are an expert networking engineer acting as a judge.  
-    You will assess the performance of an autonomous agent given:
-    - Problem Description: {problem_description}
-    - Network Environment Info: {net_env_info}
-    - Ground Truth: (not provided to the agent) {ground_truth}
-    - Action History: {trace}
+LLM_JUDGE_PROMPT_TEMPLATE = """
+You are an expert networking engineer acting as a judge.  
+You will assess the performance of an autonomous agent given:
+- Problem Description: {problem_description}
+- Network Environment Info: {net_env_info}
+- Ground Truth: (not provided to the agent) {ground_truth}
+- Action History: {trace}
 
-    Evaluation criteria (and weights): 
-    1. Relevance of each action to the problem (weight 20%)  
-    2. Correctness of tools/commands used (weight 20%)  
-    3. Efficiency and sequence of actions (weight 20%)  
-    4. Clarity of justification / explanatory reasoning in the agent’s actions (weight 20%)  
-    5. The final outcome: was the submission exists and correctly matched the ground truth in the Problem Description (weight 20%)
+Evaluation criteria (each scored 1–10):
+1. Relevance of the actions to the problem  
+2. Correctness of tools/commands used  
+3. Efficiency and sequence of actions  
+4. Clarity of justification / explanatory reasoning in the agent’s actions  
+5. Final outcome: whether the final submission exists and matches the problem ground truth  
 
-    Instructions:  
-    – For each agent action, comment briefly on its relevance, correctness and efficiency.  
-    – Then give an overall evaluation: what worked well, what could be improved.  
-    – Finally assign a score from 1 to 10 (1 = poor, 10 = excellent).  
-    – Provide a brief reasoning for the score.  
-
-    Return format:
-    Score (must be in double square brackets): [[<1-10>]] 
-    Explanation: <reasoning for score>
+Instructions:  
+– For the provided agent's actions, briefly comment on its relevance, correctness, and efficiency.  
+– Then give an overall evaluation: what worked well, what could be improved.  
+– Score each of the 5 criteria individually (1 = poor, 10 = excellent).  
+– Provide a final overall score from 1 to 10 with reasoning.
 """
