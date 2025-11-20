@@ -1,0 +1,6 @@
+from llm4netlab.net_env.kathara.data_center_routing.dc_clos_bgp.lab import DCClosBGP
+from llm4netlab.net_env.kathara.data_center_routing.dc_clos_service.lab import DCClosService
+from llm4netlab.net_env.kathara.interdomain_routing.simple_bgp.lab import SimpleBGP
+from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
+from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.kathara.intradomain_routing.rip_small_internet.lab import RIPSmallInternet

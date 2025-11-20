@@ -181,33 +181,57 @@ class FaultInjectorBase:
         )
         self.logger.info(f"Recovered BGP missing route on {host_name}.")
 
-    def inject_default_route_missing(self, host_name: str, back_up_file: str = "/tmp/default_route_backup.txt"):
-        """Inject a fault by removing the default route on a host."""
+    def inject_bgp_add_interface(self, host_name: str, intf_name: str, ip_address: str):
+        """Inject a BGP add interface by adding a new interface with IP address and configuring BGP."""
+        cmd = f"vtysh -c 'configure terminal' -c 'interface {intf_name}' -c 'ip address {ip_address}' "
         self.kathara_api.exec_cmd(
             host_name,
-            "ip route show default > " + back_up_file,
+            cmd,
         )
-        self.kathara_api.exec_cmd(
-            host_name,
-            "ip route del default",
-        )
-        self.logger.info(f"Injected removal of default route on {host_name}.")
+        self.logger.info(f"Injected BGP add interface on {host_name}: {intf_name} with IP {ip_address}.")
 
-    def recover_default_route_missing(self, host_name: str, back_up_file: str = "/tmp/default_route_backup.txt"):
-        """Recover from a fault by adding the default route on a host."""
+    def recover_bgp_add_interface(self, host_name: str, intf_name: str, ip_address: str=None):
+        """Recover from a BGP add interface by removing the interface configuration."""
+        if intf_name == "lo":
+            cmd = f"vtysh -c 'configure terminal' -c 'interface {intf_name}' -c 'no ip address {ip_address}' -c 'end' -c 'write memory' "
+        else:
+            cmd = f"vtysh -c 'configure terminal' -c 'no interface {intf_name}' -c 'end' -c 'write memory' "
         self.kathara_api.exec_cmd(
             host_name,
-            "sh -c 'cat " + back_up_file + " | xargs ip route add'",
+            cmd,
         )
-        self.logger.info(f"Recovered removal of default route on {host_name}.")
+        self.logger.info(f"Recovered BGP add interface on {host_name}: {intf_name}.")
+
+    def inject_bgp_add_advertisement(self, host_name: str, network: str, AS: str):
+        """Inject a BGP add route by adding a network advertisement."""
+        cmd = f"vtysh -c 'configure terminal' -c 'router bgp {AS}' -c 'network {network}' -c 'end' -c 'write memory' "
+        self.kathara_api.exec_cmd(
+            host_name,
+            cmd,
+        )
+        self.kathara_api.exec_cmd(
+            host_name,
+            "systemctl restart frr",
+        )
+        self.logger.info(f"Injected BGP add route on {host_name}: {network}.")
+
+    def recover_bgp_add_advertisement(self, host_name: str, network: str, AS: str):
+        """Recover from a BGP add route by removing the network advertisement."""
+        cmd = (
+            f"vtysh -c 'configure terminal' -c 'router bgp {AS}' -c 'no network {network}' -c 'end' -c 'write memory' "
+        )
+        self.kathara_api.exec_cmd(
+            host_name,
+            cmd,
+        )
+        self.logger.info(f"Recovered BGP add route on {host_name}: {network}.")
 
     def inject_add_route_blackhole_nexthop(self, host_name: str, network: str):
         """Inject a fault by adding a static blackhole route on a host."""
-        res = self.kathara_api.exec_cmd(
+        self.kathara_api.exec_cmd(
             host_name,
             f"ip route add blackhole {network}",
         )
-        print(res)
         self.logger.info(f"Injected addition of route {network} on {host_name}.")
 
     def recover_add_route_blackhole_nexthop(self, host_name: str, network: str):

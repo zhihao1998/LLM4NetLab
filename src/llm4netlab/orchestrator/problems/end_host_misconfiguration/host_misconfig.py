@@ -3,9 +3,9 @@ import logging
 from llm4netlab.generator.fault.injector_host import FaultInjectorHost
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
-from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
-from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission, LocalizationTask
-from llm4netlab.orchestrator.tasks.rca import RCASubmission, RCATask
+from llm4netlab.orchestrator.tasks.detection import DetectionTask
+from llm4netlab.orchestrator.tasks.localization import LocalizationTask
+from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
 
 # ==========================================
@@ -13,8 +13,8 @@ from llm4netlab.service.kathara import KatharaBaseAPI
 
 
 class HostMissingIPBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
-    ROOT_CAUSE_NAME: str = "host_missing_ip"
+    root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
+    root_cause_name: str = "host_missing_ip"
 
     faulty_device = "host_1_1_1_1"
     symptom_desc = "Some hosts are unable to communicate with other devices in the network."
@@ -41,51 +41,29 @@ class HostMissingIPBase:
 
 class HostMissingIPDetection(HostMissingIPBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=HostMissingIPBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostMissingIPBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostMissingIPBase.root_cause_category,
+        root_cause_name=HostMissingIPBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostMissingIPLocalization(HostMissingIPBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=HostMissingIPBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostMissingIPBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostMissingIPBase.root_cause_category,
+        root_cause_name=HostMissingIPBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[HostMissingIPBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostMissingIPRCA(HostMissingIPBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=HostMissingIPBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostMissingIPBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostMissingIPBase.root_cause_category,
+        root_cause_name=HostMissingIPBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=HostMissingIPBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostMissingIPBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==========================================
@@ -93,8 +71,8 @@ class HostMissingIPRCA(HostMissingIPBase, RCATask):
 
 
 class HostIPConflictBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
-    ROOT_CAUSE_NAME: str = "host_ip_conflict"
+    root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
+    root_cause_name: str = "host_ip_conflict"
 
     faulty_device_1 = "host_1_1_1_1"
     faulty_device_2 = "host_1_1_1_2"
@@ -127,51 +105,29 @@ class HostIPConflictBase:
 
 class HostIPConflictDetection(HostIPConflictBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=HostIPConflictBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIPConflictBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIPConflictBase.root_cause_category,
+        root_cause_name=HostIPConflictBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIPConflictLocalization(HostIPConflictBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=HostIPConflictBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIPConflictBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIPConflictBase.root_cause_category,
+        root_cause_name=HostIPConflictBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[HostIPConflictBase.faulty_device_1, HostIPConflictBase.faulty_device_2],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIPConflictRCA(HostIPConflictBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=HostIPConflictBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIPConflictBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIPConflictBase.root_cause_category,
+        root_cause_name=HostIPConflictBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=HostIPConflictBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIPConflictBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==========================================
@@ -179,8 +135,8 @@ class HostIPConflictRCA(HostIPConflictBase, RCATask):
 
 
 class HostIncorrectIPBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
-    ROOT_CAUSE_NAME: str = "host_incorrect_ip"
+    root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
+    root_cause_name: str = "host_incorrect_ip"
 
     faulty_device = "host_1_1_1_1"
     incorrect_ip = "10.2.1.20/24"
@@ -213,51 +169,29 @@ class HostIncorrectIPBase:
 
 class HostIncorrectIPDetection(HostIncorrectIPBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectIPBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectIPBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectIPBase.root_cause_category,
+        root_cause_name=HostIncorrectIPBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIncorrectIPLocalization(HostIncorrectIPBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectIPBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectIPBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectIPBase.root_cause_category,
+        root_cause_name=HostIncorrectIPBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[HostIncorrectIPBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIncorrectIPRCA(HostIncorrectIPBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectIPBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectIPBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectIPBase.root_cause_category,
+        root_cause_name=HostIncorrectIPBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=HostIncorrectIPBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectIPBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==========================================
@@ -265,8 +199,8 @@ class HostIncorrectIPRCA(HostIncorrectIPBase, RCATask):
 
 
 class HostIncorrectGatewayBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
-    ROOT_CAUSE_NAME: str = "host_incorrect_gateway"
+    root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
+    root_cause_name: str = "host_incorrect_gateway"
 
     faulty_device = "host_1_1_1_1"
     symptom_desc = "Some hosts seem to be unreachable in the network."
@@ -309,34 +243,20 @@ class HostIncorrectGatewayBase:
 
 class HostIncorrectGatewayDetection(HostIncorrectGatewayBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectGatewayBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectGatewayBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectGatewayBase.root_cause_category,
+        root_cause_name=HostIncorrectGatewayBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIncorrectGatewayLocalization(HostIncorrectGatewayBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectGatewayBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectGatewayBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectGatewayBase.root_cause_category,
+        root_cause_name=HostIncorrectGatewayBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
-
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[HostIncorrectGatewayBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==========================================
@@ -344,8 +264,8 @@ class HostIncorrectGatewayLocalization(HostIncorrectGatewayBase, LocalizationTas
 
 
 class HostIncorrectNetmaskBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
-    ROOT_CAUSE_NAME: str = "host_incorrect_netmask"
+    root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
+    root_cause_name: str = "host_incorrect_netmask"
 
     faulty_device = "host_1_1_1_1"
     symptom_desc = "Some hosts seem to be unreachable in the network."
@@ -386,51 +306,29 @@ class HostIncorrectNetmaskBase:
 
 class HostIncorrectNetmaskDetection(HostIncorrectNetmaskBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectNetmaskBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectNetmaskBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectNetmaskBase.root_cause_category,
+        root_cause_name=HostIncorrectNetmaskBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIncorrectNetmaskLocalization(HostIncorrectNetmaskBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectNetmaskBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectNetmaskBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectNetmaskBase.root_cause_category,
+        root_cause_name=HostIncorrectNetmaskBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[HostIncorrectNetmaskBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIncorrectNetmaskRCA(HostIncorrectNetmaskBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectNetmaskBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectNetmaskBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectNetmaskBase.root_cause_category,
+        root_cause_name=HostIncorrectNetmaskBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=HostIncorrectNetmaskBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectNetmaskBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==========================================
@@ -439,8 +337,8 @@ class HostIncorrectNetmaskRCA(HostIncorrectNetmaskBase, RCATask):
 
 
 class HostIncorrectDNSBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
-    ROOT_CAUSE_NAME: str = "host_incorrect_dns"
+    root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
+    root_cause_name: str = "host_incorrect_dns"
 
     faulty_device = "host_1_1_1_1"
     symptom_desc = "Some hosts are unable to access web services."
@@ -464,51 +362,29 @@ class HostIncorrectDNSBase:
 
 class HostIncorrectDNSDetection(HostIncorrectDNSBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectDNSBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectDNSBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectDNSBase.root_cause_category,
+        root_cause_name=HostIncorrectDNSBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIncorrectDNSLocalization(HostIncorrectDNSBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectDNSBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectDNSBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectDNSBase.root_cause_category,
+        root_cause_name=HostIncorrectDNSBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[HostIncorrectDNSBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class HostIncorrectDNSRCA(HostIncorrectDNSBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=HostIncorrectDNSBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectDNSBase.ROOT_CAUSE_NAME,
+        root_cause_category=HostIncorrectDNSBase.root_cause_category,
+        root_cause_name=HostIncorrectDNSBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=HostIncorrectDNSBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=HostIncorrectDNSBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==========================================
@@ -517,8 +393,8 @@ class HostIncorrectDNSRCA(HostIncorrectDNSBase, RCATask):
 
 
 class HostMACSpoofingBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
-    ROOT_CAUSE_NAME: str = "host_mac_spoofing"
+    root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
+    root_cause_name: str = "host_mac_spoofing"
 
     target_device_1 = "host_1_1_1_1"
     target_device_2 = "host_1_1_1_2"

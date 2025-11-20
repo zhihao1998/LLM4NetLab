@@ -7,11 +7,10 @@ from llm4netlab.orchestrator.problems.problem_base import ProblemMeta
 class TaskBase:
     """Base class for all tasks."""
 
-    ROOT_CAUSE_CATEGORY: str = None
-    ROOT_CAUSE_NAME: str = None
+    root_cause_category: str = None
+    root_cause_name: str = None
 
     META: ProblemMeta = None
-    SUBMISSION: BaseModel = None
 
     def __init__(self):
         self.results = {}
@@ -42,5 +41,13 @@ class TaskBase:
 
         Returns:
             float: The evaluation score.
+        """
+        return NotImplementedError()
+
+    def get_submission() -> BaseModel:
+        """Get the submission model for the task.
+
+        Returns:
+            BaseModel: The submission model.
         """
         return NotImplementedError()

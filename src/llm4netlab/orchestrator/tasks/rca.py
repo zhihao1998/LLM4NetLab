@@ -84,11 +84,21 @@ class RCATask(TaskBase):
         if root_cause_category is None or root_cause_name is None:
             return -1.0
 
-        gt_root_cause_category = getattr(self.SUBMISSION, "root_cause_category", "")
-        gt_root_cause_name = getattr(self.SUBMISSION, "root_cause_name", "")
+        gt_root_cause_category = getattr(self.get_submission(), "root_cause_category", "")
+        gt_root_cause_name = getattr(self.get_submission(), "root_cause_name", "")
         accuracy = 0.0
         if root_cause_category == gt_root_cause_category:
             accuracy += 0.5
             if root_cause_name == gt_root_cause_name:
                 accuracy += 0.5
         return accuracy
+
+    def get_submission(self):
+        assert self.root_cause_category and self.root_cause_name, (
+            "Root cause category and name must be set in the task instance."
+        )
+        submission = RCASubmission(
+            root_cause_category=self.root_cause_category,
+            root_cause_name=self.root_cause_name,
+        )
+        return submission

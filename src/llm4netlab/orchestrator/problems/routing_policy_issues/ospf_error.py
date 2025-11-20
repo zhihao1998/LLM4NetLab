@@ -5,12 +5,11 @@ import re
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
-from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
+from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import (
-    LocalizationSubmission,
     LocalizationTask,
 )
-from llm4netlab.orchestrator.tasks.rca import RCASubmission, RCATask
+from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaFRRAPI
 
 # ==================================================================
@@ -19,8 +18,8 @@ from llm4netlab.service.kathara import KatharaFRRAPI
 
 
 class OSPFAreaMisconfigBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
-    ROOT_CAUSE_NAME: str = "ospf_area_misconfiguration"
+    root_cause_category: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
+    root_cause_name: str = "ospf_area_misconfiguration"
 
     faulty_router: str = "switch_server_access"
     target_device: str = "web_server_0"
@@ -80,51 +79,29 @@ class OSPFAreaMisconfigBase:
 
 class OSPFAreaMisconfigDetection(OSPFAreaMisconfigBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=OSPFAreaMisconfigBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=OSPFAreaMisconfigBase.ROOT_CAUSE_NAME,
+        root_cause_category=OSPFAreaMisconfigBase.root_cause_category,
+        root_cause_name=OSPFAreaMisconfigBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class OSPFAreaMisconfigLocalization(OSPFAreaMisconfigBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=OSPFAreaMisconfigBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=OSPFAreaMisconfigBase.ROOT_CAUSE_NAME,
+        root_cause_category=OSPFAreaMisconfigBase.root_cause_category,
+        root_cause_name=OSPFAreaMisconfigBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[OSPFAreaMisconfigBase.target_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class OSPFAreaMisconfigRCA(OSPFAreaMisconfigBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=OSPFAreaMisconfigBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=OSPFAreaMisconfigBase.ROOT_CAUSE_NAME,
+        root_cause_category=OSPFAreaMisconfigBase.root_cause_category,
+        root_cause_name=OSPFAreaMisconfigBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=OSPFAreaMisconfigBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=OSPFAreaMisconfigBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==================================================================
@@ -133,8 +110,8 @@ class OSPFAreaMisconfigRCA(OSPFAreaMisconfigBase, RCATask):
 
 
 class OSPFNeighborMissingBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
-    ROOT_CAUSE_NAME: str = "ospf_neighbor_missing"
+    root_cause_category: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
+    root_cause_name: str = "ospf_neighbor_missing"
 
     faulty_router: str = "switch_server_access"
     target_device: str = "web_server_0"
@@ -171,51 +148,29 @@ class OSPFNeighborMissingBase:
 
 class OSPFNeighborMissingDetection(OSPFNeighborMissingBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=OSPFNeighborMissingBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=OSPFNeighborMissingBase.ROOT_CAUSE_NAME,
+        root_cause_category=OSPFNeighborMissingBase.root_cause_category,
+        root_cause_name=OSPFNeighborMissingBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class OSPFNeighborMissingLocalization(OSPFNeighborMissingBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=OSPFNeighborMissingBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=OSPFNeighborMissingBase.ROOT_CAUSE_NAME,
+        root_cause_category=OSPFNeighborMissingBase.root_cause_category,
+        root_cause_name=OSPFNeighborMissingBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[OSPFNeighborMissingBase.target_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class OSPFNeighborMissingRCA(OSPFNeighborMissingBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=OSPFNeighborMissingBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=OSPFNeighborMissingBase.ROOT_CAUSE_NAME,
+        root_cause_category=OSPFNeighborMissingBase.root_cause_category,
+        root_cause_name=OSPFNeighborMissingBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=OSPFNeighborMissingBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=OSPFNeighborMissingBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 if __name__ == "__main__":

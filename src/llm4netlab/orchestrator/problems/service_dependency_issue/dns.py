@@ -1,25 +1,30 @@
+import logging
+
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterprise
+from llm4netlab.net_env.base import NetworkEnvBase
+from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
+from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
-from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
-from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission, LocalizationTask
-from llm4netlab.orchestrator.tasks.rca import RCASubmission, RCATask
+from llm4netlab.orchestrator.tasks.detection import DetectionTask
+from llm4netlab.orchestrator.tasks.localization import LocalizationTask
+from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
 
+logger = logging.getLogger(__name__)
 # ==================================================================
-""" Problem: DNS service down """
+# Problem: DNS service down
 # ==================================================================
 
 
 class DNSServiceDownBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
-    ROOT_CAUSE_NAME: str = "dns_service_down"
+    root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
+    root_cause_name: str = "dns_service_down"
 
     faulty_device = "dns_server"
     symptom_desc = "Some hosts cannot access external websites."
 
     def __init__(self):
-        self.net_env = OSPFEnterprise()
+        self.net_env = OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
@@ -32,67 +37,45 @@ class DNSServiceDownBase:
 
 class DNSServiceDownDetection(DNSServiceDownBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=DNSServiceDownBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DNSServiceDownBase.ROOT_CAUSE_NAME,
+        root_cause_category=DNSServiceDownBase.root_cause_category,
+        root_cause_name=DNSServiceDownBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class DNSServiceDownLocalization(DNSServiceDownBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=DNSServiceDownBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DNSServiceDownBase.ROOT_CAUSE_NAME,
+        root_cause_category=DNSServiceDownBase.root_cause_category,
+        root_cause_name=DNSServiceDownBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[DNSServiceDownBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class DNSServiceDownRCA(DNSServiceDownBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=DNSServiceDownBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DNSServiceDownBase.ROOT_CAUSE_NAME,
+        root_cause_category=DNSServiceDownBase.root_cause_category,
+        root_cause_name=DNSServiceDownBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
 
-    SUBMISSION = RCASubmission(
-        root_cause_category=DNSServiceDownBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DNSServiceDownBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 # ==================================================================
-""" Problem: DNS listener port blocked """
+# Problem: DNS listener port blocked
 # ==================================================================
 
 
 class DNSPortBlockedBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
-    ROOT_CAUSE_NAME: str = "dns_port_blocked"
+    root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
+    root_cause_name: str = "dns_port_blocked"
 
     faulty_device = "dns_server"
     symptom_desc = "Some hosts cannot access external websites."
 
     def __init__(self):
-        self.net_env = OSPFEnterprise()
+        self.net_env = OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
@@ -121,48 +104,111 @@ class DNSPortBlockedBase:
 
 class DNSPortBlockedDetection(DNSPortBlockedBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=DNSPortBlockedBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DNSPortBlockedBase.ROOT_CAUSE_NAME,
+        root_cause_category=DNSPortBlockedBase.root_cause_category,
+        root_cause_name=DNSPortBlockedBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class DNSPortBlockedLocalization(DNSPortBlockedBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=DNSPortBlockedBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DNSPortBlockedBase.ROOT_CAUSE_NAME,
+        root_cause_category=DNSPortBlockedBase.root_cause_category,
+        root_cause_name=DNSPortBlockedBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[DNSPortBlockedBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class DNSPortBlockedRCA(DNSPortBlockedBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=DNSPortBlockedBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DNSPortBlockedBase.ROOT_CAUSE_NAME,
+        root_cause_category=DNSPortBlockedBase.root_cause_category,
+        root_cause_name=DNSPortBlockedBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
 
-    SUBMISSION = RCASubmission(
-        root_cause_category=DNSPortBlockedBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DNSPortBlockedBase.ROOT_CAUSE_NAME,
+
+# ==================================================================
+# Problem: DNS record error. Apps resolve domain but connect to wrong host.
+# ==================================================================
+
+
+class DNSRecordErrorBase:
+    root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
+    root_cause_name: str = "dns_record_error"
+
+    symptom_desc = "Some hosts cannot access external websites."
+
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.servers["dns"][0]
+        self.target_website = self.net_env.web_urls[0].split(".")[0]
+        if self.target_website.startswith("http://"):
+            self.target_website = self.target_website[len("http://") :]
+        self.target_domain = self.net_env.web_urls[0].split(".")[1]
+        self.right_ip = self.kathara_api.get_host_ip(self.faulty_device)
+        self.wrong_ip = self.kathara_api.get_host_ip(self.net_env.hosts[0])
+
+    def inject_fault(self):
+        # backup original record
+        self.kathara_api.exec_cmd(
+            self.faulty_device,
+            f"cp /etc/bind/db.{self.target_domain} /etc/bind/db.{self.target_domain}.bak",
+        )
+        # inject wrong record
+        cmd = r"sed -i 's/^\({name}[[:space:]]\+IN[[:space:]]\+A[[:space:]]\+\)[0-9\.]\+/\1{new_ip}/' /etc/bind/db.{domain}"
+        cmd = cmd.format(name=self.target_website, new_ip=self.wrong_ip, domain=self.target_domain)
+        self.kathara_api.exec_cmd(self.faulty_device, cmd)
+        # restart dns service
+        self.kathara_api.exec_cmd(self.faulty_device, "systemctl restart named")
+        logger.info(
+            f"Injecting DNS record error on {self.faulty_device}: mapping {self.target_website}:{self.target_domain} "
+            f"to wrong IP {self.wrong_ip} instead of {self.right_ip}"
+        )
+
+    def recover_fault(self):
+        # restore original record
+        self.kathara_api.exec_cmd(
+            self.faulty_device,
+            f"mv /etc/bind/db.{self.target_domain}.bak /etc/bind/db.{self.target_domain}",
+        )
+        # restart dns service
+        self.kathara_api.exec_cmd(self.faulty_device, "systemctl restart named")
+        logger.info(f"Recovered DNS record error on {self.faulty_device}")
+
+
+class DNSRecordErrorDetection(DNSRecordErrorBase, DetectionTask):
+    META = ProblemMeta(
+        root_cause_category=DNSRecordErrorBase.root_cause_category,
+        root_cause_name=DNSRecordErrorBase.root_cause_name,
+        task_level=TaskLevel.DETECTION,
+        description=TaskDescription.DETECTION,
     )
 
-    def __init__(self):
-        super().__init__()
+
+class DNSRecordErrorLocalization(DNSRecordErrorBase, LocalizationTask):
+    META = ProblemMeta(
+        root_cause_category=DNSRecordErrorBase.root_cause_category,
+        root_cause_name=DNSRecordErrorBase.root_cause_name,
+        task_level=TaskLevel.LOCALIZATION,
+        description=TaskDescription.LOCALIZATION,
+    )
+
+
+class DNSRecordErrorRCA(DNSRecordErrorBase, RCATask):
+    META = ProblemMeta(
+        root_cause_category=DNSRecordErrorBase.root_cause_category,
+        root_cause_name=DNSRecordErrorBase.root_cause_name,
+        task_level=TaskLevel.RCA,
+        description=TaskDescription.RCA,
+    )
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    dns_error = DNSRecordErrorBase()
+    # dns_error.inject_fault()
+    dns_error.recover_fault()

@@ -1,3 +1,5 @@
+import re
+
 from llm4netlab.service.kathara.base_api import KatharaBaseAPI, _SupportsBase
 
 
@@ -101,6 +103,19 @@ class FRRAPIMixin:
         """
         command = f'vtysh -c "conf t" -c "router bgp {as_path}" -c "no network {network}" -c "end" -c "write"'
         return self._run_cmd(device_name, command)
+
+    def frr_get_bgp_asn_number(self: _SupportsBase, device_name: str) -> list[str]:
+        """
+        Get the BGP ASN number of the FRR instance.
+        """
+        command = "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
+        asn_result = self._run_cmd(device_name, command)
+        match = re.search(r"local AS number\s+(\d+)", asn_result)
+        if match:
+            as_number = int(match.group(1))
+        else:
+            print("Could not find AS number in BGP summary output")
+        return as_number
 
 
 class KatharaFRRAPI(KatharaBaseAPI, FRRAPIMixin):

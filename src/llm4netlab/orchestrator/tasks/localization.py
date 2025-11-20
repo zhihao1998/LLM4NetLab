@@ -50,6 +50,7 @@ class LocalizationTask(TaskBase):
         super().__init__()
         self._task_desc_with_symptom = LOCAL_TASK_INSTRUCTION
         self._task_desc_no_symptom = LOCAL_TASK_INSTRUCTION_NO_SYMPTOM
+        self.faulty_devices: list[str] = []
 
     def task_desc(self, provide_symptom_desc: bool = False) -> str:
         if provide_symptom_desc:
@@ -88,8 +89,7 @@ class LocalizationTask(TaskBase):
         submitted_components = parsed_submission.faulty_devices
 
         # 3. Get ground truth components
-        gt = getattr(self, "SUBMISSION", None)
-
+        gt = self.get_submission()
         gt_components_raw = gt.faulty_devices if gt else []
 
         # 4. Get normalized component sets
@@ -110,6 +110,13 @@ class LocalizationTask(TaskBase):
             f1 = 2 * precision * recall / (precision + recall)
 
         return float(f1)
+
+    def get_submission(self):
+        assert self.faulty_devices, "Faulty devices not set in the task instance."
+        if isinstance(self.faulty_devices, str):
+            self.faulty_devices = [self.faulty_devices]
+        task = LocalizationSubmission(faulty_devices=self.faulty_devices)
+        return task
 
 
 if __name__ == "__main__":

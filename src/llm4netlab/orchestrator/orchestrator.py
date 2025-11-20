@@ -8,8 +8,10 @@ from llm4netlab.config import RESULTS_DIR
 from llm4netlab.evaluator.llm_judge import JudgeResponse, LLMJudge
 from llm4netlab.evaluator.result_log import EvalResult, record_eval_result
 from llm4netlab.evaluator.trace_parser import AgentTraceParser
+from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
 from llm4netlab.orchestrator.problems.problem_base import TaskLevel
+from llm4netlab.orchestrator.tasks.base import TaskBase
 from llm4netlab.utils.session import Session
 
 """Orchestrator class that interfaces with the agent and the environment."""
@@ -18,7 +20,7 @@ from llm4netlab.utils.session import Session
 class Orchestrator:
     def __init__(self):
         self.session = None
-        self.problem = None
+        self.problem: TaskBase = None
 
         self.orchestration_start_time = None
         self.orchestration_end_time = None
@@ -28,6 +30,7 @@ class Orchestrator:
         self,
         root_cause_name: str,
         task_level: TaskLevel,
+        net_env: NetworkEnvBase = None,
         agent_name: str = None,
         backend_model_name: str = None,
         session_id: str = None,
@@ -49,10 +52,11 @@ class Orchestrator:
         self.root_cause_name = root_cause_name
         self.task_level = task_level
         self.agent_name = agent_name
+        self.net_env = net_env
         self.backend_model = backend_model_name
         self.log_prefix = f"{self.session.session_id}_{self.backend_model}"
 
-        self.problem = get_problem_instance(root_cause_name, task_level)
+        self.problem = get_problem_instance(root_cause_name, task_level, net_env)
         self.session.set_problem(self.problem, root_cause_name)
 
         self.root_cause_category = self.problem.META.root_cause_category
@@ -75,7 +79,7 @@ class Orchestrator:
 
         # Log the problem and descriptions as ground truth
         with open(f"{self.log_dir}/{self.session.session_id}_groundtruth.log", "w+") as log_file:
-            log_file.write(self.problem.SUBMISSION.model_dump_json() + "\n")
+            log_file.write(self.problem.get_submission().model_dump_json() + "\n")
 
         # record the start time
         self.orchestration_start_time = time.time()
@@ -113,8 +117,8 @@ class Orchestrator:
             problem_description=self.problem.META.description,
             net_env_info=self.problem.net_env.get_info(),
             ground_truth=textwrap.dedent(f"""\
-                The root cause category is {self.problem.ROOT_CAUSE_CATEGORY}.
-                The root cause name is {self.problem.ROOT_CAUSE_NAME}.
+                The root cause category is {self.problem.root_cause_category}.
+                The root cause name is {self.problem.root_cause_name}.
             """),
             trace_path=trace_path,
             save_path=f"{self.log_dir}/{self.log_prefix}_llm_judge.log",

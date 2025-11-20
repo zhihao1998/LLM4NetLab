@@ -21,7 +21,7 @@ load_dotenv(verbose=True)
 # The following environment variables should be passed from the MCP client (i.e., the agent)
 LAB_SESSION_ID = os.getenv("LAB_SESSION_ID")
 ROOT_CAUSE_CATEGORY = os.getenv("ROOT_CAUSE_CATEGORY")
-ROOT_CAUSE_TYPE = os.getenv("ROOT_CAUSE_TYPE")
+ROOT_CAUSE_NAME = os.getenv("ROOT_CAUSE_NAME")
 TASK_LEVEL = os.getenv("TASK_LEVEL")
 BACKEND_MODEL_NAME = os.getenv("BACKEND_MODEL_NAME")
 AGENT_NAME = os.getenv("AGENT_NAME")
@@ -72,11 +72,11 @@ def submit(submission: Dict[str, Any]) -> List[str]:
     submission["backend_model_name"] = BACKEND_MODEL_NAME
     submission["agent_name"] = AGENT_NAME
     os.makedirs(
-        f"{results_dir}/{ROOT_CAUSE_CATEGORY}/{ROOT_CAUSE_TYPE}/{TASK_LEVEL}/",
+        f"{results_dir}/{ROOT_CAUSE_CATEGORY}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/",
         exist_ok=True,
     )
     with open(
-        f"{results_dir}/{ROOT_CAUSE_CATEGORY}/{ROOT_CAUSE_TYPE}/{TASK_LEVEL}/{LAB_SESSION_ID}_{BACKEND_MODEL_NAME}_submission.log",
+        f"{results_dir}/{ROOT_CAUSE_CATEGORY}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}_{BACKEND_MODEL_NAME}_submission.log",
         "a+",
     ) as log_file:
         log_file.write(json.dumps(submission))

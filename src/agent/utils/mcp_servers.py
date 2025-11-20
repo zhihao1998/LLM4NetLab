@@ -52,7 +52,7 @@ class MCPServerConfig:
             server["env"] = {
                 "LAB_SESSION_ID": self.session_id,
                 "ROOT_CAUSE_CATEGORY": self.root_cause_category,
-                "ROOT_CAUSE_TYPE": self.root_cause_name,
+                "ROOT_CAUSE_NAME": self.root_cause_name,
                 "TASK_LEVEL": self.task_level,
                 "LAB_NAME": self.lab_name,
                 "BACKEND_MODEL_NAME": self.backend_model_name,

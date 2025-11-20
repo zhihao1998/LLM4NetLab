@@ -39,6 +39,17 @@ class KatharaBaseAPI:
                 hosts.append(name)
         return hosts
 
+    def get_base_hosts(self) -> list[Machine]:
+        """
+        Get the list of base hosts (all containers with Docker image kathara/base) in the lab.
+        """
+        hosts = []
+        for name, machine in self.lab.machines.items():
+            image = machine.get_image()
+            if "base" in image:
+                hosts.append(name)
+        return hosts
+
     def get_host_net_config(self, host_name: str) -> dict:
         """
         Get the network configuration of a host, including ifconfig, ip addr, and ip route.
@@ -84,6 +95,19 @@ class KatharaBaseAPI:
                 if gw:
                     return gw
 
+        return None
+
+    def get_host_mac_address(self, host_name: str, iface: str = "eth0") -> str | None:
+        """
+        Get the MAC address of a host's interface.
+
+        :param host_name: target host
+        :param iface:     interface name, default "eth0"
+        """
+        cmd = f"cat /sys/class/net/{iface}/address"
+        result = self._run_cmd(host_name, cmd)
+        if result:
+            return result.strip()
         return None
 
     def get_host_ip(self, host_name: str, iface: str = "eth0", with_prefix: bool = False) -> str | None:
@@ -137,6 +161,29 @@ class KatharaBaseAPI:
                     return format_ip(ip, prefix)
 
         return None
+
+    def get_host_interfaces(self, host_name: str, include_loopback: bool = False) -> list[str]:
+        cmd = "ip -j addr"
+        result = self._run_cmd(host_name, cmd)
+        output = "\n".join(result) if isinstance(result, list) else result
+
+        try:
+            ifaces = json.loads(output)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"Failed to parse `ip -j addr` output: {e}") from e
+
+        names = []
+        for link in ifaces:
+            name = link.get("ifname")
+            if not name:
+                continue
+            if not include_loopback and name == "lo":
+                continue
+            if "br" in name:  # skip bridge interfaces
+                continue
+            names.append(name)
+
+        return names
 
     def get_links(self) -> dict:
         """
@@ -194,7 +241,7 @@ class KatharaBaseAPI:
         return await self._get_reachability_async()
 
     async def _get_reachability_async(self) -> str:
-        host_names = [host for host in self.get_hosts()]
+        host_names = [host for host in self.get_base_hosts()]
         host_ips = {host_name: self.get_host_ip(host_name) for host_name in host_names}
         result = []
 

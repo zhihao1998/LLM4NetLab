@@ -2,11 +2,11 @@ import ipaddress
 import logging
 
 from llm4netlab.generator.fault.injector_service import FaultInjectorService
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterprise
+from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
-from llm4netlab.orchestrator.tasks.detection import DetectionSubmission, DetectionTask
-from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission, LocalizationTask
-from llm4netlab.orchestrator.tasks.rca import RCASubmission, RCATask
+from llm4netlab.orchestrator.tasks.detection import DetectionTask
+from llm4netlab.orchestrator.tasks.localization import LocalizationTask
+from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
 
 # ==================================================================
@@ -15,14 +15,14 @@ from llm4netlab.service.kathara import KatharaBaseAPI
 
 
 class DHCPWrongGatewayBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
-    ROOT_CAUSE_NAME: str = "dhcp_wrong_gateway"
+    root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
+    root_cause_name: str = "dhcp_wrong_gateway"
 
     faulty_device = "dhcp_server"
     symptom_desc = "Some hosts are experiencing connectivity issues."
 
     def __init__(self):
-        self.net_env = OSPFEnterprise()
+        self.net_env = OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorService(lab_name=self.net_env.lab.name)
 
@@ -54,51 +54,29 @@ class DHCPWrongGatewayBase:
 
 class DHCPWrongGatewayDetection(DHCPWrongGatewayBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=DHCPWrongGatewayBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DHCPWrongGatewayBase.ROOT_CAUSE_NAME,
+        root_cause_category=DHCPWrongGatewayBase.root_cause_category,
+        root_cause_name=DHCPWrongGatewayBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class DHCPWrongGatewayLocalization(DHCPWrongGatewayBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=DHCPWrongGatewayBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DHCPWrongGatewayBase.ROOT_CAUSE_NAME,
+        root_cause_category=DHCPWrongGatewayBase.root_cause_category,
+        root_cause_name=DHCPWrongGatewayBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[DHCPWrongGatewayBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class DHCPWrongGatewayRCA(DHCPWrongGatewayBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=DHCPWrongGatewayBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DHCPWrongGatewayBase.ROOT_CAUSE_NAME,
+        root_cause_category=DHCPWrongGatewayBase.root_cause_category,
+        root_cause_name=DHCPWrongGatewayBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=DHCPWrongGatewayBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DHCPWrongGatewayBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==================================================================
@@ -107,14 +85,14 @@ class DHCPWrongGatewayRCA(DHCPWrongGatewayBase, RCATask):
 
 
 class DHCPWrongDNSBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
-    ROOT_CAUSE_NAME: str = "dhcp_wrong_dns"
+    root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
+    root_cause_name: str = "dhcp_wrong_dns"
 
     faulty_device = "dhcp_server"
     symptom_desc = "Some hosts can not access webservices."
 
     def __init__(self):
-        self.net_env = OSPFEnterprise()
+        self.net_env = OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorService(lab_name=self.net_env.lab.name)
 
@@ -139,51 +117,29 @@ class DHCPWrongDNSBase:
 
 class DHCPWrongDNSDetection(DHCPWrongDNSBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=DHCPWrongDNSBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DHCPWrongDNSBase.ROOT_CAUSE_NAME,
+        root_cause_category=DHCPWrongDNSBase.root_cause_category,
+        root_cause_name=DHCPWrongDNSBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
-    SUBMISSION = DetectionSubmission(
-        is_anomaly=True,
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class DHCPWrongDNSLocalization(DHCPWrongDNSBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=DHCPWrongDNSBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DHCPWrongDNSBase.ROOT_CAUSE_NAME,
+        root_cause_category=DHCPWrongDNSBase.root_cause_category,
+        root_cause_name=DHCPWrongDNSBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
-    SUBMISSION = LocalizationSubmission(
-        faulty_devices=[DHCPWrongDNSBase.faulty_device],
-    )
-
-    def __init__(self):
-        super().__init__()
-
 
 class DHCPWrongDNSRCA(DHCPWrongDNSBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=DHCPWrongDNSBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DHCPWrongDNSBase.ROOT_CAUSE_NAME,
+        root_cause_category=DHCPWrongDNSBase.root_cause_category,
+        root_cause_name=DHCPWrongDNSBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    SUBMISSION = RCASubmission(
-        root_cause_category=DHCPWrongDNSBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=DHCPWrongDNSBase.ROOT_CAUSE_NAME,
-    )
-
-    def __init__(self):
-        super().__init__()
 
 
 # ==================================================================
@@ -192,14 +148,14 @@ class DHCPWrongDNSRCA(DHCPWrongDNSBase, RCATask):
 
 
 class DHCPMissingSubnetBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
-    ROOT_CAUSE_NAME: str = "dhcp_missing_subnet"
+    root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
+    root_cause_name: str = "dhcp_missing_subnet"
 
     faulty_device = "dhcp_server"
     symptom_desc = "Some hosts are experiencing connectivity issues."
 
     def __init__(self):
-        self.net_env = OSPFEnterprise()
+        self.net_env = OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorService(lab_name=self.net_env.lab.name)
 

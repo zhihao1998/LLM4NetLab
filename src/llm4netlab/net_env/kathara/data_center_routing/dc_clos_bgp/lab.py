@@ -294,6 +294,10 @@ class DCClosBGP(NetworkEnvBase):
                 f"{host.machine.name}.startup",
             )
 
+        # load machines after initialization
+        self.load_machines()
+        self.desc = "An data center network with 4 levels using BGP routing."
+
 
 if __name__ == "__main__":
     dc_clos_bgp = DCClosBGP()

@@ -70,7 +70,7 @@ class HostMeta:
         self.ip_address = None
 
 
-class OSPFEnterprise(NetworkEnvBase):
+class OSPFEnterpriseDHCP(NetworkEnvBase):
     LAB_NAME = "ospf_enterprise"
 
     def __init__(self):
@@ -571,9 +571,24 @@ class OSPFEnterprise(NetworkEnvBase):
             f"{dhcp_meta.machine.name}.startup",
         )
 
+        # load machines after initialization
+        self.load_machines()
+        self.desc = "An data center network with 4 levels using BGP routing."
+
+        # add the website urls
+        self.web_urls = []
+        for web_idx, web in enumerate(web_servers):
+            url = f"http://web{web_idx}.local"
+            self.web_urls.append(url)
+        self.desc += f" Hosting web services at: {', '.join(self.web_urls)}. \n"
+
+        # add DNS
+        self.dns_servers = [dns.ip_address for dns in tot_dns]
+        self.desc += f" Using DNS servers at: {', '.join(self.dns_servers)}. \n"
+
 
 if __name__ == "__main__":
-    ospf_enterprise = OSPFEnterprise()
+    ospf_enterprise = OSPFEnterpriseDHCP()
     print("Lab description:", ospf_enterprise.desc)
     print("lab net summary:", ospf_enterprise.get_info())
     if ospf_enterprise.lab_exists():

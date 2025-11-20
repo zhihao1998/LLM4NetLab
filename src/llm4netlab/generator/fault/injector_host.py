@@ -162,6 +162,22 @@ class FaultInjectorHost:
         )
         self.logger.info(f"Recovered DNS misconfiguration on {host_name} with original DNS {original_dns_ip}.")
 
+    def inject_arp_misconfiguration(self, host_name: str, ip_address: str, fake_mac: str = "00:11:22:33:44:55"):
+        """Inject a fault by misconfiguring ARP on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"arp -s {ip_address} {fake_mac}",
+        )
+        self.logger.info(f"Injected ARP misconfiguration on {host_name} for IP {ip_address} with fake MAC {fake_mac}.")
+
+    def recover_arp_misconfiguration(self, host_name: str, ip_address: str):
+        """Recover from ARP misconfiguration on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"arp -d {ip_address}",
+        )
+        self.logger.info(f"Recovered ARP misconfiguration on {host_name}.")
+
 
 if __name__ == "__main__":
     # Example usage

@@ -75,7 +75,6 @@ class DCClosService(NetworkEnvBase):
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        self.desc = "An data center network with 4 levels using BGP routing protocol."
 
         pod_spines = {}
         pod_leaves = {}
@@ -94,7 +93,7 @@ class DCClosService(NetworkEnvBase):
         subnets31 = list(infra_pool.subnets(new_prefix=31))
 
         for ss in range(SUPER_SPINE_COUNT):
-            ss_name = f"super_spine_{ss}"
+            ss_name = f"super_spine_router_{ss}"
             router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"})
             router_ss_meta = RouterMeta(
                 name=ss_name,
@@ -108,7 +107,7 @@ class DCClosService(NetworkEnvBase):
         for pod in range(SUPER_SPINE_COUNT):
             pod_spines[pod] = []
             for spine_id in range(SPINE_COUNT):
-                spine_name = f"spine_{pod}_{spine_id}"
+                spine_name = f"spine_router_{pod}_{spine_id}"
                 router_spine = self.lab.new_machine(
                     spine_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
                 )
@@ -124,7 +123,7 @@ class DCClosService(NetworkEnvBase):
 
             pod_leaves[pod] = []
             for leaf_id in range(LEAF_COUNT):
-                leaf_name = f"leaf_{pod}_{leaf_id}"
+                leaf_name = f"leaf_router_{pod}_{leaf_id}"
                 router_leaf = self.lab.new_machine(
                     leaf_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
                 )
@@ -412,10 +411,25 @@ class DCClosService(NetworkEnvBase):
                 f"{web.machine.name}.startup",
             )
 
+        # load machines after initialization
+        self.load_machines()
+        self.desc = "An data center network with 4 levels using BGP routing."
+
+        # add the website urls
+        self.web_urls = []
+        for pod_idx, pod_webs in pod_webservers.items():
+            for web_idx, web in enumerate(pod_webs):
+                url = f"http://web{web_idx}.pod{pod_idx}"
+                self.web_urls.append(url)
+        self.desc += f" Hosting web services at: {', '.join(self.web_urls)}. \n"
+
+        # add DNS
+        self.dns_servers = [dns.ip_address for dns in tot_dns]
+        self.desc += f" Using DNS servers at: {', '.join(self.dns_servers)}. \n"
+
 
 if __name__ == "__main__":
     dc_clos_service = DCClosService()
-    print("Lab description:", dc_clos_service.desc)
     print("lab net summary:", dc_clos_service.get_info())
     if dc_clos_service.lab_exists():
         print("Lab exists, undeploying it...")

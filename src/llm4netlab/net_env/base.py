@@ -20,6 +20,8 @@ class NetworkEnvBase:
         self.hosts = None
         self.routers = None
         self.links = None
+        self.switches = None
+        self.servers = None
 
     def load_machines(self):
         self.bmv2_switches = []

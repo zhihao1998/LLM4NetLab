@@ -1,0 +1,357 @@
+import logging
+
+from llm4netlab.generator.fault.injector_tc import FaultInjectorTC
+from llm4netlab.net_env.base import NetworkEnvBase
+from llm4netlab.net_env.kathara.data_center_routing.dc_clos_service.lab import DCClosService
+from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
+from llm4netlab.orchestrator.tasks.detection import DetectionTask
+from llm4netlab.orchestrator.tasks.localization import LocalizationTask
+from llm4netlab.orchestrator.tasks.rca import RCATask
+from llm4netlab.service.kathara import KatharaAPIALL
+
+# ==================================================================
+# Problem: High link latency between devices causing performance degradation.
+# ==================================================================
+
+
+class LinkHighLatencyBase:
+    root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
+    root_cause_name: str = "link_high_latency"
+
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or DCClosService()
+        self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
+        self.faulty_device: str = self.net_env.routers[0]
+
+    def inject_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
+        self.injector.inject_delay(host_name=self.faulty_device, intf_name=intf_name, delay_ms=1000)
+
+    def recover_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
+        self.injector.recover_delay(
+            host_name=self.faulty_device,
+            intf_name=intf_name,
+        )
+
+
+class LinkHighLatencyDetection(LinkHighLatencyBase, DetectionTask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighLatencyBase.root_cause_category,
+        root_cause_name=LinkHighLatencyBase.root_cause_name,
+        task_level=TaskLevel.DETECTION,
+        description=TaskDescription.DETECTION,
+    )
+
+
+class LinkHighLatencyLocalization(LinkHighLatencyBase, LocalizationTask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighLatencyBase.root_cause_category,
+        root_cause_name=LinkHighLatencyBase.root_cause_name,
+        task_level=TaskLevel.LOCALIZATION,
+        description=TaskDescription.LOCALIZATION,
+    )
+
+
+class LinkHighLatencyRCA(LinkHighLatencyBase, RCATask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighLatencyBase.root_cause_category,
+        root_cause_name=LinkHighLatencyBase.root_cause_name,
+        task_level=TaskLevel.RCA,
+        description=TaskDescription.RCA,
+    )
+
+
+# ==================================================================
+# Problem: High link packet loss between devices causing performance degradation.
+# ==================================================================
+
+
+class LinkHighPacketLossBase:
+    root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
+    root_cause_name: str = "link_high_packet_loss"
+
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or DCClosService()
+        self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
+        self.faulty_device: str = self.net_env.routers[0]
+
+    def inject_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
+        self.injector.inject_packet_loss(host_name=self.faulty_device, intf_name=intf_name, loss_percentage=30)
+
+    def recover_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
+        self.injector.recover_packet_loss(
+            host_name=self.faulty_device,
+            intf_name=intf_name,
+        )
+
+
+class LinkHighPacketLossDetection(LinkHighPacketLossBase, DetectionTask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighPacketLossBase.root_cause_category,
+        root_cause_name=LinkHighPacketLossBase.root_cause_name,
+        task_level=TaskLevel.DETECTION,
+        description=TaskDescription.DETECTION,
+    )
+
+
+class LinkHighPacketLossLocalization(LinkHighPacketLossBase, LocalizationTask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighPacketLossBase.root_cause_category,
+        root_cause_name=LinkHighPacketLossBase.root_cause_name,
+        task_level=TaskLevel.LOCALIZATION,
+        description=TaskDescription.LOCALIZATION,
+    )
+
+
+class LinkHighPacketLossRCA(LinkHighPacketLossBase, RCATask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighPacketLossBase.root_cause_category,
+        root_cause_name=LinkHighPacketLossBase.root_cause_name,
+        task_level=TaskLevel.RCA,
+        description=TaskDescription.RCA,
+    )
+
+
+# ==================================================================
+# Problem: High link latency jitter between devices causing performance degradation.
+# ==================================================================
+
+
+class LinkHighLatencyJitterBase:
+    root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
+    root_cause_name: str = "link_high_latency_jitter"
+
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or DCClosService()
+        self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
+        self.faulty_device: str = self.net_env.routers[0]
+
+    def inject_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
+        self.injector.inject_jitter(host_name=self.faulty_device, intf_name=intf_name, jitter_ms=1000)
+
+    def recover_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
+        self.injector.recover_jitter(
+            host_name=self.faulty_device,
+            intf_name=intf_name,
+        )
+
+
+class LinkHighLatencyJitterDetection(LinkHighLatencyJitterBase, DetectionTask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighLatencyJitterBase.root_cause_category,
+        root_cause_name=LinkHighLatencyJitterBase.root_cause_name,
+        task_level=TaskLevel.DETECTION,
+        description=TaskDescription.DETECTION,
+    )
+
+
+class LinkHighLatencyJitterLocalization(LinkHighLatencyJitterBase, LocalizationTask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighLatencyJitterBase.root_cause_category,
+        root_cause_name=LinkHighLatencyJitterBase.root_cause_name,
+        task_level=TaskLevel.LOCALIZATION,
+        description=TaskDescription.LOCALIZATION,
+    )
+
+
+class LinkHighLatencyJitterRCA(LinkHighLatencyJitterBase, RCATask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighLatencyJitterBase.root_cause_category,
+        root_cause_name=LinkHighLatencyJitterBase.root_cause_name,
+        task_level=TaskLevel.RCA,
+        description=TaskDescription.RCA,
+    )
+
+
+# ==================================================================
+# Problem: High link packet corruption between devices causing performance degradation.
+# ==================================================================
+
+
+class LinkHighPacketCorruptionBase:
+    root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
+    root_cause_name: str = "link_high_packet_corruption"
+
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
+        self.faulty_device: str = self.net_env.routers[0]
+
+    def inject_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[-1]
+        self.injector.inject_packet_corruption(
+            host_name=self.faulty_device, intf_name=intf_name, corruption_percentage=40
+        )
+
+    def recover_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[-1]
+        self.injector.recover_packet_corruption(
+            host_name=self.faulty_device,
+            intf_name=intf_name,
+        )
+
+
+class LinkHighPacketCorruptionDetection(LinkHighPacketCorruptionBase, DetectionTask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighPacketCorruptionBase.root_cause_category,
+        root_cause_name=LinkHighPacketCorruptionBase.root_cause_name,
+        task_level=TaskLevel.DETECTION,
+        description=TaskDescription.DETECTION,
+    )
+
+
+class LinkHighPacketCorruptionLocalization(LinkHighPacketCorruptionBase, LocalizationTask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighPacketCorruptionBase.root_cause_category,
+        root_cause_name=LinkHighPacketCorruptionBase.root_cause_name,
+        task_level=TaskLevel.LOCALIZATION,
+        description=TaskDescription.LOCALIZATION,
+    )
+
+
+class LinkHighPacketCorruptionRCA(LinkHighPacketCorruptionBase, RCATask):
+    META = ProblemMeta(
+        root_cause_category=LinkHighPacketCorruptionBase.root_cause_category,
+        root_cause_name=LinkHighPacketCorruptionBase.root_cause_name,
+        task_level=TaskLevel.RCA,
+        description=TaskDescription.RCA,
+    )
+
+
+# ==================================================================
+# Problem: Bandwidth throttling on a link causing performance degradation.
+# ==================================================================
+
+
+class LinkBandwidthThrottlingBase:
+    root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
+    root_cause_name: str = "link_bandwidth_throttling"
+
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
+        if "switch_server_access" in self.net_env.routers:
+            self.faulty_device: str = "switch_server_access"
+        else:
+            self.faulty_device: str = self.net_env.routers[0]
+
+    def inject_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
+        self.injector.inject_bandwidth_limit(
+            host_name=self.faulty_device, intf_name=intf_name, rate="30kbit", burst="64kb", limit="500kb"
+        )
+
+    def recover_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
+        self.injector.recover_bandwidth_limit(
+            host_name=self.faulty_device,
+            intf_name=intf_name,
+        )
+
+
+class LinkBandwidthThrottlingDetection(LinkBandwidthThrottlingBase, DetectionTask):
+    META = ProblemMeta(
+        root_cause_category=LinkBandwidthThrottlingBase.root_cause_category,
+        root_cause_name=LinkBandwidthThrottlingBase.root_cause_name,
+        task_level=TaskLevel.DETECTION,
+        description=TaskDescription.DETECTION,
+    )
+
+
+class LinkBandwidthThrottlingLocalization(LinkBandwidthThrottlingBase, LocalizationTask):
+    META = ProblemMeta(
+        root_cause_category=LinkBandwidthThrottlingBase.root_cause_category,
+        root_cause_name=LinkBandwidthThrottlingBase.root_cause_name,
+        task_level=TaskLevel.LOCALIZATION,
+        description=TaskDescription.LOCALIZATION,
+    )
+
+
+class LinkBandwidthThrottlingRCA(LinkBandwidthThrottlingBase, RCATask):
+    META = ProblemMeta(
+        root_cause_category=LinkBandwidthThrottlingBase.root_cause_category,
+        root_cause_name=LinkBandwidthThrottlingBase.root_cause_name,
+        task_level=TaskLevel.RCA,
+        description=TaskDescription.RCA,
+    )
+
+
+# ==================================================================
+# Problem: Queue overflow caused by micro-bursts on a link causing performance degradation.
+# ==================================================================
+
+
+class LinkQueueOverflowBase:
+    root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
+    root_cause_name: str = "link_queue_overflow"
+
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
+        self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
+        if "switch_server_access" in self.net_env.routers:
+            self.faulty_device: str = "switch_server_access"
+        else:
+            self.faulty_device: str = self.net_env.routers[0]
+
+    def inject_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[1]
+        self.injector.inject_delay(host_name=self.faulty_device, intf_name=intf_name, delay_ms=50, limit="1")
+
+    def recover_fault(self):
+        intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[1]
+        self.injector.recover_delay(
+            host_name=self.faulty_device,
+            intf_name=intf_name,
+        )
+
+
+class LinkQueueOverflowDetection(LinkQueueOverflowBase, DetectionTask):
+    META = ProblemMeta(
+        root_cause_category=LinkQueueOverflowBase.root_cause_category,
+        root_cause_name=LinkQueueOverflowBase.root_cause_name,
+        task_level=TaskLevel.DETECTION,
+        description=TaskDescription.DETECTION,
+    )
+
+
+class LinkQueueOverflowLocalization(LinkQueueOverflowBase, LocalizationTask):
+    META = ProblemMeta(
+        root_cause_category=LinkQueueOverflowBase.root_cause_category,
+        root_cause_name=LinkQueueOverflowBase.root_cause_name,
+        task_level=TaskLevel.LOCALIZATION,
+        description=TaskDescription.LOCALIZATION,
+    )
+
+
+class LinkQueueOverflowRCA(LinkQueueOverflowBase, RCATask):
+    META = ProblemMeta(
+        root_cause_category=LinkQueueOverflowBase.root_cause_category,
+        root_cause_name=LinkQueueOverflowBase.root_cause_name,
+        task_level=TaskLevel.RCA,
+        description=TaskDescription.RCA,
+    )
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    task = LinkQueueOverflowBase()
+    # task.recover_fault()
+    task.inject_fault()

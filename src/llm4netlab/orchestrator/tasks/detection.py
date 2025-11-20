@@ -50,6 +50,12 @@ class DetectionTask(TaskBase):
             is_anomaly = False
         else:
             return 0.0
-        if is_anomaly == self.SUBMISSION.is_anomaly:
+        if is_anomaly == self.get_submission().is_anomaly:
             return 1.0
         return 0.0
+
+    def get_submission(self):
+        detection_submission = DetectionSubmission(
+            is_anomaly=True,
+        )
+        return detection_submission

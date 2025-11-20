@@ -8,6 +8,7 @@ from langgraph.graph import END, START, StateGraph
 from pydantic import Field
 from typing_extensions import TypedDict
 
+import llm4netlab.net_env.kathara as NetEnvKathara
 from agent.domain_agents.diagnosis_agent import DiagnosisAgent
 from agent.domain_agents.submission_agent import SubmissionAgent
 from agent.utils.loggers import FileLoggerHandler
@@ -36,12 +37,14 @@ Initialize the network scenario and inject failure
 backend_model_name = "gpt-oss:20b"
 root_cause_name = "frr_service_down"
 task_level = "localization"
+net_env = NetEnvKathara.DCClosBGP()
 agent_name = "ReAct"
 
 orchestrator = Orchestrator()
 root_cause_category, task_desc, session_id, lab_name = orchestrator.init_problem(
     root_cause_name=root_cause_name,
     task_level=task_level,
+    net_env=net_env,
     agent_name=agent_name,
     backend_model_name=backend_model_name,
 )
