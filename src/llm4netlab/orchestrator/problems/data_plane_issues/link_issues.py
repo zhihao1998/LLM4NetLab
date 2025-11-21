@@ -1,6 +1,7 @@
 import time
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
+from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
@@ -13,17 +14,18 @@ from llm4netlab.service.kathara import KatharaBaseAPI
 
 
 class LinkFragBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
+    root_cause_category: RootCauseCategory = RootCauseCategory.DATA_PLANE_ISSUE
     root_cause_name: str = "link_fragmentation_disabled"
 
-    faulty_device = "switch_dist_1_1"
-    faulty_intf = "eth0"
     symptom_desc = "Users report partial packet loss when communicating with other hosts."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseDHCP()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.switches[0]
+        self.faulty_intf = "eth0"
 
     def inject_fault(self):
         self.injector.inject_fragmentation_disabled(host_name=self.faulty_device, mtu=100)

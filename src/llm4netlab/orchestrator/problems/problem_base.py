@@ -14,21 +14,17 @@ class RootCauseCategory(StrEnum):
     END_HOST_MISCONFIGURATION = ("end_host_misconfiguration", "Host misconfiguration: IP, gateway, DNS, DHCP issues")
     PERFORMANCE_DEGRADATION = ("performance_degradation", "High latency, packet loss, jitter, throughput drop")
     SERVICE_DEPENDENCY_FAILURE = ("service_dependency_failure", "External dependency: DNS, NTP, AAA, PKI")
-
     DATA_PLANE_ISSUE = ("data_plane_forwarding_issue", "Routing/forwarding blackhole, loop, asymmetry")
-
-    CONFIG_ROUTING_POLICY_ERROR = ("config_routing_policy_error", "Wrong BGP/OSPF/EVPN policy, metric misconfig")
-
-    CONFIG_ACCESS_POLICY_ERROR = ("config_access_policy_error", "ACL / firewall / security group misconfig")
-
-    SECURITY_POLICY_BLOCK = ("security_policy_block", "Legitimate traffic blocked by security rule")
-    RESOURCE_EXHAUSTION = ("resource_exhaustion", "CPU/memory/TCAM/FIB exhaustion, NAT pool depletion")
-
-    # --- P4 / SDN specific ---
-    P4_PIPELINE_MISCONFIG = ("p4_pipeline_misconfig", "Wrong parser/match-action table, compile/load errors")
-    P4_RUNTIME_ERROR = ("p4_runtime_error", "P4 runtime update fails, table entry inconsistency")
-    SDN_CONTROLLER_FAILURE = ("sdn_controller_failure", "Controller crash, southbound API loss")
-    SDN_RULE_CONFLICT = ("sdn_rule_conflict", "SDN flow rule overlap/shadowing causes blackhole/loop")
+    SDN_CONTROL_PLANE_ISSUE = (
+        "sdn_control_plane_issue",
+        "SDN controller unreachable/crash, flow rule missing/conflict",
+    )
+    P4_PIPELINE_ISSUE = ("p4_pipeline_issue", "P4 program bug, table miss, action misconfiguration")
+    ROUTING_POLICY_MISCONFIGURATION = (
+        "routing_policy_misconfiguration",
+        "Wrong BGP/OSPF policy, metric misconfig",
+    )
+    ACCESS_POLICY_MISCONFIGURATION = ("access_policy_misconfiguration", "ACL / firewall / security group misconfig")
 
 
 class TaskLevel(StrEnum):

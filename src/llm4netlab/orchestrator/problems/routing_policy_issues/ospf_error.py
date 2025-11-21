@@ -18,7 +18,7 @@ from llm4netlab.service.kathara import KatharaFRRAPI
 
 
 class OSPFAreaMisconfigBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
+    root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "ospf_area_misconfiguration"
 
     faulty_router: str = "switch_server_access"
@@ -110,7 +110,7 @@ class OSPFAreaMisconfigRCA(OSPFAreaMisconfigBase, RCATask):
 
 
 class OSPFNeighborMissingBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
+    root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "ospf_neighbor_missing"
 
     faulty_router: str = "switch_server_access"

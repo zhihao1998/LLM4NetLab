@@ -160,12 +160,6 @@ class KatharaNFTableAPI(KatharaBaseAPI, NFTableMixin):
     pass
 
 
-# async def main():
-#     lab_name = "simple_bmv2"
-#     kathara_api = KatharaAPI(lab_name)
-#     result = await kathara_api.get_reachability()
-#     print(result)
-
 
 if __name__ == "__main__":
     lab_name = "simple_bgp"

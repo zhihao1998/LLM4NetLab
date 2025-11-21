@@ -1,6 +1,7 @@
 import time
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
+from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
@@ -8,22 +9,24 @@ from llm4netlab.orchestrator.tasks.localization import LocalizationTask
 from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
 
-# ==========================================
-""" Problem: Link failure by ip link down on host interface """
+# ==================================================================
+# Problem: Link failure by ip link down on host interface
+# ==================================================================
 
 
 class LinkFailureBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
     root_cause_name: str = "link_down"
 
-    faulty_device = "switch_dist_1_1"
-    faulty_intf = "eth0"
     symptom_desc = "Users report connectivity issues to other hosts."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseDHCP()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.switches[0]
+        self.faulty_intf = "eth0"
 
     def inject_fault(self):
         self.injector.inject_intf_down(
@@ -42,7 +45,7 @@ class LinkFailureBase:
 
 class LinkFailureDetection(LinkFailureBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=LinkFailureBase.get.DEVICE_FAILURE,
+        root_cause_category=LinkFailureBase.root_cause_category,
         root_cause_name=LinkFailureBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
@@ -75,14 +78,15 @@ class LinkFlapBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
     root_cause_name: str = "link_flap"
 
-    faulty_device = "switch_dist_1_1"
-    faulty_intf = "eth0"
     symptom_desc = "Users report connectivity issues to other hosts."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseDHCP()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.switches[0]
+        self.faulty_intf = "eth0"
 
     def inject_fault(self):
         self.injector.inject_link_flap(
@@ -136,14 +140,15 @@ class LinkDetachBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
     root_cause_name: str = "link_detach"
 
-    faulty_device = "switch_dist_1_1"
-    faulty_intf = "eth0"
     symptom_desc = "Users report connectivity issues to other hosts."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseDHCP()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        super().__init__()
+        self.net_env = net_env or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.switches[0]
+        self.faulty_intf = "eth0"
 
     def inject_fault(self):
         self.injector.inject_link_detach(

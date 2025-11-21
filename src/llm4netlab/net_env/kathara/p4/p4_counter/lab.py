@@ -9,7 +9,7 @@ from llm4netlab.net_env.base import NetworkEnvBase
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
-class SimpleBmv2(NetworkEnvBase):
+class P4Counter(NetworkEnvBase):
     LAB_NAME = "simple_bmv2"
 
     def __init__(self):
@@ -77,11 +77,11 @@ class SimpleBmv2(NetworkEnvBase):
 
             # add the sswitch_thrift_API.py file to the Kathara image
             s_i.create_file_from_path(
-                os.path.join(BASE_DIR, "utils/kathara/sswitch_thrift_API.py"),
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/p4/sswitch_thrift_API.py"),
                 "/usr/local/lib/python3.11/site-packages/sswitch_thrift_API.py",
             )
             s_i.create_file_from_path(
-                os.path.join(BASE_DIR, "utils/kathara/thrift_API.py"),
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/p4/thrift_API.py"),
                 "/usr/local/lib/python3.11/site-packages/thrift_API.py",
             )
 
@@ -145,31 +145,12 @@ class SimpleBmv2(NetworkEnvBase):
             "s4.startup",
         )
 
-    def lab_exists(self):
-        """Check if the lab exists"""
-        tmp_lab = self.instance.get_lab_from_api(lab_name=self.name)
-        tmp_machines = tmp_lab.machines
-        if len(tmp_machines) == 0 or tmp_machines is None:
-            return False
-        return True
-
-    def deploy(self):
-        """Deploy the lab"""
-        if self.lab_exists():
-            print(f"Lab {self.name} exists")
-            return
-        Kathara.get_instance().deploy_lab(lab=self.lab)
-
-    def undeploy(self):
-        """Undeploy the lab"""
-        try:
-            self.instance.undeploy_lab(lab_name=self.name)
-        except Exception as e:
-            print(f"Error undeploying lab {self.name}: {e}")
+        # load machines
+        self.load_machines()
 
 
 if __name__ == "__main__":
-    l2 = SimpleBmv2()
+    l2 = P4Counter()
     print(l2.get_info())
 
     if l2.lab_exists():

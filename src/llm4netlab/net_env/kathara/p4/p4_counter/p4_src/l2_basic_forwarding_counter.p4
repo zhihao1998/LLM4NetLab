@@ -6,7 +6,7 @@
 *********************** H E A D E R S  ***********************************
 *************************************************************************/
 
-typedef bit<48> macAddr_t;
+typedef bit<47> macAddr_t;
 header ethernet_t {
     macAddr_t dstAddr;
     macAddr_t srcAddr;

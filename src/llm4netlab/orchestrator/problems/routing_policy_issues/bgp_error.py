@@ -18,7 +18,7 @@ from llm4netlab.service.kathara.base_api import KatharaBaseAPI
 
 
 class BGPAsnMisconfigBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
+    root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_asn_misconfig"
 
     faulty_router = "leaf_router_0_0"
@@ -80,7 +80,7 @@ class BGPAsnMisconfigLocalization(BGPAsnMisconfigBase, LocalizationTask):
 
 
 class BGPMissingAdvertiseBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
+    root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_missing_route_advertisement"
 
     faulty_router = "leaf_router_0_0"
@@ -132,7 +132,7 @@ class BGPMissingAdvertiseRCA(BGPMissingAdvertiseBase, LocalizationTask):
 
 
 class StaticBlackHoleBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
+    root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "host_static_blackhole"
 
     faulty_router = "leaf_router_1_0"
@@ -190,7 +190,7 @@ class StaticBlackHoleRCA(StaticBlackHoleBase, LocalizationTask):
 
 
 class BGPBlackholeRouteLeakBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
+    root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_blackhole_route_leak"
 
     faulty_device = "super_spine_router_0"
@@ -265,7 +265,7 @@ class BGPBlackholeRouteLeakRCA(BGPBlackholeRouteLeakBase, LocalizationTask):
 
 
 class BGPHijackingBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.CONFIG_ROUTING_POLICY_ERROR
+    root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_hijacking"
 
     def __init__(self, net_env: NetworkEnvBase | None = None):

@@ -101,12 +101,13 @@ class FaultInjectorBase:
         self.kathara_api.exec_cmd(host_name, "iptables -F OUTPUT")
         self.logger.info(f"Recovered fragmentation disabled on {host_name}.")
 
-    def inject_acl_rule(self, host_name: str, rule: str, table_name: str = "filter"):
+    def inject_acl_rule(self, host_name: str, rule: str, table_name: str = "filter", family: str = "inet"):
         """Inject an ACL rule into a specific host."""
-        self.kathara_api.nft_add_table(host_name=host_name, table_name=table_name)
+        self.kathara_api.nft_add_table(host_name=host_name, table_name=table_name, family=family)
         for chain_name in ["input", "forward", "output"]:
             self.kathara_api.nft_add_chain(
                 host_name=host_name,
+                family=family,
                 table=table_name,
                 chain=chain_name,
                 hook=chain_name,
@@ -115,15 +116,16 @@ class FaultInjectorBase:
             )
             self.kathara_api.nft_add_rule(
                 host_name=host_name,
+                family=family,
                 table=table_name,
                 chain=chain_name,
                 rule=rule,
             )
         self.logger.info(f"Injected ACL rule on {host_name}: {rule}")
 
-    def recover_acl_rule(self, host_name: str, table_name: str = "filter"):
+    def recover_acl_rule(self, host_name: str, table_name: str = "filter", family: str = "inet"):
         """Recover from an ACL rule by deleting the filter table."""
-        self.kathara_api.nft_delete_table(host_name=host_name, table_name=table_name)
+        self.kathara_api.nft_delete_table(host_name=host_name, table_name=table_name, family=family)
         self.logger.info(f"Recovered ACL rules on {host_name} by deleting table {table_name}.")
 
     def inject_service_down(self, host_name: str, service_name: str):
@@ -190,7 +192,7 @@ class FaultInjectorBase:
         )
         self.logger.info(f"Injected BGP add interface on {host_name}: {intf_name} with IP {ip_address}.")
 
-    def recover_bgp_add_interface(self, host_name: str, intf_name: str, ip_address: str=None):
+    def recover_bgp_add_interface(self, host_name: str, intf_name: str, ip_address: str = None):
         """Recover from a BGP add interface by removing the interface configuration."""
         if intf_name == "lo":
             cmd = f"vtysh -c 'configure terminal' -c 'interface {intf_name}' -c 'no ip address {ip_address}' -c 'end' -c 'write memory' "

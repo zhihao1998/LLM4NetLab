@@ -107,6 +107,8 @@ if __name__ == "__main__":
     # print(get_submission_template(FrrDownDetection.META.root_cause_name, TaskLevel.RCA))
 
     problems = list_avail_root_causes()
+    print("Total Problems:", len(problems))
+
     for prob in problems:
         print(prob)
     print(get_problem_instance("link_high_latency", "rca", None))

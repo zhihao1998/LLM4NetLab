@@ -4,6 +4,9 @@ from llm4netlab.generator.fault.injector_host import FaultInjectorHost
 from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
+from llm4netlab.orchestrator.tasks.detection import DetectionTask
+from llm4netlab.orchestrator.tasks.localization import LocalizationTask
+from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaAPIALL
 
 # ==================================================================
@@ -40,7 +43,7 @@ class ArpCachePoisoningBase:
         )
 
 
-class ArpCachePoisoningDetection(ArpCachePoisoningBase):
+class ArpCachePoisoningDetection(ArpCachePoisoningBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=ArpCachePoisoningBase.root_cause_category,
         root_cause_name=ArpCachePoisoningBase.root_cause_name,
@@ -49,7 +52,7 @@ class ArpCachePoisoningDetection(ArpCachePoisoningBase):
     )
 
 
-class ArpCachePoisoningLocalization(ArpCachePoisoningBase):
+class ArpCachePoisoningLocalization(ArpCachePoisoningBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=ArpCachePoisoningBase.root_cause_category,
         root_cause_name=ArpCachePoisoningBase.root_cause_name,
@@ -58,7 +61,7 @@ class ArpCachePoisoningLocalization(ArpCachePoisoningBase):
     )
 
 
-class ArpCachePoisoningRCA(ArpCachePoisoningBase):
+class ArpCachePoisoningRCA(ArpCachePoisoningBase, RCATask):
     META = ProblemMeta(
         root_cause_category=ArpCachePoisoningBase.root_cause_category,
         root_cause_name=ArpCachePoisoningBase.root_cause_name,
@@ -102,7 +105,7 @@ class MacAddressConflictBase:
         logger.info(f"Recovered MAC address conflict on {self.faulty_device[0]} by setting MAC to {random_mac}")
 
 
-class MacAddressConflictDetection(MacAddressConflictBase):
+class MacAddressConflictDetection(MacAddressConflictBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=MacAddressConflictBase.root_cause_category,
         root_cause_name=MacAddressConflictBase.root_cause_name,
@@ -111,7 +114,7 @@ class MacAddressConflictDetection(MacAddressConflictBase):
     )
 
 
-class MacAddressConflictLocalization(MacAddressConflictBase):
+class MacAddressConflictLocalization(MacAddressConflictBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=MacAddressConflictBase.root_cause_category,
         root_cause_name=MacAddressConflictBase.root_cause_name,
@@ -120,7 +123,7 @@ class MacAddressConflictLocalization(MacAddressConflictBase):
     )
 
 
-class MacAddressConflictRCA(MacAddressConflictBase):
+class MacAddressConflictRCA(MacAddressConflictBase, RCATask):
     META = ProblemMeta(
         root_cause_category=MacAddressConflictBase.root_cause_category,
         root_cause_name=MacAddressConflictBase.root_cause_name,

@@ -21,19 +21,18 @@ class DNSLookupLatencyBase:
     root_cause_name: str = "dns_lookup_latency"
     symptom_desc: str = "Users experience high latency when accessing web services."
 
-    target_device: str = "dns_pod0"
-
     def __init__(self, net_env: NetworkEnvBase = DCClosService()):
         super().__init__()
         self.net_env = net_env
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.servers["dns"][0]
 
     def inject_fault(self):
-        self.injector.inject_delay(host_name=self.target_device, intf_name="eth0", delay_ms=1000)
+        self.injector.inject_delay(host_name=self.faulty_device, intf_name="eth0", delay_ms=1000)
 
     def recover_fault(self):
-        self.injector.recover_delay(host_name=self.target_device, intf_name="eth0")
+        self.injector.recover_delay(host_name=self.faulty_device, intf_name="eth0")
 
 
 class DNSLookupLatencyDetection(DNSLookupLatencyBase, DetectionTask):
@@ -73,7 +72,6 @@ class WebDoSBase:
     root_cause_name: str = "web_dos_attack"
     symptom_desc: str = "Users reports high latency when accessing some web services."
 
-    target_device: str = "web_server0"
     attacker_device: str = "host_2_1_1_1"
     target_website: str = "web0.local"
 
@@ -82,6 +80,7 @@ class WebDoSBase:
         self.net_env = net_env
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorService(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.servers["web"][0]
 
     def inject_fault(self):
         self.injector.inject_ab_attack(attacker_host=self.attacker_device, website=self.target_website)

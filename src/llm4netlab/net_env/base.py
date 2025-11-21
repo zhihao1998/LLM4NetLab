@@ -17,6 +17,7 @@ class NetworkEnvBase:
         self.lab = None
         self.bmv2_switches = None
         self.ovs_switches = None
+        self.sdn_controllers = None
         self.hosts = None
         self.routers = None
         self.links = None
@@ -26,6 +27,7 @@ class NetworkEnvBase:
     def load_machines(self):
         self.bmv2_switches = []
         self.ovs_switches = []
+        self.sdn_controllers = []
         self.hosts = []
         self.routers = []
         self.links = []
@@ -56,6 +58,8 @@ class NetworkEnvBase:
                 self.hosts.append(machine)
             elif "sdn" in image:
                 self.ovs_switches.append(machine)
+            elif "pox" in image or "ryu" in image:
+                self.sdn_controllers.append(machine)
             else:
                 print(f"Unknown machine type: {machine} with image {image}")
 

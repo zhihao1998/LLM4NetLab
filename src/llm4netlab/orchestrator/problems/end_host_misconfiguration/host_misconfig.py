@@ -1,6 +1,7 @@
 import logging
 
 from llm4netlab.generator.fault.injector_host import FaultInjectorHost
+from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
@@ -16,13 +17,13 @@ class HostMissingIPBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
     root_cause_name: str = "host_missing_ip"
 
-    faulty_device = "host_1_1_1_1"
     symptom_desc = "Some hosts are unable to communicate with other devices in the network."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseStatic()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        self.net_env = net_env or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.hosts[0]
 
     def inject_fault(self):
         self.injector.inject_remove_ip(
@@ -74,32 +75,31 @@ class HostIPConflictBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
     root_cause_name: str = "host_ip_conflict"
 
-    faulty_device_1 = "host_1_1_1_1"
-    faulty_device_2 = "host_1_1_1_2"
     symptom_desc = "Some hosts experience intermittent connectivity issues."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseStatic()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        self.net_env = net_env or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.hosts[:2]
 
     def inject_fault(self):
         self.injector.inject_ip_change(
-            host_name=self.faulty_device_2,
-            old_ip=self.kathara_api.get_host_ip(self.faulty_device_2, "eth0", with_prefix=True),
-            new_ip=self.kathara_api.get_host_ip(self.faulty_device_1, "eth0", with_prefix=True),
+            host_name=self.faulty_device[1],
+            old_ip=self.kathara_api.get_host_ip(self.faulty_device[1], "eth0", with_prefix=True),
+            new_ip=self.kathara_api.get_host_ip(self.faulty_device[0], "eth0", with_prefix=True),
             intf_name="eth0",
-            new_gateway=self.kathara_api.get_default_gateway(self.faulty_device_1),
+            new_gateway=self.kathara_api.get_default_gateway(self.faulty_device[0]),
         )
 
     def recover_fault(self):
         ip_address = f"10.1.1.{200}"  # Assign a new IP to avoid conflict
         self.injector.recover_ip_change(
-            host_name=self.faulty_device_2,
-            old_ip=self.kathara_api.get_host_ip(self.faulty_device_2, "eth0", with_prefix=True),
+            host_name=self.faulty_device[1],
+            old_ip=self.kathara_api.get_host_ip(self.faulty_device[1], "eth0", with_prefix=True),
             new_ip=ip_address,
             intf_name="eth0",
-            old_gateway=self.kathara_api.get_default_gateway(self.faulty_device_2),
+            old_gateway=self.kathara_api.get_default_gateway(self.faulty_device[1]),
         )
 
 
@@ -138,23 +138,23 @@ class HostIncorrectIPBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
     root_cause_name: str = "host_incorrect_ip"
 
-    faulty_device = "host_1_1_1_1"
-    incorrect_ip = "10.2.1.20/24"
-    ip_gateway = "10.2.1.1"
     symptom_desc = "Some hosts seem to be unreachable in the network."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseStatic()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        self.net_env = net_env or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.hosts[0]
 
     def inject_fault(self):
+        incorrect_ip = "10.2.1.20/24"
+        ip_gateway = "10.2.1.1"
         self.injector.inject_ip_change(
             host_name=self.faulty_device,
             old_ip=self.kathara_api.get_host_ip(self.faulty_device, "eth0", with_prefix=True),
-            new_ip=self.incorrect_ip,
+            new_ip=incorrect_ip,
             intf_name="eth0",
-            new_gateway=self.ip_gateway,
+            new_gateway=ip_gateway,
         )
 
     def recover_fault(self):
@@ -202,13 +202,13 @@ class HostIncorrectGatewayBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
     root_cause_name: str = "host_incorrect_gateway"
 
-    faulty_device = "host_1_1_1_1"
     symptom_desc = "Some hosts seem to be unreachable in the network."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseStatic()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        self.net_env = net_env or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.hosts[0]
 
     def inject_fault(self):
         try:
@@ -267,13 +267,13 @@ class HostIncorrectNetmaskBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
     root_cause_name: str = "host_incorrect_netmask"
 
-    faulty_device = "host_1_1_1_1"
     symptom_desc = "Some hosts seem to be unreachable in the network."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseStatic()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        self.net_env = net_env or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.hosts[0]
 
     def inject_fault(self):
         new_ip = self.kathara_api.get_host_ip(self.faulty_device, "eth0", with_prefix=True)
@@ -340,13 +340,13 @@ class HostIncorrectDNSBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
     root_cause_name: str = "host_incorrect_dns"
 
-    faulty_device = "host_1_1_1_1"
     symptom_desc = "Some hosts are unable to access web services."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseStatic()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        self.net_env = net_env or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.hosts[0]
 
     def inject_fault(self):
         self.injector.inject_dns_misconfiguration(
@@ -396,23 +396,23 @@ class HostMACSpoofingBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.END_HOST_MISCONFIGURATION
     root_cause_name: str = "host_mac_spoofing"
 
-    target_device_1 = "host_1_1_1_1"
-    target_device_2 = "host_1_1_1_2"
     symptom_desc = "Some hosts experience intermittent connectivity issues."
 
-    def __init__(self):
-        self.net_env = OSPFEnterpriseStatic()
+    def __init__(self, net_env: NetworkEnvBase | None = None):
+        self.net_env = net_env or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
+        self.faulty_device = self.net_env.hosts[:2]
+
         self.spoofed_mac = "00:11:22:33:44:55"
 
     def inject_fault(self):
         self.kathara_api.exec_cmd(
-            host_name=self.target_device_1,
+            host_name=self.faulty_device[0],
             command=f"ifconfig eth0 hw ether {self.spoofed_mac}",
         )
         self.kathara_api.exec_cmd(
-            host_name=self.target_device_2,
+            host_name=self.faulty_device[1],
             command=f"ifconfig eth0 hw ether {self.spoofed_mac}",
         )
 
@@ -420,11 +420,11 @@ class HostMACSpoofingBase:
         new_mac_1 = self.spoofed_mac.replace("55", "66")
         new_mac_2 = self.spoofed_mac.replace("55", "77")
         self.kathara_api.exec_cmd(
-            host_name=self.target_device_1,
+            host_name=self.faulty_device[0],
             command=f"ifconfig eth0 hw ether {new_mac_1}",
         )
         self.kathara_api.exec_cmd(
-            host_name=self.target_device_2,
+            host_name=self.faulty_device[1],
             command=f"ifconfig eth0 hw ether {new_mac_2}",
         )
 
