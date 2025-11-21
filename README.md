@@ -1,5 +1,5 @@
 <div align="center">
-<h1>Network Incidents Benchmark for AI Agents (NIKA)</h1>
+<h1>Network Incidents Benchmarking Framework for AI Agents (NIKA)</h1>
 
 [🤖Overview](#🤖overview) | 
 [📦Installation](#📦installation) | 
