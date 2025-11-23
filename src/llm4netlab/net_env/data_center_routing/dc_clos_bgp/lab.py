@@ -64,15 +64,12 @@ class HostMeta:
 class DCClosBGP(NetworkEnvBase):
     LAB_NAME = "dc_clos_bgp"
 
-    def __init__(self):
+    def __init__(self, super_spine_count: int = 2, spine_per_pod: int = 2, leaf_per_pod: int = 4):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "An data center network with 4 levels using BGP routing protocol."
-        SUPER_SPINE_COUNT = 2
-        SPINE_COUNT = 2  # per super spine
-        LEAF_COUNT = 4  # per pod
 
         pod_spines = {}
         pod_leaves = {}
@@ -87,7 +84,7 @@ class DCClosBGP(NetworkEnvBase):
         # Create a generator of /31s
         subnets31 = list(infra_pool.subnets(new_prefix=31))
 
-        for ss in range(SUPER_SPINE_COUNT):
+        for ss in range(super_spine_count):
             ss_name = f"super_spine_router_{ss}"
             router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"})
             router_ss_meta = RouterMeta(
@@ -99,9 +96,9 @@ class DCClosBGP(NetworkEnvBase):
             )
             tot_super_spines.append(router_ss_meta)
 
-        for pod in range(SUPER_SPINE_COUNT):
+        for pod in range(super_spine_count):
             pod_spines[pod] = []
-            for spine_id in range(SPINE_COUNT):
+            for spine_id in range(spine_per_pod):
                 spine_name = f"spine_router_{pod}_{spine_id}"
                 router_spine = self.lab.new_machine(
                     spine_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
@@ -117,7 +114,7 @@ class DCClosBGP(NetworkEnvBase):
                 tot_spines.append(spine_meta)
 
             pod_leaves[pod] = []
-            for leaf_id in range(LEAF_COUNT):
+            for leaf_id in range(leaf_per_pod):
                 leaf_name = f"leaf_router_{pod}_{leaf_id}"
                 router_leaf = self.lab.new_machine(
                     leaf_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
@@ -133,7 +130,7 @@ class DCClosBGP(NetworkEnvBase):
                 tot_leaves.append(leaf_meta)
 
             pod_hosts[pod] = []
-            for host in range(LEAF_COUNT):
+            for host in range(leaf_per_pod):
                 host_name = f"pc_{pod}_{host}"
                 host = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
                 host_meta = HostMeta(
@@ -146,7 +143,7 @@ class DCClosBGP(NetworkEnvBase):
                 tot_hosts.append(host_meta)
 
         # add links between super spines and spines
-        for pod in range(SUPER_SPINE_COUNT):
+        for pod in range(super_spine_count):
             super_spine_meta = tot_super_spines[pod]
             for spine_meta in tot_spines:
                 self.lab.connect_machine_to_link(
@@ -182,7 +179,7 @@ class DCClosBGP(NetworkEnvBase):
                     spine_meta.router_id = b_ip.split("/")[0]
 
         # add links between spines and leaves
-        for pod in range(SUPER_SPINE_COUNT):
+        for pod in range(super_spine_count):
             for spine_meta in pod_spines[pod]:
                 for leaf_meta in pod_leaves[pod]:
                     self.lab.connect_machine_to_link(
@@ -218,8 +215,8 @@ class DCClosBGP(NetworkEnvBase):
                         leaf_meta.router_id = b_ip.split("/")[0]
 
         # add links between leaves and hosts
-        for pod in range(SUPER_SPINE_COUNT):
-            for idx in range(LEAF_COUNT):
+        for pod in range(super_spine_count):
+            for idx in range(leaf_per_pod):
                 leaf_meta = pod_leaves[pod][idx]
                 host = pod_hosts[pod][idx]
                 self.lab.connect_machine_to_link(

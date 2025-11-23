@@ -1,12 +1,12 @@
 import importlib
 import inspect
-import json
 import logging
 import pkgutil
 from collections import defaultdict
 from typing import Dict, Type
 
-from llm4netlab.net_env.base import NetworkEnvBase
+from llm4netlab.orchestrator.problems.multi_problems import MultiFaultDetection, MultiFaultLocalization, MultiFaultRCA
+from llm4netlab.orchestrator.problems.problem_base import TaskLevel
 from llm4netlab.orchestrator.tasks.base import TaskBase
 
 logging.basicConfig(level=logging.INFO)
@@ -48,12 +48,11 @@ def _register_problems():
 
             try:
                 problem_class: Type[TaskBase] = cls_obj
-                root_cause_category_name = problem_class.META.root_cause_category.value
                 root_cause_name = problem_class.META.root_cause_name
                 task_level = problem_class.META.task_level.value
-                if root_cause_name not in problems[root_cause_category_name]:
-                    problems[root_cause_category_name][root_cause_name] = {}
-                problems[root_cause_category_name][root_cause_name][task_level] = problem_class
+                if root_cause_name not in problems:
+                    problems[root_cause_name] = {}
+                problems[root_cause_name][task_level] = problem_class
             except Exception as e:
                 logger.warning(f"Failed to register class {cls_name} in {root_cause_category_name}: {e}")
                 continue
@@ -63,52 +62,58 @@ def _register_problems():
 _PROBLEMS: Dict[str, Type[TaskBase]] = _register_problems()
 
 
-def list_avail_root_causes() -> list[str]:
-    """List all available root cause categories and their corresponding root cause names."""
-    avail_causes = []
-
-    for cause_category, cause_category_dict in _PROBLEMS.items():
-        for cause_name in cause_category_dict.keys():
-            avail_causes.append(
-                json.dumps(
-                    {
-                        "root_cause_category": str(cause_category),
-                        "root_cause_name": str(cause_name),
-                    }
-                )
-            )
-    return avail_causes
+def list_avail_problems() -> list[str]:
+    """List all available root cause names."""
+    return list(_PROBLEMS.keys())
 
 
-def get_problem_instance(root_cause_name: str, task_level: str, net_env: NetworkEnvBase) -> TaskBase:
+def get_problem_instance(problem_names: list, task_level: TaskLevel, net_env_name: str, **kwargs) -> TaskBase:
     """Get the problem instance for a specific root cause name and task level.
     Args:
-        root_cause_name (str): The root cause name of the problem.
-        task_level (str): The task level of the problem.
+        problem_names (list): The root cause names of the problem.
     Returns:
         TaskBase: The problem instance.
     """
-    res_instance = None
-    for _, cause_category_dict in _PROBLEMS.items():
-        for cause_name, cause_cls in cause_category_dict.items():
-            if str(cause_name) == str(root_cause_name):
-                for level, cls in cause_cls.items():
-                    if str(level) == str(task_level):
-                        res_instance = cls(net_env=net_env)
-                        break
-    return res_instance
+    if not isinstance(problem_names, list) or len(problem_names) == 0:
+        raise ValueError("problem_names should be a list of problem_names.")
+
+    # Multi-fault scenario
+    if len(problem_names) > 1:
+        match task_level:
+            case TaskLevel.DETECTION:
+                return MultiFaultDetection(
+                    sub_faults=[
+                        _PROBLEMS[fault_name][task_level](net_env_name=net_env_name, **kwargs)
+                        for fault_name in problem_names
+                    ],
+                )
+            case TaskLevel.LOCALIZATION:
+                return MultiFaultLocalization(
+                    sub_faults=[
+                        _PROBLEMS[fault_name][task_level](net_env_name=net_env_name, **kwargs)
+                        for fault_name in problem_names
+                    ],
+                )
+            case TaskLevel.RCA:
+                return MultiFaultRCA(
+                    sub_faults=[
+                        _PROBLEMS[fault_name][task_level](net_env_name=net_env_name, **kwargs)
+                        for fault_name in problem_names
+                    ],
+                )
+            case _:
+                raise ValueError(f"Unsupported task level for multi-fault: {task_level}")
+
+    # Single-fault scenario
+    else:
+        return _PROBLEMS[problem_names[0]][task_level](net_env_name=net_env_name, **kwargs)
 
 
 if __name__ == "__main__":
-    # for prob_id, prob_cls in _PROBLEMS.items():
-    #     for level, cls in prob_cls.items():
-    #         print(f"Problem ID: {prob_id}, Task Level: {level}, Class: {cls.__name__}")
-
-    # print(get_submission_template(FrrDownDetection.META.root_cause_name, TaskLevel.RCA))
-
-    problems = list_avail_root_causes()
+    problems = list_avail_problems()
     print("Total Problems:", len(problems))
 
     for prob in problems:
         print(prob)
-    print(get_problem_instance("link_high_latency", "rca", None))
+    prob = get_problem_instance(["link_high_latency", "frr_service_down"], "detection", "simple_bgp")
+    print(prob.get_submission())

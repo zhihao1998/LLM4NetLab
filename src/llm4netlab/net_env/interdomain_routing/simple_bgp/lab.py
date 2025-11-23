@@ -12,7 +12,7 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 class SimpleBGP(NetworkEnvBase):
     LAB_NAME = "simple_bgp"
 
-    def __init__(self):
+    def __init__(self, router_num: int = 2, host_num: int = 2):
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
@@ -22,7 +22,6 @@ class SimpleBGP(NetworkEnvBase):
         router2 = self.lab.new_machine("router2", **{"image": "kathara/frr-stress", "cpus": 1})
 
         pc1 = self.lab.new_machine("pc1", **{"image": "kathara/base-stress"})
-
         pc2 = self.lab.new_machine("pc2", **{"image": "kathara/base-stress"})
 
         self.lab.connect_machine_to_link(router1.name, "A")
@@ -48,6 +47,9 @@ class SimpleBGP(NetworkEnvBase):
 
         for i, host in enumerate([pc1, pc2], start=1):
             self.lab.create_file_from_path(os.path.join(cur_path, f"pc{i}.startup"), f"pc{i}.startup")
+
+        # load machines
+        self.load_machines()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,11 @@
+{
+    "start_time": "2025-11-23T16:53:14.071461",
+    "session_id": "1123165314",
+    "net_env_name": "simple_bgp",
+    "net_env_params": {},
+    "problem_names": [
+        "link_down",
+        "host_missing_ip"
+    ],
+    "task_level": "detection"
+}

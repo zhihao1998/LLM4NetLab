@@ -1,8 +1,8 @@
 import time
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
-from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
+from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
@@ -19,21 +19,21 @@ class LinkFragBase:
 
     symptom_desc = "Users report partial packet loss when communicating with other hosts."
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or OSPFEnterpriseDHCP()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_device = self.net_env.switches[0]
+        self.faulty_devices = self.net_env.switches[0]
         self.faulty_intf = "eth0"
 
     def inject_fault(self):
-        self.injector.inject_fragmentation_disabled(host_name=self.faulty_device, mtu=100)
+        self.injector.inject_fragmentation_disabled(host_name=self.faulty_devices, mtu=100)
         time.sleep(2)
 
     def recover_fault(self):
         self.injector.recover_link_frag_disabled(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
         )
         time.sleep(2)
 

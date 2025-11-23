@@ -3,9 +3,8 @@ import logging
 import re
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
-from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.kathara.data_center_routing.dc_clos_bgp.lab import DCClosBGP
-from llm4netlab.net_env.kathara.data_center_routing.dc_clos_service.lab import DCClosService
+from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab import DCClosBGP
+from llm4netlab.net_env.data_center_routing.dc_clos_service.lab import DCClosService
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
@@ -193,7 +192,7 @@ class BGPBlackholeRouteLeakBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_blackhole_route_leak"
 
-    faulty_device = "super_spine_router_0"
+    faulty_devices = "super_spine_router_0"
     target_device = "pc_0_0"
 
     def __init__(self):
@@ -205,7 +204,7 @@ class BGPBlackholeRouteLeakBase:
         ip = self.kathara_api.get_host_ip(self.target_device, with_prefix=False)
         network_30 = ipaddress.ip_network(f"{ip}/30", strict=False)
         asn_number = self.kathara_api.exec_cmd(
-            self.faulty_device, "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
+            self.faulty_devices, "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
         )
         match = re.search(r"local AS number\s+(\d+)", asn_number)
         if match:
@@ -213,14 +212,14 @@ class BGPBlackholeRouteLeakBase:
         else:
             raise ValueError("Could not find AS number in BGP summary output")
         self.injector.inject_add_route_blackhole_advertise(
-            host_name=self.faulty_device, network=network_30, AS=as_number
+            host_name=self.faulty_devices, network=network_30, AS=as_number
         )
 
     def recover_fault(self):
         ip = self.kathara_api.get_host_ip(self.target_device, with_prefix=False)
         network_30 = ipaddress.ip_network(f"{ip}/30", strict=False)
         asn_number = self.kathara_api.exec_cmd(
-            self.faulty_device, "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
+            self.faulty_devices, "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
         )
         match = re.search(r"local AS number\s+(\d+)", asn_number)
         if match:
@@ -228,7 +227,7 @@ class BGPBlackholeRouteLeakBase:
         else:
             raise ValueError("Could not find AS number in BGP summary output")
         self.injector.recover_add_route_blackhole_advertise(
-            host_name=self.faulty_device, network=network_30, AS=as_number
+            host_name=self.faulty_devices, network=network_30, AS=as_number
         )
 
 
@@ -268,12 +267,12 @@ class BGPHijackingBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_hijacking"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or DCClosService()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_device = [router for router in self.net_env.routers if "leaf" in router][0]
+        self.faulty_devices = [router for router in self.net_env.routers if "leaf" in router][0]
         web_server = self.net_env.servers["web"][-1]
         self.target_network = self.kathara_api.get_host_ip(web_server, with_prefix=True)
         self.target_network = str(
@@ -283,19 +282,19 @@ class BGPHijackingBase:
     def inject_fault(self):
         asn_number = self.kathara_api.frr_get_bgp_asn_number(self.faulty_device)
         self.injector.inject_bgp_add_interface(
-            host_name=self.faulty_device, intf_name="lo", ip_address=self.target_network
+            host_name=self.faulty_devices, intf_name="lo", ip_address=self.target_network
         )
         self.injector.inject_bgp_add_advertisement(
-            host_name=self.faulty_device, network=self.target_network, AS=asn_number
+            host_name=self.faulty_devices, network=self.target_network, AS=asn_number
         )
 
     def recover_fault(self):
         asn_number = self.kathara_api.frr_get_bgp_asn_number(self.faulty_device)
         self.injector.recover_bgp_add_advertisement(
-            host_name=self.faulty_device, network=self.target_network, AS=asn_number
+            host_name=self.faulty_devices, network=self.target_network, AS=asn_number
         )
         self.injector.recover_bgp_add_interface(
-            host_name=self.faulty_device, intf_name="lo", ip_address=self.target_network
+            host_name=self.faulty_devices, intf_name="lo", ip_address=self.target_network
         )
 
 

@@ -9,7 +9,7 @@ from llm4netlab.net_env.base import NetworkEnvBase
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
-class P4INTLab(NetworkEnvBase):
+class P4INT(NetworkEnvBase):
     LAB_NAME = "p4_int"
 
     def __init__(self):
@@ -101,11 +101,11 @@ class P4INTLab(NetworkEnvBase):
 
             # add the sswitch_thrift_API.py file to the Kathara image
             switch.create_file_from_path(
-                os.path.join(BASE_DIR, "utils/kathara/sswitch_thrift_API.py"),
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/p4/sswitch_thrift_API.py"),
                 "/usr/local/lib/python3.11/site-packages/sswitch_thrift_API.py",
             )
             switch.create_file_from_path(
-                os.path.join(BASE_DIR, "utils/kathara/thrift_API.py"),
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/p4/thrift_API.py"),
                 "/usr/local/lib/python3.11/site-packages/thrift_API.py",
             )
 
@@ -133,7 +133,7 @@ class P4INTLab(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    p4_int_lab = P4INTLab()
+    p4_int_lab = P4INT()
     print(p4_int_lab.get_info())
     if p4_int_lab.lab_exists():
         print("Lab exists, undeploying it...")

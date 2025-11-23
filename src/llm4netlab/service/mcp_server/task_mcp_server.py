@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
-from llm4netlab.orchestrator.problems.prob_pool import list_avail_root_causes as _list_avail_root_causes
+from llm4netlab.orchestrator.problems.prob_pool import list_avail_problems as _list_avail_problems
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission
 from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission
 from llm4netlab.orchestrator.tasks.rca import RCASubmission
@@ -31,13 +31,13 @@ results_dir = os.getenv("RESULTS_DIR")
 
 
 @mcp.tool()
-def list_avail_root_causes() -> list[str]:
+def list_avail_problems() -> list[str]:
     """List all available root cause types.
 
     Returns:
         list[str]: A list of available root cause types.
     """
-    return _list_avail_root_causes()
+    return _list_avail_problems()
 
 
 @mcp.tool()

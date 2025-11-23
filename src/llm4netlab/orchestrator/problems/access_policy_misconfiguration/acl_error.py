@@ -1,7 +1,7 @@
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
-from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.kathara.data_center_routing.dc_clos_bgp.lab import DCClosBGP
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab import DCClosBGP
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
@@ -17,27 +17,27 @@ class BGPAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "bgp_acl_block"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
-        self.net_env = net_env or DCClosBGP()
+    def __init__(self, net_env_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosBGP()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.failed_device = self.net_env.routers[0]
+        self.faulty_devices = self.net_env.routers[0]
 
     def inject_fault(self):
         # Inject ACL rules to block BGP (TCP port 179) traffic on router1
         self.injector.inject_acl_rule(
-            host_name=self.failed_device,
+            host_name=self.faulty_devices,
             rule="tcp dport 179 drop",
             table_name="filter",
         )
         self.injector.inject_acl_rule(
-            host_name=self.failed_device,
+            host_name=self.faulty_devices,
             rule="tcp sport 179 drop",
             table_name="filter",
         )
 
     def recover_fault(self):
-        self.injector.recover_acl_rule(host_name=self.failed_device, table_name="filter")
+        self.injector.recover_acl_rule(host_name=self.faulty_devices, table_name="filter")
 
 
 class BGPAclBlockDetection(BGPAclBlockBase, DetectionTask):
@@ -76,27 +76,27 @@ class OSPFAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "ospf_acl_block"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
-        self.net_env = net_env or OSPFEnterpriseStatic()
+    def __init__(self, net_env_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.failed_device = self.net_env.routers[0]
+        self.faulty_devices = self.net_env.routers[0]
 
     def inject_fault(self):
         # Inject ACL rules to block OSPF (UDP port 89) traffic on router1
         self.injector.inject_acl_rule(
-            host_name=self.failed_device,
+            host_name=self.faulty_devices,
             rule="ip protocol ospf drop",
             table_name="filter",
         )
         self.injector.inject_acl_rule(
-            host_name=self.failed_device,
+            host_name=self.faulty_devices,
             rule="ip protocol ospf drop",
             table_name="filter",
         )
 
     def recover_fault(self):
-        self.injector.recover_acl_rule(host_name=self.failed_device, table_name="filter")
+        self.injector.recover_acl_rule(host_name=self.faulty_devices, table_name="filter")
 
 
 class OSPFAclBlockDetection(OSPFAclBlockBase, DetectionTask):
@@ -135,18 +135,18 @@ class ARPAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "arp_acl_block"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
-        self.net_env = net_env or OSPFEnterpriseStatic()
+    def __init__(self, net_env_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.failed_device = self.net_env.hosts[0]
+        self.faulty_devices = self.net_env.hosts[0]
 
     def inject_fault(self):
-        self.injector.inject_acl_rule(host_name=self.failed_device, rule="drop", table_name="filter", family="arp")
-        self.kathara_api.exec_cmd(self.failed_device, "ip neigh flush all")
+        self.injector.inject_acl_rule(host_name=self.faulty_devices, rule="drop", table_name="filter", family="arp")
+        self.kathara_api.exec_cmd(self.faulty_devices, "ip neigh flush all")
 
     def recover_fault(self):
-        self.injector.recover_acl_rule(host_name=self.failed_device, table_name="filter", family="arp")
+        self.injector.recover_acl_rule(host_name=self.faulty_devices, table_name="filter", family="arp")
 
 
 class ARPAclBlockDetection(ARPAclBlockBase, DetectionTask):
@@ -185,19 +185,19 @@ class IcmpAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "icmp_acl_block"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
-        self.net_env = net_env or OSPFEnterpriseStatic()
+    def __init__(self, net_env_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.failed_device = self.net_env.hosts[0]
+        self.faulty_devices = self.net_env.hosts[0]
 
     def inject_fault(self):
         self.injector.inject_acl_rule(
-            host_name=self.failed_device, family="ip", rule="ip protocol icmp drop", table_name="filter"
+            host_name=self.faulty_devices, family="ip", rule="ip protocol icmp drop", table_name="filter"
         )
 
     def recover_fault(self):
-        self.injector.recover_acl_rule(host_name=self.failed_device, table_name="filter", family="ip")
+        self.injector.recover_acl_rule(host_name=self.faulty_devices, table_name="filter", family="ip")
 
 
 class IcmpAclBlockDetection(IcmpAclBlockBase, DetectionTask):
@@ -236,19 +236,19 @@ class HttpAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "http_acl_block"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
-        self.net_env = net_env or OSPFEnterpriseStatic()
+    def __init__(self, net_env_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.failed_device = self.net_env.hosts[0]
+        self.faulty_devices = self.net_env.hosts[0]
 
     def inject_fault(self):
         self.injector.inject_acl_rule(
-            host_name=self.failed_device, family="inet", rule="tcp dport 80 drop", table_name="filter"
+            host_name=self.faulty_devices, family="inet", rule="tcp dport 80 drop", table_name="filter"
         )
 
     def recover_fault(self):
-        self.injector.recover_acl_rule(host_name=self.failed_device, table_name="filter", family="inet")
+        self.injector.recover_acl_rule(host_name=self.faulty_devices, table_name="filter", family="inet")
 
 
 class HttpAclBlockDetection(HttpAclBlockBase, DetectionTask):

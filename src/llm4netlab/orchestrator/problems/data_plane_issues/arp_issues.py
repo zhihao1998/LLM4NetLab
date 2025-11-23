@@ -1,8 +1,8 @@
 import logging
 
 from llm4netlab.generator.fault.injector_host import FaultInjectorHost
-from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
@@ -20,17 +20,17 @@ class ArpCachePoisoningBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DATA_PLANE_ISSUE
     root_cause_name: str = "arp_cache_poisoning"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
-        self.faulty_device: str = self.net_env.hosts[0]
+        self.faulty_devices: str = self.net_env.hosts[0]
 
     def inject_fault(self):
         default_gateway = self.kathara_api.get_default_gateway(self.faulty_device)
         self.injector.inject_arp_misconfiguration(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             ip_address=default_gateway,
             fake_mac="00:11:22:33:44:55",
         )
@@ -38,7 +38,7 @@ class ArpCachePoisoningBase:
     def recover_fault(self):
         default_gateway = self.kathara_api.get_default_gateway(self.faulty_device)
         self.injector.recover_arp_misconfiguration(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             ip_address=default_gateway,
         )
 
@@ -79,12 +79,12 @@ class MacAddressConflictBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DATA_PLANE_ISSUE
     root_cause_name: str = "mac_address_conflict"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
-        self.faulty_device: str = self.net_env.hosts[:2]
+        self.faulty_devices: str = self.net_env.hosts[:2]
 
     def inject_fault(self):
         target_mac = self.kathara_api.get_host_mac_address(self.faulty_device[1], "eth0")

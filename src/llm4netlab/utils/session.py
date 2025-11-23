@@ -1,9 +1,10 @@
 import datetime
-import time
+import json
+import os
 
 from pydantic import BaseModel
 
-from llm4netlab.orchestrator.tasks.base import TaskBase
+from llm4netlab.config import BASE_DIR, RESULTS_DIR
 
 
 def generate_code():
@@ -22,59 +23,47 @@ class SessionKey(BaseModel):
 
 
 class Session:
-    def __init__(self, session_id: None) -> None:
-        self.session_id = generate_code() if session_id is None else session_id
-        self.root_cause_name = None
-        self.problem: TaskBase = None
-        self.solution = None
-        self.results = {}
-        self.start_time = None
-        self.end_time = None
-        self.agent_name = None
+    def __init__(self) -> None:
+        pass
 
-    def set_problem(self, problem: TaskBase, root_cause_name: str):
-        """Set the problem instance for the session.
+    def init_session(self):
+        self.start_time = datetime.datetime.now().isoformat()
+        self.session_id = generate_code()
 
-        Args:
-            problem (TaskBase): The problem instance to set.
-            root_cause_name (str): The root cause type.
-        """
-        self.problem = problem
-        self.root_cause_name = root_cause_name
+    def load_running_session(self):
+        session_meta = json.load(open(f"{BASE_DIR}/runtime/current_session.json", "r"))
+        for key, value in session_meta.items():
+            setattr(self, key, value)
 
-    def set_solution(self, solution):
-        """Set the solution shared by the agent.
+    def _write_session(self) -> str:
+        session_dict = self.__dict__
+        with open(f"{BASE_DIR}/runtime/current_session.json", "w") as f:
+            f.write(json.dumps(session_dict, indent=4))
 
-        Args:
-            solution (Any): The solution instance to set.
-        """
-        self.solution = solution
+    def update_session(self, key: str, value: str):
+        setattr(self, key, value)
+        self._write_session()
+        if hasattr(self, "root_cause_name") and hasattr(self, "task_level") and hasattr(self, "session_id"):
+            session_dir = f"{RESULTS_DIR}/{self.root_cause_name}/{self.task_level}/{self.session_id}"
+            os.makedirs(session_dir, exist_ok=True)
 
-    def set_results(self, results):
-        """Set the results of the session.
+    def clear_session(self):
+        os.remove(f"{BASE_DIR}/runtime/current_session.json")
 
-        Args:
-            results (Any): The results of the session.
-        """
-        self.results = results
+    def __str__(self) -> str:
+        return json.dumps(self.__dict__, indent=4)
 
-    def set_agent(self, agent_name):
-        """Set the agent name for the session.
 
-        Args:
-            agent_name (str): The name of the agent.
-        """
-        self.agent_name = agent_name
+if __name__ == "__main__":
+    session = Session()
+    session.load_session()
+    print(session)
 
-    def start(self):
-        """Start the session."""
-        self.start_time = time.time()
+    session.update_session("lab_name", "test_lab")
+    session.update_session("root_cause_category", "connectivity")
+    session.update_session("root_cause_name", "missing_route")
+    session.update_session("task_level", "easy")
+    session.update_session("backend_model_name", "gpt-4")
+    session.update_session("agent_name", "default_agent")
 
-    def end(self):
-        """End the session."""
-        self.end_time = time.time()
-
-    def get_duration(self) -> float:
-        """Get the duration of the session."""
-        duration = self.end_time - self.start_time
-        return duration
+    session._write_session()

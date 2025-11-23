@@ -29,22 +29,6 @@ class FaultInjectorHost:
         )
         self.logger.info(f"Recovered removal of default route on {host_name}.")
 
-    def inject_remove_ip(self, host_name: str, ip_address: str, intf_name: str):
-        """Inject a fault by removing an IP address from a host interface."""
-        self.kathara_api.exec_cmd(
-            host_name,
-            f"ip addr del {ip_address} dev {intf_name}",
-        )
-        self.logger.info(f"Injected removal of IP {ip_address} on {host_name}:{intf_name}.")
-
-    def recover_remove_ip(self, host_name: str, ip_address: str, intf_name: str):
-        """Recover from a fault by adding an IP address to a host interface."""
-        self.kathara_api.exec_cmd(
-            host_name,
-            f"ip addr add {ip_address} dev {intf_name}",
-        )
-        self.logger.info(f"Recovered removal of IP {ip_address} on {host_name}:{intf_name}.")
-
     def inject_ip_change(self, host_name: str, old_ip: str, new_ip: str, intf_name: str, new_gateway: str = None):
         """Inject a fault by changing an IP address on a host interface."""
         self.kathara_api.exec_cmd(

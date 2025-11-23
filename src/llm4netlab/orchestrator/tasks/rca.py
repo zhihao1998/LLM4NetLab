@@ -1,6 +1,7 @@
 """Define and query information about an Detection task."""
 
 import textwrap
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -10,16 +11,12 @@ from llm4netlab.orchestrator.tasks.base import TaskBase
 class RCASubmission(BaseModel):
     """
     Schema for Root Cause Analysis (RCA) task submission.
-    The input must be selected from list_avail_root_causes() API.
+    The input must be selected from list_avail_problems() API.
     """
 
-    root_cause_category: str = Field(
+    root_cause_name: List[str] = Field(
         ...,
-        description="High-level category of the root cause.",
-    )
-    root_cause_name: str = Field(
-        ...,
-        description="Concrete root cause name within the selected category.",
+        description="The name(s) of the identified root cause(s) of the network anomaly.",
     )
 
 
@@ -31,14 +28,14 @@ RCA_TASK_INSTRUCTION = """\
             {symptom_desc}
 
             Your task is to perform root-cause analysis (RCA). Focus on *why* the anomaly occurs.
-            Once you have determined the root cause, provide your conclusion for submission.
+            Once you have determined the root cause (one or multiple), provide your conclusion for submission.
             """
 RCA_TASK_INSTRUCTION_NO_SYMPTOM = """\
             The network you are working with is described below:
             {net_desc}
 
             Your task is to perform root-cause analysis (RCA). Focus on *why* the anomaly occurs.
-            Once you have determined the root cause, provide your conclusion for submission.
+            Once you have determined the root cause (one or multiple), provide your conclusion for submission.
             """
 
 
@@ -70,35 +67,45 @@ class RCATask(TaskBase):
         Args:
             submission: The submission to evaluate. Expected schema:
                 {
-                    "root_cause_category": str,
-                    "root_cause_name": str,
+                    "root_cause_name": [str],  # List of identified root cause names
                 }
 
         Returns:
             float: The evaluation score in [0, 1], or -1.0 if submission is invalid.
         """
-        root_cause_category = submission.get("root_cause_category", None)
-        root_cause_name = submission.get("root_cause_name", None)
+        sub_rc_names = submission.get("root_cause_name", None)
 
         # if there is no required field, return -1 score
-        if root_cause_category is None or root_cause_name is None:
+        if sub_rc_names is None:
             return -1.0
 
-        gt_root_cause_category = getattr(self.get_submission(), "root_cause_category", "")
-        gt_root_cause_name = getattr(self.get_submission(), "root_cause_name", "")
-        accuracy = 0.0
-        if root_cause_category == gt_root_cause_category:
-            accuracy += 0.5
-            if root_cause_name == gt_root_cause_name:
-                accuracy += 0.5
-        return accuracy
+        # 3. Get ground truth components
+        gt = self.get_submission()
+
+        # 4. Get normalized component sets
+        correct_rc_names = set([c for c in gt.root_cause_name])
+        sub_rc_names = set([c for c in sub_rc_names])
+
+        # 5. Calculate precision, recall, F1 score
+        tp = len(correct_rc_names & sub_rc_names)
+        fp = len(sub_rc_names - correct_rc_names)
+        fn = len(correct_rc_names - sub_rc_names)
+
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+
+        if precision + recall == 0:
+            f1 = 0.0
+        else:
+            f1 = 2 * precision * recall / (precision + recall)
+
+        return float(f1)
 
     def get_submission(self):
-        assert self.root_cause_category and self.root_cause_name, (
-            "Root cause category and name must be set in the task instance."
-        )
+        assert self.root_cause_name, "Root cause name must be set in the task instance."
+        if isinstance(self.root_cause_name, str):
+            self.root_cause_name = [self.root_cause_name]
         submission = RCASubmission(
-            root_cause_category=self.root_cause_category,
             root_cause_name=self.root_cause_name,
         )
         return submission

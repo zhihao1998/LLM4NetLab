@@ -363,9 +363,10 @@ class KatharaBaseAPI:
 
 
 async def main():
-    api = KatharaBaseAPI(lab_name="ospf_enterprise_static")
+    api = KatharaBaseAPI(lab_name="simple_bgp")
     # result = api.curl_web_test("client_0", "http://web0.pod0")
-    result = api.get_host_ip("host_1_1_1_1", iface="eth0", with_prefix=True)
+    result = api.get_default_gateway("pc1")
+
     # result = await api.ping_pair("client_0", "webserver0_pod0", count=4)
     print(result)
 

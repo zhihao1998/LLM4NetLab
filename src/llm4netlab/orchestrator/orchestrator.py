@@ -31,8 +31,6 @@ class Orchestrator:
         root_cause_name: str,
         task_level: TaskLevel,
         net_env: NetworkEnvBase = None,
-        agent_name: str = None,
-        backend_model_name: str = None,
         session_id: str = None,
         if_inject: bool = True,
     ) -> tuple:
@@ -51,9 +49,7 @@ class Orchestrator:
 
         self.root_cause_name = root_cause_name
         self.task_level = task_level
-        self.agent_name = agent_name
-        self.net_env = net_env
-        self.backend_model = backend_model_name
+        self.net_env = get_net_env_instance(net_env_name, **kwargs)
         self.log_prefix = f"{self.session.session_id}_{self.backend_model}"
 
         self.problem = get_problem_instance(root_cause_name, task_level, net_env)

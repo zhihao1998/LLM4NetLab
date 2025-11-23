@@ -25,6 +25,7 @@ class RootCauseCategory(StrEnum):
         "Wrong BGP/OSPF policy, metric misconfig",
     )
     ACCESS_POLICY_MISCONFIGURATION = ("access_policy_misconfiguration", "ACL / firewall / security group misconfig")
+    MULTIPLE_FAULTS = ("multiple_faults", "Multiple simultaneous faults in the network")
 
 
 class TaskLevel(StrEnum):

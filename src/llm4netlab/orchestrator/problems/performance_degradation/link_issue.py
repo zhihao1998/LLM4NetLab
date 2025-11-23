@@ -1,9 +1,9 @@
 import logging
 
 from llm4netlab.generator.fault.injector_tc import FaultInjectorTC
-from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.kathara.data_center_routing.dc_clos_service.lab import DCClosService
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.data_center_routing.dc_clos_service.lab import DCClosService
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
@@ -19,21 +19,21 @@ class LinkHighLatencyBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_high_latency"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or DCClosService()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
-        self.faulty_device: str = self.net_env.routers[0]
+        self.faulty_devices: str = self.net_env.routers[0]
 
     def inject_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
-        self.injector.inject_delay(host_name=self.faulty_device, intf_name=intf_name, delay_ms=1000)
+        self.injector.inject_delay(host_name=self.faulty_devices, intf_name=intf_name, delay_ms=1000)
 
     def recover_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
         self.injector.recover_delay(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             intf_name=intf_name,
         )
 
@@ -74,21 +74,21 @@ class LinkHighPacketLossBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_high_packet_loss"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or DCClosService()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
-        self.faulty_device: str = self.net_env.routers[0]
+        self.faulty_devices: str = self.net_env.routers[0]
 
     def inject_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
-        self.injector.inject_packet_loss(host_name=self.faulty_device, intf_name=intf_name, loss_percentage=30)
+        self.injector.inject_packet_loss(host_name=self.faulty_devices, intf_name=intf_name, loss_percentage=30)
 
     def recover_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
         self.injector.recover_packet_loss(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             intf_name=intf_name,
         )
 
@@ -129,21 +129,21 @@ class LinkHighLatencyJitterBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_high_latency_jitter"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or DCClosService()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
-        self.faulty_device: str = self.net_env.routers[0]
+        self.faulty_devices: str = self.net_env.routers[0]
 
     def inject_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
-        self.injector.inject_jitter(host_name=self.faulty_device, intf_name=intf_name, jitter_ms=1000)
+        self.injector.inject_jitter(host_name=self.faulty_devices, intf_name=intf_name, jitter_ms=1000)
 
     def recover_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
         self.injector.recover_jitter(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             intf_name=intf_name,
         )
 
@@ -184,23 +184,23 @@ class LinkHighPacketCorruptionBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_high_packet_corruption"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
-        self.faulty_device: str = self.net_env.routers[0]
+        self.faulty_devices: str = self.net_env.routers[0]
 
     def inject_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[-1]
         self.injector.inject_packet_corruption(
-            host_name=self.faulty_device, intf_name=intf_name, corruption_percentage=40
+            host_name=self.faulty_devices, intf_name=intf_name, corruption_percentage=40
         )
 
     def recover_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[-1]
         self.injector.recover_packet_corruption(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             intf_name=intf_name,
         )
 
@@ -241,26 +241,26 @@ class LinkBandwidthThrottlingBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_bandwidth_throttling"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         if "switch_server_access" in self.net_env.routers:
-            self.faulty_device: str = "switch_server_access"
+            self.faulty_devices: str = "switch_server_access"
         else:
-            self.faulty_device: str = self.net_env.routers[0]
+            self.faulty_devices: str = self.net_env.routers[0]
 
     def inject_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
         self.injector.inject_bandwidth_limit(
-            host_name=self.faulty_device, intf_name=intf_name, rate="30kbit", burst="64kb", limit="500kb"
+            host_name=self.faulty_devices, intf_name=intf_name, rate="30kbit", burst="64kb", limit="500kb"
         )
 
     def recover_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[0]
         self.injector.recover_bandwidth_limit(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             intf_name=intf_name,
         )
 
@@ -301,24 +301,24 @@ class LinkQueueOverflowBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_queue_overflow"
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
+    def __init__(self, net_env_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = net_env or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         if "switch_server_access" in self.net_env.routers:
-            self.faulty_device: str = "switch_server_access"
+            self.faulty_devices: str = "switch_server_access"
         else:
-            self.faulty_device: str = self.net_env.routers[0]
+            self.faulty_devices: str = self.net_env.routers[0]
 
     def inject_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[1]
-        self.injector.inject_delay(host_name=self.faulty_device, intf_name=intf_name, delay_ms=50, limit="1")
+        self.injector.inject_delay(host_name=self.faulty_devices, intf_name=intf_name, delay_ms=50, limit="1")
 
     def recover_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_device)[1]
         self.injector.recover_delay(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             intf_name=intf_name,
         )
 
@@ -352,6 +352,7 @@ class LinkQueueOverflowRCA(LinkQueueOverflowBase, RCATask):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    task = LinkQueueOverflowBase()
+    task = LinkHighLatencyBase()
+    print(task.faulty_devices)
     # task.recover_fault()
-    task.inject_fault()
+    # task.inject_fault()

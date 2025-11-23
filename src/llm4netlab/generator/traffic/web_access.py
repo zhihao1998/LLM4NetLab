@@ -4,7 +4,7 @@ import random
 from typing import Iterable, Optional
 
 from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
 from llm4netlab.service.kathara import KatharaAPIALL
 
 
@@ -16,7 +16,7 @@ class WebBrowsingTrafficGenerator:
         pages_per_session_range: tuple[int, int] = (3, 10),
         loop_forever: bool = True,
     ):
-        self.net_env = net_env
+        self.net_env = get_net_env_instance(net_env_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.clients: list[str] = self.net_env.hosts
         self.web_servers: list[str] = self.net_env.servers["web"]

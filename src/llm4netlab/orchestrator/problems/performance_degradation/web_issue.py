@@ -1,8 +1,9 @@
 from llm4netlab.generator.fault.injector_service import FaultInjectorService
 from llm4netlab.generator.fault.injector_tc import FaultInjectorTC
 from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.kathara.data_center_routing.dc_clos_service.lab import DCClosService
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
+from llm4netlab.net_env.data_center_routing.dc_clos_service.lab import DCClosService
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
+from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import (
@@ -23,16 +24,16 @@ class DNSLookupLatencyBase:
 
     def __init__(self, net_env: NetworkEnvBase = DCClosService()):
         super().__init__()
-        self.net_env = net_env
+        self.net_env = get_net_env_instance(net_env_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
-        self.faulty_device = self.net_env.servers["dns"][0]
+        self.faulty_devices = self.net_env.servers["dns"][0]
 
     def inject_fault(self):
-        self.injector.inject_delay(host_name=self.faulty_device, intf_name="eth0", delay_ms=1000)
+        self.injector.inject_delay(host_name=self.faulty_devices, intf_name="eth0", delay_ms=1000)
 
     def recover_fault(self):
-        self.injector.recover_delay(host_name=self.faulty_device, intf_name="eth0")
+        self.injector.recover_delay(host_name=self.faulty_devices, intf_name="eth0")
 
 
 class DNSLookupLatencyDetection(DNSLookupLatencyBase, DetectionTask):
@@ -77,10 +78,10 @@ class WebDoSBase:
 
     def __init__(self, net_env: NetworkEnvBase = OSPFEnterpriseDHCP()):
         super().__init__()
-        self.net_env = net_env
+        self.net_env = get_net_env_instance(net_env_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorService(lab_name=self.net_env.lab.name)
-        self.faulty_device = self.net_env.servers["web"][0]
+        self.faulty_devices = self.net_env.servers["web"][0]
 
     def inject_fault(self):
         self.injector.inject_ab_attack(attacker_host=self.attacker_device, website=self.target_website)

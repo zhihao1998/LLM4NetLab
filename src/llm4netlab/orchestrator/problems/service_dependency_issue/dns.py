@@ -1,9 +1,9 @@
 import logging
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
-from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
@@ -20,7 +20,7 @@ class DNSServiceDownBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
     root_cause_name: str = "dns_service_down"
 
-    faulty_device = "dns_server"
+    faulty_devices = "dns_server"
     symptom_desc = "Some hosts cannot access external websites."
 
     def __init__(self):
@@ -29,10 +29,10 @@ class DNSServiceDownBase:
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
 
     def inject_fault(self):
-        self.injector.inject_service_down(host_name=self.faulty_device, service_name="named")
+        self.injector.inject_service_down(host_name=self.faulty_devices, service_name="named")
 
     def recover_fault(self):
-        self.injector.recover_service_down(host_name=self.faulty_device, service_name="named")
+        self.injector.recover_service_down(host_name=self.faulty_devices, service_name="named")
 
 
 class DNSServiceDownDetection(DNSServiceDownBase, DetectionTask):
@@ -71,7 +71,7 @@ class DNSPortBlockedBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
     root_cause_name: str = "dns_port_blocked"
 
-    faulty_device = "dns_server"
+    faulty_devices = "dns_server"
     symptom_desc = "Some hosts cannot access external websites."
 
     def __init__(self):
@@ -81,23 +81,23 @@ class DNSPortBlockedBase:
 
     def inject_fault(self):
         self.injector.inject_acl_rule(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             rule="tcp dport 53 drop",
             table_name="filter",
         )
         self.injector.inject_acl_rule(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             rule="udp dport 53 drop",
             table_name="filter",
         )
 
     def recover_fault(self):
         self.injector.recover_acl_rule(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             table_name="filter",
         )
         self.injector.recover_acl_rule(
-            host_name=self.faulty_device,
+            host_name=self.faulty_devices,
             table_name="filter",
         )
 
@@ -140,11 +140,11 @@ class DNSRecordErrorBase:
 
     symptom_desc = "Some hosts cannot access external websites."
 
-    def __init__(self, net_env: NetworkEnvBase | None = None):
-        self.net_env = net_env or OSPFEnterpriseStatic()
+    def __init__(self, net_env_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_device = self.net_env.servers["dns"][0]
+        self.faulty_devices = self.net_env.servers["dns"][0]
         self.target_website = self.net_env.web_urls[0].split(".")[0]
         if self.target_website.startswith("http://"):
             self.target_website = self.target_website[len("http://") :]
@@ -155,15 +155,15 @@ class DNSRecordErrorBase:
     def inject_fault(self):
         # backup original record
         self.kathara_api.exec_cmd(
-            self.faulty_device,
+            self.faulty_devices,
             f"cp /etc/bind/db.{self.target_domain} /etc/bind/db.{self.target_domain}.bak",
         )
         # inject wrong record
         cmd = r"sed -i 's/^\({name}[[:space:]]\+IN[[:space:]]\+A[[:space:]]\+\)[0-9\.]\+/\1{new_ip}/' /etc/bind/db.{domain}"
         cmd = cmd.format(name=self.target_website, new_ip=self.wrong_ip, domain=self.target_domain)
-        self.kathara_api.exec_cmd(self.faulty_device, cmd)
+        self.kathara_api.exec_cmd(self.faulty_devices, cmd)
         # restart dns service
-        self.kathara_api.exec_cmd(self.faulty_device, "systemctl restart named")
+        self.kathara_api.exec_cmd(self.faulty_devices, "systemctl restart named")
         logger.info(
             f"Injecting DNS record error on {self.faulty_device}: mapping {self.target_website}:{self.target_domain} "
             f"to wrong IP {self.wrong_ip} instead of {self.right_ip}"
@@ -172,11 +172,11 @@ class DNSRecordErrorBase:
     def recover_fault(self):
         # restore original record
         self.kathara_api.exec_cmd(
-            self.faulty_device,
+            self.faulty_devices,
             f"mv /etc/bind/db.{self.target_domain}.bak /etc/bind/db.{self.target_domain}",
         )
         # restart dns service
-        self.kathara_api.exec_cmd(self.faulty_device, "systemctl restart named")
+        self.kathara_api.exec_cmd(self.faulty_devices, "systemctl restart named")
         logger.info(f"Recovered DNS record error on {self.faulty_device}")
 
 

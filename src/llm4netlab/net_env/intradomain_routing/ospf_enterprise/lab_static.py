@@ -541,6 +541,6 @@ if __name__ == "__main__":
         ospf_enterprise.undeploy()
         print("Lab undeployed")
 
-    print("Deploying lab...")
-    ospf_enterprise.deploy()
-    print("Lab deployed")
+    # print("Deploying lab...")
+    # ospf_enterprise.deploy()
+    # print("Lab deployed")

@@ -2,7 +2,7 @@ import ipaddress
 import logging
 
 from llm4netlab.generator.fault.injector_service import FaultInjectorService
-from llm4netlab.net_env.kathara.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
+from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
@@ -18,7 +18,7 @@ class DHCPWrongGatewayBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
     root_cause_name: str = "dhcp_wrong_gateway"
 
-    faulty_device = "dhcp_server"
+    faulty_devices = "dhcp_server"
     symptom_desc = "Some hosts are experiencing connectivity issues."
 
     def __init__(self):
@@ -34,7 +34,7 @@ class DHCPWrongGatewayBase:
         )
 
         self.injector.inject_wrong_gateway(
-            dhcp_server=self.faulty_device,
+            dhcp_server=self.faulty_devices,
             subnet=subnet,
             wrong_gw=".".join(subnet.split(".")[:3] + ["254"]),
         )
@@ -46,7 +46,7 @@ class DHCPWrongGatewayBase:
             ).network_address
         )
         self.injector.recover_wrong_gateway(
-            dhcp_server=self.faulty_device,
+            dhcp_server=self.faulty_devices,
             subnet=subnet,
             correct_gw=".".join(subnet.split(".")[:3] + ["1"]),
         )
@@ -88,7 +88,7 @@ class DHCPWrongDNSBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
     root_cause_name: str = "dhcp_wrong_dns"
 
-    faulty_device = "dhcp_server"
+    faulty_devices = "dhcp_server"
     symptom_desc = "Some hosts can not access webservices."
 
     def __init__(self):
@@ -103,7 +103,7 @@ class DHCPWrongDNSBase:
             ).network_address
         )
 
-        self.injector.inject_wrong_dns(dhcp_server=self.faulty_device, subnet=subnet, wrong_dns="8.8.8.8")
+        self.injector.inject_wrong_dns(dhcp_server=self.faulty_devices, subnet=subnet, wrong_dns="8.8.8.8")
 
     def recover_fault(self):
         subnet = str(
@@ -112,7 +112,7 @@ class DHCPWrongDNSBase:
             ).network_address
         )
         dns_ip = self.kathara_api.get_host_ip("dns_server", with_prefix=False)
-        self.injector.recover_wrong_dns(dhcp_server=self.faulty_device, subnet=subnet, correct_dns=dns_ip)
+        self.injector.recover_wrong_dns(dhcp_server=self.faulty_devices, subnet=subnet, correct_dns=dns_ip)
 
 
 class DHCPWrongDNSDetection(DHCPWrongDNSBase, DetectionTask):
@@ -151,7 +151,7 @@ class DHCPMissingSubnetBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SERVICE_DEPENDENCY_FAILURE
     root_cause_name: str = "dhcp_missing_subnet"
 
-    faulty_device = "dhcp_server"
+    faulty_devices = "dhcp_server"
     symptom_desc = "Some hosts are experiencing connectivity issues."
 
     def __init__(self):
@@ -166,13 +166,13 @@ class DHCPMissingSubnetBase:
             ).network_address
         )
         self.injector.inject_delete_subnet(
-            dhcp_server=self.faulty_device,
+            dhcp_server=self.faulty_devices,
             subnet=subnet,
         )
 
     def recover_fault(self):
         self.injector.recover_deleted_subnet(
-            dhcp_server=self.faulty_device,
+            dhcp_server=self.faulty_devices,
         )
 
 

@@ -8,7 +8,7 @@ from langgraph.graph import END, START, StateGraph
 from pydantic import Field
 from typing_extensions import TypedDict
 
-import llm4netlab.net_env.kathara as NetEnvKathara
+import llm4netlab.net_env as NetEnvKathara
 from agent.domain_agents.diagnosis_agent import DiagnosisAgent
 from agent.domain_agents.submission_agent import SubmissionAgent
 from agent.utils.loggers import FileLoggerHandler

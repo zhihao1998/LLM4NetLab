@@ -19,6 +19,9 @@ class TaskBase:
     def inject_fault(self):
         return NotImplementedError()
 
+    def recover_fault(self):
+        return NotImplementedError()
+
     def get_instructions(self):
         raise NotImplementedError()
 
