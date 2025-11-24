@@ -1,5 +1,6 @@
 from typing import Dict
 
+from llm4netlab.net_env.application.load_banlancer.lab import LoadBalancer
 from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab import DCClosBGP
 from llm4netlab.net_env.data_center_routing.dc_clos_service.lab import DCClosService
@@ -9,6 +10,7 @@ from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OS
 from llm4netlab.net_env.p4.p4_bloom_filter.lab import P4BloomFilter
 from llm4netlab.net_env.p4.p4_counter.lab import P4Counter
 from llm4netlab.net_env.p4.p4_int.lab import P4INT
+from llm4netlab.net_env.p4.p4_mpls.lab import P4_MPLS
 from llm4netlab.net_env.sdn.lab import SDNOpenFlow
 
 _NET_ENVS: Dict[str, NetworkEnvBase] = {
@@ -20,7 +22,9 @@ _NET_ENVS: Dict[str, NetworkEnvBase] = {
     "p4_bloom_filter": P4BloomFilter,
     "p4_counter": P4Counter,
     "p4_int": P4INT,
+    "p4_mpls": P4_MPLS,
     "sdn_openflow": SDNOpenFlow,
+    "load_balancer": LoadBalancer,
 }
 
 

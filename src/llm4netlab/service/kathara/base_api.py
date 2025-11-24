@@ -72,6 +72,20 @@ class KatharaBaseAPI:
                 switches.append(name)
         return switches
 
+    def get_connected_devices(self, host_name: str) -> list[str]:
+        """
+        Get the list of devices connected to a host.
+        """
+        links: Dict[str:DockerLinkStats] = next(self.instance.get_links_stats())
+        results = []
+        for _, link in links.items():
+            if link.name:
+                if host_name == link.containers[0].labels["name"]:
+                    results.append(link.containers[1].labels["name"])
+                elif host_name == link.containers[1].labels["name"]:
+                    results.append(link.containers[0].labels["name"])
+        return results
+
     def get_default_gateway(self, host_name: str) -> str | None:
         """
         Get the default gateway of a host using `ip -j route`.
@@ -363,9 +377,8 @@ class KatharaBaseAPI:
 
 
 async def main():
-    api = KatharaBaseAPI(lab_name="simple_bgp")
-    # result = api.curl_web_test("client_0", "http://web0.pod0")
-    result = api.get_default_gateway("pc1")
+    api = KatharaBaseAPI(lab_name="dc_clos_service")
+    result = api.get_connected_devices("super_spine_router_0")
 
     # result = await api.ping_pair("client_0", "webserver0_pod0", count=4)
     print(result)

@@ -121,5 +121,5 @@ if __name__ == "__main__":
 
     for prob in problems:
         print(prob)
-    prob = get_problem_instance(["link_high_latency", "frr_service_down"], "detection", "simple_bgp")
+    prob = get_problem_instance(["bgp_hijacking"], "rca", "dc_clos_service")
     print(prob.get_submission())

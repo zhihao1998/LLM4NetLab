@@ -177,6 +177,31 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
             )
             servers[host_name] = host_meta
             web_servers.append(host_meta)
+
+        # load balancer and its backend servers
+        lb_name = "load_balancer"
+        lb_machine = self.lab.new_machine(lb_name, **{"image": "kathara/nginx-stress", "cpus": 1, "mem": "512m"})
+        lb_meta = HostMeta(
+            name=lb_name,
+            machine=lb_machine,
+            eth_index=0,
+            cmd_list=[],
+        )
+        servers[lb_name] = lb_meta
+        lb_backends = []
+        for web_idx in range(3):  # 3 backend servers
+            backend_name = f"backend_web_{web_idx}"
+            backend_machine = self.lab.new_machine(
+                backend_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+            )
+            backend_meta = HostMeta(
+                name=backend_name,
+                machine=backend_machine,
+                eth_index=0,
+                cmd_list=[],
+            )
+            lb_backends.append(backend_meta)
+
         # dhcp
         host_name = "dhcp_server"
         host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
@@ -307,17 +332,6 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
                         self.lab.connect_machine_to_link(
                             host_meta.machine.name, f"{access_meta.machine.name}_{host_meta.machine.name}"
                         )
-                        # assign IPs, here we use DHCP, so just attach to access switch
-                        # host_ip = next(host_ip_gen)
-                        # host_meta.cmd_list.append(
-                        #     f"ip addr add {host_ip}/{dist_network.prefixlen} dev eth{host_meta.eth_index}"
-                        # )
-                        # host_meta.ip_address = str(host_ip)
-
-                        # # add default route
-                        # host_meta.cmd_list.append(
-                        #     f"ip route add default via {default_gateway_ip} dev eth{host_meta.eth_index}"
-                        # )
                         host_meta.eth_index += 1
 
                         # attach to bridge
@@ -361,6 +375,27 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
                         dist_meta.cmd_list.append(
                             f"dhcrelay  -i br0 -i eth0 {server_ip}"
                         )  # make sure eth0 is connected to core router
+
+        # address assignment for load balancer backend servers
+        lb_network = IPv4Network("20.200.0.0/24")
+        lb_ip_gen = lb_network.hosts()
+
+        self.lab.connect_machine_to_link(lb_meta.machine.name, "lb_backend_link")
+        lb_gateway = next(lb_ip_gen)
+        lb_meta.cmd_list.append(f"ip addr add {lb_gateway}/{lb_network.prefixlen} dev eth{lb_meta.eth_index}")
+        lb_meta.eth_index += 1
+
+        # connect backend servers to load balancer
+        for web_idx in range(3):  # 3 backend servers
+            backend_meta = lb_backends[web_idx]
+            # attach to load balancer
+            self.lab.connect_machine_to_link(backend_meta.machine.name, "lb_backend_link")
+            # backend server side
+            backend_meta.cmd_list.append(
+                f"ip addr add {next(lb_ip_gen)}/{lb_network.prefixlen} dev eth{backend_meta.eth_index}"
+            )
+            backend_meta.cmd_list.append(f"ip route add default via {lb_gateway} dev eth{backend_meta.eth_index}")
+            backend_meta.eth_index += 1
 
         # connect server access switch to core3
         core3_meta = core_routers[3]
@@ -510,6 +545,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         """)
         for web_idx, web in enumerate(web_servers):
             basic_bind_conf += f"web{web_idx} IN  A  {web.ip_address}\n"
+        basic_bind_conf += f"web99 IN  A  {lb_meta.ip_address}\n"
         dns_meta.machine.create_file_from_string(
             basic_bind_conf,
             f"/etc/bind/db.{zone_name}",
@@ -528,6 +564,15 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
             self.lab.create_file_from_list(
                 web_meta.cmd_list,
                 f"{web_meta.machine.name}.startup",
+            )
+        # add configurations for load balancer backend servers
+        for web_idx, backend_meta in enumerate(lb_backends):
+            web_content = f"<html><body><h1>Welcome to Load Balancer Backend Web Server {web_idx}</h1></body></html>\n"
+            backend_meta.machine.create_file_from_string(web_content, "/var/www/html/index.html")
+            backend_meta.cmd_list.append("service apache2 start")
+            self.lab.create_file_from_list(
+                backend_meta.cmd_list,
+                f"{backend_meta.machine.name}.startup",
             )
 
         # add configurations for dhcp server
@@ -571,6 +616,17 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
             f"{dhcp_meta.machine.name}.startup",
         )
 
+        # add configurations for load balancer
+        lb_meta.machine.create_file_from_path(
+            os.path.join(cur_path, "nginx.conf"),
+            "/etc/nginx/nginx.conf",
+        )
+        lb_meta.cmd_list.append("service nginx start")
+        self.lab.create_file_from_list(
+            lb_meta.cmd_list,
+            "load_balancer.startup",
+        )
+
         # load machines after initialization
         self.load_machines()
         self.desc = "An data center network with 4 levels using BGP routing."
@@ -580,6 +636,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         for web_idx, web in enumerate(web_servers):
             url = f"http://web{web_idx}.local"
             self.web_urls.append(url)
+        self.web_urls.append("http://web99.local")  # load balancer url
         self.desc += f" Hosting web services at: {', '.join(self.web_urls)}. \n"
 
         # add DNS
@@ -589,7 +646,6 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
 
 if __name__ == "__main__":
     ospf_enterprise = OSPFEnterpriseDHCP()
-    print("Lab description:", ospf_enterprise.desc)
     print("lab net summary:", ospf_enterprise.get_info())
     if ospf_enterprise.lab_exists():
         print("Lab exists, undeploying it...")

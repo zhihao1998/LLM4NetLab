@@ -11,7 +11,7 @@ from llm4netlab.service.kathara import KatharaAPIALL
 class WebBrowsingTrafficGenerator:
     def __init__(
         self,
-        net_env: NetworkEnvBase = OSPFEnterpriseStatic(),
+        scenario_name: NetworkEnvBase = OSPFEnterpriseStatic(),
         request_delay_range: tuple[float, float] = (1.0, 5.0),
         pages_per_session_range: tuple[int, int] = (3, 10),
         loop_forever: bool = True,

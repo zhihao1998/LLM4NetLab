@@ -40,10 +40,6 @@ line vty
 FRR_NEIGHBOR_ADD_TEMPLATE = """neighbor {neighbor_ip} remote-as {neighbor_as}
 """
 
-SUPER_SPINE_COUNT = 1
-SPINE_COUNT = 2  # per super spine
-LEAF_COUNT = 4  # per pod
-
 
 class RouterMeta:
     def __init__(self, name, machine: Machine, eth_index, cmd_list, AS_number):
@@ -70,12 +66,14 @@ class HostMeta:
 class DCClosService(NetworkEnvBase):
     LAB_NAME = "dc_clos_service"
 
-    def __init__(self):
+    def __init__(self, super_spine_count: int = 2, spine_count: int = 2, leaf_count: int = 4):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-
+        self.super_spine_count = super_spine_count
+        self.spine_count = spine_count
+        self.leaf_count = leaf_count
         pod_spines = {}
         pod_leaves = {}
         pod_dns = {}
@@ -92,7 +90,7 @@ class DCClosService(NetworkEnvBase):
         # Create a generator of /31s
         subnets31 = list(infra_pool.subnets(new_prefix=31))
 
-        for ss in range(SUPER_SPINE_COUNT):
+        for ss in range(self.super_spine_count):
             ss_name = f"super_spine_router_{ss}"
             router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"})
             router_ss_meta = RouterMeta(
@@ -104,9 +102,9 @@ class DCClosService(NetworkEnvBase):
             )
             tot_super_spines.append(router_ss_meta)
 
-        for pod in range(SUPER_SPINE_COUNT):
+        for pod in range(self.super_spine_count):
             pod_spines[pod] = []
-            for spine_id in range(SPINE_COUNT):
+            for spine_id in range(self.spine_count):
                 spine_name = f"spine_router_{pod}_{spine_id}"
                 router_spine = self.lab.new_machine(
                     spine_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
@@ -122,7 +120,7 @@ class DCClosService(NetworkEnvBase):
                 tot_spines.append(spine_meta)
 
             pod_leaves[pod] = []
-            for leaf_id in range(LEAF_COUNT):
+            for leaf_id in range(self.leaf_count):
                 leaf_name = f"leaf_router_{pod}_{leaf_id}"
                 router_leaf = self.lab.new_machine(
                     leaf_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
@@ -151,7 +149,7 @@ class DCClosService(NetworkEnvBase):
             tot_dns.append(dns_meta)
 
             pod_webservers[pod] = []
-            for host in range(LEAF_COUNT - 1):
+            for host in range(self.leaf_count - 1):
                 web_name = f"webserver{host}_pod{pod}"
                 web_machine = self.lab.new_machine(
                     web_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
@@ -166,7 +164,7 @@ class DCClosService(NetworkEnvBase):
                 tot_webservers.append(web_meta)
 
         # add two client hosts outside the DC
-        for client_id in range(SUPER_SPINE_COUNT):
+        for client_id in range(self.super_spine_count):
             client_name = f"client_{client_id}"
             client_machine = self.lab.new_machine(
                 client_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
@@ -180,7 +178,7 @@ class DCClosService(NetworkEnvBase):
             tot_clients.append(client_meta)
 
         # add links between super spines and spines
-        for pod in range(SUPER_SPINE_COUNT):
+        for pod in range(self.super_spine_count):
             super_spine_meta = tot_super_spines[pod]
             for spine_meta in tot_spines:
                 self.lab.connect_machine_to_link(
@@ -216,7 +214,7 @@ class DCClosService(NetworkEnvBase):
                     spine_meta.router_id = b_ip.split("/")[0]
 
         # add links between spines and leaves
-        for pod in range(SUPER_SPINE_COUNT):
+        for pod in range(self.super_spine_count):
             for spine_meta in pod_spines[pod]:
                 for leaf_meta in pod_leaves[pod]:
                     self.lab.connect_machine_to_link(
@@ -252,10 +250,10 @@ class DCClosService(NetworkEnvBase):
                         leaf_meta.router_id = b_ip.split("/")[0]
 
         # add links between leaves and internal hosts
-        for pod in range(SUPER_SPINE_COUNT):
+        for pod in range(self.super_spine_count):
             pod_services = pod_dns[pod] + pod_webservers[pod]
 
-            for idx in range(LEAF_COUNT):
+            for idx in range(self.leaf_count):
                 leaf_meta = pod_leaves[pod][idx]
                 host = pod_services[idx]
                 self.lab.connect_machine_to_link(
@@ -275,7 +273,7 @@ class DCClosService(NetworkEnvBase):
                 host.ip_address = str(host_ip.ip)
 
         # add link between client host and super spines
-        for pod in range(SUPER_SPINE_COUNT):
+        for pod in range(self.super_spine_count):
             client_meta = tot_clients[pod]
             super_spine_meta = tot_super_spines[pod]
             self.lab.connect_machine_to_link(
@@ -284,7 +282,7 @@ class DCClosService(NetworkEnvBase):
             self.lab.connect_machine_to_link(
                 client_meta.machine.name, f"{super_spine_meta.machine.name}_{client_meta.machine.name}"
             )
-            subnet = IPv4Network("192.168.1.0/24")
+            subnet = IPv4Network(f"192.168.{pod}.0/24")
             ss_ip = IPv4Interface(f"{subnet.network_address + 1}/{subnet.prefixlen}")
             client_ip = IPv4Interface(f"{subnet.network_address + 2}/{subnet.prefixlen}")
             super_spine_meta.cmd_list.append(f"ip addr add {ss_ip} dev eth{super_spine_meta.eth_index}")

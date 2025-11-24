@@ -9,7 +9,7 @@ from llm4netlab.config import BASE_DIR, RESULTS_DIR
 
 
 def generate_code():
-    time_str = datetime.datetime.now().strftime("%m%d%H%M%S")
+    time_str = datetime.now().strftime("%m%d%H%M%S")
     return time_str
 
 
@@ -50,7 +50,7 @@ class Session:
                 self.root_cause_name = "multiple_faults"
             else:
                 self.root_cause_name = self.problem_names[0]
-            self.session_dir = f"{RESULTS_DIR}/multiple_faults/{self.task_level}/{self.session_id}"
+                self.session_dir = f"{RESULTS_DIR}/{self.root_cause_name}/{self.task_level}/{self.session_id}"
             self._write_session()
 
             os.makedirs(self.session_dir, exist_ok=True)

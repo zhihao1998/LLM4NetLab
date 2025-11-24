@@ -16,7 +16,7 @@ class MCPServerConfig:
             config = {
                 "task_mcp_server": {
                     "command": "python3",
-                    "args": [f"{self.mcp_server_dir}/task_mcp_server.py"],
+                    "args": [f"{self.mcp_server_dir}/task_mcp_server_{self.session.task_level}.py"],
                     "transport": "stdio",
                 },
             }
@@ -27,14 +27,19 @@ class MCPServerConfig:
                     "args": [f"{self.mcp_server_dir}/kathara_base_mcp_server.py"],
                     "transport": "stdio",
                 },
-                "generic_tools_mcp_server": {
-                    "command": "python3",
-                    "args": [f"{self.mcp_server_dir}/generic_tools_mcp_server.py"],
-                    "transport": "stdio",
-                },
                 "kathara_frr_mcp_server": {
                     "command": "python3",
                     "args": [f"{self.mcp_server_dir}/kathara_frr_mcp_server.py"],
+                    "transport": "stdio",
+                },
+                "kathara_bmv2_mcp_server": {
+                    "command": "python3",
+                    "args": [f"{self.mcp_server_dir}/kathara_bmv2_mcp_server.py"],
+                    "transport": "stdio",
+                },
+                "kathara_telemetry_mcp_server": {
+                    "command": "python3",
+                    "args": [f"{self.mcp_server_dir}/kathara_telemetry_mcp_server.py"],
                     "transport": "stdio",
                 },
             }

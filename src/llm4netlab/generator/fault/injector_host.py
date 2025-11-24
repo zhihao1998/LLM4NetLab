@@ -114,6 +114,22 @@ class FaultInjectorHost:
         )
         self.logger.info(f"Recovered high socket usage on {host_name}.")
 
+    def inject_stress_all(self, host_name: str, duration: int = 300):
+        """Inject a fault by causing high CPU, memory, and I/O usage on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"stress-ng --cpu 0 --cpu-load 100 --iomix 0 --sock 0 --hdd 2 -vm 0 --vm-bytes 75% --timeout {duration} &",
+        )
+        self.logger.info(f"Injected high CPU, memory, and I/O usage on {host_name} for {duration} seconds.")
+
+    def recover_stress_all(self, host_name: str):
+        """Recover from high CPU, memory, and I/O usage on a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            "pkill stress-ng",
+        )
+        self.logger.info(f"Recovered high CPU, memory, and I/O usage on {host_name}.")
+
     def inject_high_io(self, host_name: str, duration: int = 300):
         """Inject a fault by causing high I/O usage on a host."""
         self.kathara_api.exec_cmd(

@@ -30,7 +30,7 @@ class Orchestrator:
         self,
         root_cause_name: str,
         task_level: TaskLevel,
-        net_env: NetworkEnvBase = None,
+        scenario_name: NetworkEnvBase = None,
         session_id: str = None,
         if_inject: bool = True,
     ) -> tuple:

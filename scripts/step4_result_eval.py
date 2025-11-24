@@ -46,7 +46,7 @@ def _eval_problem(session: Session, judge_model: str):
                 The root cause name is {problem.root_cause_name}.
             """),
         trace_path=trace_path,
-        save_path=f"{session.session_dir}/llm_judge.log",
+        save_path=f"{session.session_dir}/llm_judge.json",
     )
     relevance_score = judge_response.scores.relevance.score
     correctness_score = judge_response.scores.correctness.score

@@ -26,6 +26,7 @@ class RootCauseCategory(StrEnum):
     )
     ACCESS_POLICY_MISCONFIGURATION = ("access_policy_misconfiguration", "ACL / firewall / security group misconfig")
     MULTIPLE_FAULTS = ("multiple_faults", "Multiple simultaneous faults in the network")
+    SWITCH_FORWARDING_ERRORS = ("switch_forwarding_errors", "Switch forwarding errors due to misconfigurations or bugs")
 
 
 class TaskLevel(StrEnum):

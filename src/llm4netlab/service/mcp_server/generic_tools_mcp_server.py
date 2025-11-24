@@ -4,12 +4,15 @@ from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from mcp.server.fastmcp import FastMCP
 
+from llm4netlab.utils.errors import safe_tool
+
 # Initialize FastMCP server
 mcp = FastMCP("common_tools_mcp_server")
 
 load_dotenv("/home/p4/codes/LLM4NetLab/.env")
 
 
+@safe_tool
 @mcp.tool()
 def google_search(query: str) -> dict:
     """Perform a Google search and return the titles and links of the top results.

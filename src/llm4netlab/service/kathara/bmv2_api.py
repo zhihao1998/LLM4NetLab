@@ -242,6 +242,16 @@ class BMv2APIMixin:
         command = _build_thrift_command([f'counter_read("{counter_name}", {index})'])
         return self._run_cmd(switch_name, command)
 
+    def read_p4_program(
+        self: _SupportsBase,
+        switch_name: str,
+    ) -> list[str]:
+        """
+        Read the P4 program from the switch.
+        """
+        command = "cat *.p4"
+        return self._run_cmd(switch_name, command)
+
 
 class KatharaBMv2API(KatharaBaseAPI, BMv2APIMixin):
     """
@@ -252,12 +262,12 @@ class KatharaBMv2API(KatharaBaseAPI, BMv2APIMixin):
 
 
 async def main():
-    lab_name = "simple_bmv2"
+    lab_name = "p4_mpls"
     kathara_api = KatharaBMv2API(lab_name)
     # result = await kathara_api.get_reachability()
     # print(result)
 
-    result = kathara_api.bmv2_get_counter_arrays("s1")
+    result = kathara_api.bmv2_table_dump("switch_1", "MyIngress.mpls_tbl")
     print(result)
 
 

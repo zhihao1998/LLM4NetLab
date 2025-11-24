@@ -24,6 +24,8 @@ def start_net_env(scenario_name: str, **kwargs):
     Every run starts a new session.
     """
     net_env = get_net_env_instance(scenario_name, **kwargs)
+    if net_env.lab_exists():
+        net_env.undeploy()
     net_env.deploy()
 
     # save session data for follow-up steps

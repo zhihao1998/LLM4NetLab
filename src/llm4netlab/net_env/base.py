@@ -41,10 +41,12 @@ class NetworkEnvBase:
                 self.bmv2_switches.append(machine)
             elif "frr" in image:
                 self.routers.append(machine)
-            elif "base" in image:
+            elif "base" in image or "nginx" in image:
                 host_keys = ["pc", "host", "client"]
                 if any(key in machine for key in host_keys):
                     self.hosts.append(machine)
+                elif "load_balancer" in machine or "lb" in machine:
+                    self.servers["load_balancer"].append(machine)
                 elif "switch" in machine or "sw" in machine:
                     self.switches.append(machine)
                 elif "dns" in machine:

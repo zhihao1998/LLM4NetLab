@@ -24,6 +24,7 @@ LOCAL_TASK_INSTRUCTION = """\
             The following symptoms have been observed in the network (if any):
             {symptom_desc}
 
+            There are some anomalies detected in the network.
             Your task is to localize the anomaly.
             Pinpoint the faulty component(s), such as device, interface, link, prefix, neighbor, or path segment.
             Focus strictly on *where* the anomaly occurs.

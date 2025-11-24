@@ -35,6 +35,7 @@ RCA_TASK_INSTRUCTION_NO_SYMPTOM = """\
             The network you are working with is described below:
             {net_desc}
 
+            There are some anomalies detected in the network.
             Your task is to perform root-cause analysis (RCA). Focus on *why* the anomaly occurs.
             Once you have determined the root cause (one or multiple), provide your conclusion for submission.
             """

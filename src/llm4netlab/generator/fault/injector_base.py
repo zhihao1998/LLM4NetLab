@@ -232,9 +232,9 @@ class FaultInjectorBase:
         """Inject a fault by adding a static blackhole route on a host."""
         self.kathara_api.exec_cmd(
             host_name,
-            f"ip route add blackhole {network}",
+            f"ip route replace blackhole {network}",
         )
-        self.logger.info(f"Injected addition of route {network} on {host_name}.")
+        self.logger.info(f"Injected addition of blackhole route {network} on {host_name}.")
 
     def recover_add_route_blackhole_nexthop(self, host_name: str, network: str):
         """Recover from a fault by deleting a static blackhole route on a host."""
@@ -242,7 +242,7 @@ class FaultInjectorBase:
             host_name,
             f"ip route del blackhole {network}",
         )
-        self.logger.info(f"Recovered addition of route {network} on {host_name}.")
+        self.logger.info(f"Recovered addition of blackhole route {network} on {host_name}.")
 
     def inject_add_route_blackhole_advertise(self, host_name: str, network: str, AS: str):
         cmd = (

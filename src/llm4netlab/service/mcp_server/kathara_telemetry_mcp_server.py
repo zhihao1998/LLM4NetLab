@@ -3,12 +3,14 @@ import os
 from mcp.server.fastmcp import FastMCP
 
 from llm4netlab.service.kathara import KatharaTelemetryAPI
+from llm4netlab.utils.errors import safe_tool
 
 # Initialize FastMCP server
 mcp = FastMCP("kathara_telemetry_mcp_server")
 LAB_NAME = os.getenv("LAB_NAME")
 
 
+@safe_tool
 @mcp.tool()
 def influx_list_buckets() -> list[str]:
     """List all InfluxDB buckets.
@@ -20,6 +22,7 @@ def influx_list_buckets() -> list[str]:
     return kathara_api.influx_list_buckets()
 
 
+@safe_tool
 @mcp.tool()
 def influx_get_measurements() -> list[str]:
     """List all InfluxDB measurements.
@@ -31,6 +34,7 @@ def influx_get_measurements() -> list[str]:
     return kathara_api.influx_get_measurements()
 
 
+@safe_tool
 @mcp.tool()
 def influx_count_measurements(measurement: str) -> list[str]:
     """Count the number of records in an InfluxDB measurement.
@@ -45,6 +49,7 @@ def influx_count_measurements(measurement: str) -> list[str]:
     return kathara_api.influx_count_measurements(measurement)
 
 
+@safe_tool
 @mcp.tool()
 def influx_query_measurement(measurement: str, limit: int = 10, offset: int = 0) -> list[str]:
     """Query an InfluxDB measurement.

@@ -4,17 +4,28 @@ import os
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from langchain_core.tools.structured import StructuredTool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-from agent.llm.model_factory import load_ollama_model
+from agent.llm.model_factory import load_model
 from agent.utils.loggers import FileLoggerHandler
 from agent.utils.mcp_servers import MCPServerConfig
-from agent.utils.template import OVERALL_DIAGNOSIS_PROMPT
 from llm4netlab.config import RESULTS_DIR
 from llm4netlab.orchestrator.orchestrator import Orchestrator
 from llm4netlab.utils.session import SessionKey
 
 load_dotenv()
+
+OVERALL_DIAGNOSIS_PROMPT = """\
+    You are a network anomaly diagnosis agent.
+
+    Basic requirements:
+    - Follow the task instructions strictly (detection, localization, or RCA).
+    - Use the provided tools to gather necessary information.
+    - Output only in the required structured format.
+    - Follow the required output schema exactly.
+    - Do not provide mitigation unless explicitly required.
+"""
 
 
 class DiagnosisAgent:
@@ -24,10 +35,14 @@ class DiagnosisAgent:
         mcp_server_config = MCPServerConfig().load_config(if_submit=False)
         self.client = MultiServerMCPClient(connections=mcp_server_config)
         self.tools = None
-        self.llm = load_ollama_model(backend_model=backend_model)
+        self.llm = load_model(backend_model=backend_model)
 
     async def load_tools(self):
-        self.tools = await self.client.get_tools()
+        self.tools: list[StructuredTool] = await self.client.get_tools()
+        for tool in self.tools:
+            tool.handle_tool_error = True
+            tool.handle_validation_error = True
+        print(self.tools)
 
     def get_agent(self):
         agent = create_agent(

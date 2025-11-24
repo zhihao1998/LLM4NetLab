@@ -5,9 +5,10 @@ from textwrap import dedent
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from langchain_core.tools.structured import StructuredTool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-from agent.llm.model_factory import load_ollama_model
+from agent.llm.model_factory import load_model
 from agent.utils.loggers import FileLoggerHandler
 from agent.utils.mcp_servers import MCPServerConfig
 from llm4netlab.config import RESULTS_DIR
@@ -30,10 +31,14 @@ class SubmissionAgent:
         self.client = MultiServerMCPClient(connections=mcp_server_config)
         self.tools = None
 
-        self.llm = load_ollama_model(backend_model=backend_model)
+        self.llm = load_model(backend_model=backend_model)
 
     async def load_tools(self):
-        self.tools = await self.client.get_tools()
+        self.tools: list[StructuredTool] = await self.client.get_tools()
+        for tool in self.tools:
+            tool.handle_tool_error = True
+            tool.handle_validation_error = True
+        print(self.tools)
 
     def get_agent(self):
         """Final submission node"""

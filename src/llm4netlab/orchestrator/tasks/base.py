@@ -14,7 +14,7 @@ class TaskBase:
 
     def __init__(self):
         self.results = {}
-        self.net_env: NetworkEnvBase = None
+        self.scenario_name: NetworkEnvBase = None
 
     def inject_fault(self):
         return NotImplementedError()

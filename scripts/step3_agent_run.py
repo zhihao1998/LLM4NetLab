@@ -21,6 +21,7 @@ def start_agent(agent_type: str, backend_model: str, max_steps: int):
     session.load_running_session()
     session.update_session("agent_type", agent_type)
     session.update_session("backend_model", backend_model)
+    session.start_session()
 
     logger.info(f"Starting agent: {agent_type}  with backend {backend_model} in session {session.session_id}")
     agent = _agent_selector(agent_type, backend_model)

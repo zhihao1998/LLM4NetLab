@@ -6,7 +6,7 @@ from langchain_ollama import ChatOllama
 from pydantic import BaseModel, Field
 
 # from agent.llm.langchain_deepseek import DeepSeekLLM
-from agent.llm.model_factory import load_ollama_model
+from agent.llm.model_factory import load_model
 from agent.utils.template import LLM_JUDGE_PROMPT_TEMPLATE
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
 
@@ -39,7 +39,7 @@ class LLMJudge:
     def __init__(self, judge_model: str = "qwen3:32b"):
         # self.llm = DeepSeekLLM()  # Note: good models required here
 
-        self.llm: ChatOllama = load_ollama_model(backend_model=judge_model)
+        self.llm: ChatOllama = load_model(backend_model=judge_model)
         self.llm = self.llm.with_structured_output(JudgeResponse)
         self.prompt = LLM_JUDGE_PROMPT_TEMPLATE
 

@@ -1,14 +1,13 @@
 import json
 import os
-from typing import Any, Dict, List
+from typing import List
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from llm4netlab.orchestrator.problems.prob_pool import list_avail_problems as _list_avail_problems
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission
-from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission
-from llm4netlab.orchestrator.tasks.rca import RCASubmission
+from llm4netlab.utils.errors import safe_tool
 
 # Initialize FastMCP server
 mcp = FastMCP(
@@ -30,6 +29,7 @@ base_dir = os.getenv("BASE_DIR")
 results_dir = os.getenv("RESULTS_DIR")
 
 
+@safe_tool
 @mcp.tool()
 def list_avail_problems() -> list[str]:
     """List all available root cause types.
@@ -40,37 +40,21 @@ def list_avail_problems() -> list[str]:
     return _list_avail_problems()
 
 
+@safe_tool
 @mcp.tool()
-def get_submission_template() -> str:
-    """Get the submission instruction.
-
-    Returns:
-        str: The submission instruction.
-    """
-    if TASK_LEVEL == "detection":
-        template = DetectionSubmission.model_json_schema()
-    elif TASK_LEVEL == "localization":
-        template = LocalizationSubmission.model_json_schema()
-    elif TASK_LEVEL == "rca":
-        template = RCASubmission.model_json_schema()
-    else:
-        raise ValueError(f"Unsupported task level: {TASK_LEVEL}")
-    return json.dumps(template)
-
-
-@mcp.tool()
-def submit(submission: Dict[str, Any]) -> List[str]:
-    """Submit a task solution. Before submission, call get_submission_template to get the expected submission format.
+def submit(submission: DetectionSubmission) -> List[str]:
+    """Submit a task solution.
 
     Args:
-        submission: The submission data for the task.
+        submission (DetectionSubmission): The submission data.
 
     Returns:
-        bool: Indicates whether the submission was successful.
+        List[str]: Submission status messages.
     """
-    # record the result for evaluation
-    submission["backend_model"] = backend_model
-    submission["agent_type"] = agent_type
+    submission_dict = submission.model_dump()
+
+    submission_dict["backend_model"] = backend_model
+    submission_dict["agent_type"] = agent_type
     os.makedirs(
         f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}",
         exist_ok=True,
@@ -79,7 +63,7 @@ def submit(submission: Dict[str, Any]) -> List[str]:
         f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}/{backend_model}_submission.log",
         "a+",
     ) as log_file:
-        log_file.write(json.dumps(submission))
+        log_file.write(json.dumps(submission_dict))
 
     return ["Submission success."]
 

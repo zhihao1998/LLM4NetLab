@@ -3,12 +3,14 @@ import os
 from mcp.server.fastmcp import FastMCP
 
 from llm4netlab.service.kathara import KatharaAPIALL as KatharaAPI
+from llm4netlab.utils.errors import safe_tool
 
 # Initialize FastMCP server
 mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000, log_level="DEBUG")
 LAB_NAME = os.getenv("LAB_NAME")
 
 
+@safe_tool
 @mcp.tool()
 async def get_reachability() -> str:
     """Get the reachability of the net_env, i.e., ping results from each host to all other hosts in the lab.
@@ -21,23 +23,25 @@ async def get_reachability() -> str:
     return result
 
 
-# @mcp.tool()
-# async def ping_pair(host_a: str, host_b: str, count: int, args: str = "") -> str:
-#     """Ping from one host to another in the lab.
+@safe_tool
+@mcp.tool()
+async def ping_pair(host_a: str, host_b: str, count: int, args: str = "") -> str:
+    """Ping from one host to another in the lab.
 
-#     Args:
-#         host_a (str): The name of the source host.
-#         host_b (str): The name of the destination host.
-#         count (int, optional): Number of ping packets to send. Defaults to 4.
-#         args (str, optional): Additional arguments for the ping command. Defaults to "".
-#     Returns:
-#         str: The ping result from host_a to host_b.
-#     """
-#     kathara_api = KatharaAPI(lab_name=LAB_NAME)
-#     result = kathara_api.ping_pair(host_a=host_a, host_b=host_b, count=count, args=args)
-#     return result
+    Args:
+        host_a (str): The name of the source host.
+        host_b (str): The name of the destination host.
+        count (int, optional): Number of ping packets to send. Defaults to 4.
+        args (str, optional): Additional arguments for the ping command. Defaults to "".
+    Returns:
+        str: The ping result from host_a to host_b.
+    """
+    kathara_api = KatharaAPI(lab_name=LAB_NAME)
+    result = kathara_api.ping_pair(host_a=host_a, host_b=host_b, count=count, args=args)
+    return result
 
 
+@safe_tool
 @mcp.tool()
 def systemctl_ops(host_name: str, service_name: str, operation: str) -> str:
     """Perform systemctl operations (start, stop, restart, status) on a host.
@@ -55,6 +59,7 @@ def systemctl_ops(host_name: str, service_name: str, operation: str) -> str:
     return result
 
 
+@safe_tool
 @mcp.tool()
 def get_host_net_config(host_name: str) -> dict:
     """Get the network configuration of a host, including ifconfig, ip addr, and ip route.
@@ -70,6 +75,7 @@ def get_host_net_config(host_name: str) -> dict:
     return config
 
 
+@safe_tool
 @mcp.tool()
 def get_tc_statistics(host_name: str, interface: str) -> list[str]:
     """Get the traffic control (tc) statistics of a specific interface on a host.
@@ -86,6 +92,7 @@ def get_tc_statistics(host_name: str, interface: str) -> list[str]:
     return stats
 
 
+@safe_tool
 @mcp.tool()
 def netstat(host_name: str, args: str = "-tuln") -> str:
     """Run netstat command on a host with given arguments.
@@ -102,6 +109,7 @@ def netstat(host_name: str, args: str = "-tuln") -> str:
     return result
 
 
+@safe_tool
 @mcp.tool()
 def ip_addr_statistics(host_name: str) -> str:
     """Get IP address statistics of a host.
@@ -117,6 +125,7 @@ def ip_addr_statistics(host_name: str) -> str:
     return result
 
 
+@safe_tool
 @mcp.tool()
 def ethtool(host_name: str, interface: str, args: str) -> str:
     """Run ethtool command on a host's interface with given arguments.
@@ -134,6 +143,7 @@ def ethtool(host_name: str, interface: str, args: str) -> str:
     return result
 
 
+@safe_tool
 @mcp.tool()
 def curl_web_test(host_name: str, url: str, times: int = 5) -> str:
     """Perform a curl web test to a URL for several times and return timing statistics.
@@ -151,6 +161,7 @@ def curl_web_test(host_name: str, url: str, times: int = 5) -> str:
     return result
 
 
+@safe_tool
 @mcp.tool()
 def iperf_test(
     client_host_name: str,
@@ -182,6 +193,7 @@ def iperf_test(
     return result
 
 
+@safe_tool
 @mcp.tool()
 def cat_file(host_name: str, file_path: str) -> str:
     """Show contents of a file on a host.
