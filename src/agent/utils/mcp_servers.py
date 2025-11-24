@@ -1,23 +1,15 @@
 import os
 
-from llm4netlab.utils.session import SessionKey
+from llm4netlab.utils.session import Session
 
 
 class MCPServerConfig:
-    def __init__(
-        self,
-        session_key: SessionKey,
-    ):
+    def __init__(self):
         # load paths
         base_dir = os.getenv("BASE_DIR")
         self.mcp_server_dir = os.path.join(base_dir, "src/llm4netlab/service/mcp_server")
-        self.backend_model_name = session_key.backend_model_name
-        self.agent_name = session_key.agent_name
-        self.session_id = session_key.session_id
-        self.task_level = session_key.task_level
-        self.root_cause_category = session_key.root_cause_category
-        self.root_cause_name = session_key.root_cause_name
-        self.lab_name = session_key.lab_name
+        self.session = Session()
+        self.session.load_running_session()
 
     def load_config(self, if_submit: bool = False) -> dict:
         if if_submit:
@@ -50,12 +42,11 @@ class MCPServerConfig:
         # add env to every server for the submission
         for server in config.values():
             server["env"] = {
-                "LAB_SESSION_ID": self.session_id,
-                "ROOT_CAUSE_CATEGORY": self.root_cause_category,
-                "ROOT_CAUSE_NAME": self.root_cause_name,
-                "TASK_LEVEL": self.task_level,
-                "LAB_NAME": self.lab_name,
-                "BACKEND_MODEL_NAME": self.backend_model_name,
-                "AGENT_NAME": self.agent_name,
+                "LAB_SESSION_ID": self.session.session_id,
+                "ROOT_CAUSE_NAME": self.session.root_cause_name,
+                "TASK_LEVEL": self.session.task_level,
+                "LAB_NAME": self.session.scenario_name,
+                "backend_model": self.session.backend_model,
+                "agent_type": self.session.agent_type,
             }
         return config

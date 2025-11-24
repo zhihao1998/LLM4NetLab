@@ -19,9 +19,9 @@ class HostMissingIPBase:
 
     symptom_desc = "Some hosts are unable to communicate with other devices in the network."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         self.logger = logging.getLogger(__name__)
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[0]
@@ -101,8 +101,8 @@ class HostIPConflictBase:
 
     symptom_desc = "Some hosts experience intermittent connectivity issues."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[:2]
@@ -164,8 +164,8 @@ class HostIncorrectIPBase:
 
     symptom_desc = "Some hosts seem to be unreachable in the network."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[0]
@@ -228,8 +228,8 @@ class HostIncorrectGatewayBase:
 
     symptom_desc = "Some hosts seem to be unreachable in the network."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[0]
@@ -293,8 +293,8 @@ class HostIncorrectNetmaskBase:
 
     symptom_desc = "Some hosts seem to be unreachable in the network."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[0]
@@ -366,8 +366,8 @@ class HostIncorrectDNSBase:
 
     symptom_desc = "Some hosts are unable to access web services."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[0]
@@ -422,8 +422,8 @@ class HostMACSpoofingBase:
 
     symptom_desc = "Some hosts experience intermittent connectivity issues."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[:2]

@@ -6,6 +6,7 @@ from langchain_ollama import ChatOllama
 from pydantic import BaseModel, Field
 
 # from agent.llm.langchain_deepseek import DeepSeekLLM
+from agent.llm.model_factory import load_ollama_model
 from agent.utils.template import LLM_JUDGE_PROMPT_TEMPLATE
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
 
@@ -35,15 +36,10 @@ class JudgeResponse(BaseModel):
 
 
 class LLMJudge:
-    def __init__(self):
+    def __init__(self, judge_model: str = "qwen3:32b"):
         # self.llm = DeepSeekLLM()  # Note: good models required here
-        model = "qwen3:32b"
-        self.llm = ChatOllama(
-            model=model,
-            temperature=0,
-            validate_model_on_init=True,
-            base_url=os.getenv("OLLAMA_API_URL"),
-        )
+
+        self.llm: ChatOllama = load_ollama_model(backend_model=judge_model)
         self.llm = self.llm.with_structured_output(JudgeResponse)
         self.prompt = LLM_JUDGE_PROMPT_TEMPLATE
 
@@ -121,18 +117,18 @@ if __name__ == "__main__":
     judge = LLMJudge()
     session_id = "20251113090058"
     root_cause_name = "frr_down_localization"
-    eval_backend_model_name = "gpt-oss:20b"
+    eval_backend_model = "gpt-oss:20b"
     problem_instance = get_problem_instance(root_cause_name)
     problem_description = problem_instance.META.description
     net_env_info = problem_instance.net_env.get_info()
 
-    trace_file = os.path.join(RESULTS_DIR, root_cause_name, f"{session_id}_{eval_backend_model_name}_conversation.log")
+    trace_file = os.path.join(RESULTS_DIR, root_cause_name, f"{session_id}_{eval_backend_model}_conversation.log")
 
     evaluation_content, score = judge.evaluate_agent(
         problem_description,
         net_env_info,
         trace_file,
-        save_path=os.path.join(RESULTS_DIR, root_cause_name, f"{session_id}_{eval_backend_model_name}_llm_judge.log"),
+        save_path=os.path.join(RESULTS_DIR, root_cause_name, f"{session_id}_{eval_backend_model}_llm_judge.log"),
     )
     print("Evaluation Result:", evaluation_content)
     print("Evaluation Score:", score)

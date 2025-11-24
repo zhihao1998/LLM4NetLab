@@ -10,8 +10,8 @@ RESULTS_DIR = os.getenv("RESULTS_DIR")
 
 @dataclass
 class EvalResult:
-    agent_name: str = None
-    backend_model_name: str = None
+    agent_type: str = None
+    backend_model: str = None
     root_cause_category: str = None
     root_cause_name: str = None
     task_level: str = None

@@ -97,55 +97,32 @@ GOOGLE_SEARCH_CSE_ID=<>
 DEEPSEEK_API_KEY=<>
 ```
 
-## Agent Configuration
+## Step by step guide
+You can follow the steps below to run a complete troubleshooting task with LLM4NetLab.
 
-LLM4NetLab now supports [mcp-use <img src="https://mintlify.s3.us-west-1.amazonaws.com/mcpuse/logo/light.svg" alt="mcp-use" height="16" style="vertical-align:middle;background:white;">](https://docs.mcp-use.com/getting-started) (LangChain as backend) to integrate your agent with MCP support.
+1. **Start the network environment**
+  Check the specific scenario and its parameters under `llm4netlab/net_env`.
+   ```shell
+   python3 scripts/step1_net_env_start.py --scenario <scenario_name> --scenario_params key1=value1 key2=value2
+   ```
 
-💡 LangChain and LangGraph support is coming soon!
+2. **Inject faults into the network environment**
 
-## Example
+   ```shell
+   python3 scripts/step2_failure_inject.py --problems <problem_id_1> <problem_id_2> --task_level <detection|localization|rca>
+   ```
 
-You can find examples under `examples`, which show how to specify the network scenarios, tasks, and problems. For example, to run a device failure detection task, you can do the following:
+3. **Run the AI agent to troubleshoot the network**
+    ```shell
+    python3 scripts/step3_agent_run.py --agent_type <agent_type> --backend_model <backend_model> --max_steps <max_steps>
+    ```
 
-```python
-# 1. Define orchestrator and llm (DeepSeek here)
-from agent.utils.template import MCP_PROMPT_TEMPLATE
-from langchain_deepseek import ChatDeepSeek
-from mcp_use import MCPAgent, MCPClient
+4. **Evaluate the agent's performance**
 
-orchestrator = Orchestrator()
-llm = ChatDeepSeek(model="deepseek-reasoner")
+    ```shell
+    python3 scripts/step4_result_eval.py --judge_model <judge_model>
+    ```
 
-# 2. Configure the mcp servers and client
-config = {
-    "mcpServers": {
-        "kathara_base_mcp_server": {
-            "command": "python3",
-            "args": [f"{base_dir}/src/llm4netlab/service/mcp_server/kathara_base_mcp_server.py"],
-        },
-        ...
-    }
-}
-client = MCPClient.from_dict(config)
-
-# 3. Initialize agent
-agent = MCPAgent(
-    llm=llm,
-    client=client,
-    max_steps=20,
-    system_prompt_template=MCP_PROMPT_TEMPLATE,
-)
-orchestrator.register_agent(agent, agent.name)
-
-# 4. Select a problem, see all available problems in llm4netlab/orchestrator/problems
-task_desc = orchestrator.init_problem("frr_down_detection")
-
-# 5. Start your agent and enjoy!
-await agent.run(task_desc)
-
-# 6. Stop the problem and clean the environments after completion
-orchestrator.stop_problem()
-```
 
 <h1 id="🛠️usage">🛠️ Usage</h1>
 

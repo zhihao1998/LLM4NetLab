@@ -10,8 +10,9 @@ from llm4netlab.orchestrator.tasks.base import TaskBase
 
 class RCASubmission(BaseModel):
     """
-    Schema for Root Cause Analysis (RCA) task submission.
-    The input must be selected from list_avail_problems() API.
+    The Root Cause Analysis (RCA) submission must use valid root cause names.
+    Before submitting your answer, first query all available fault types by calling list_avail_problems().
+    Your final submission must select one or more root_cause_names strictly from the options returned by that API.
     """
 
     root_cause_name: List[str] = Field(

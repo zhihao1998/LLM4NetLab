@@ -11,3 +11,4 @@ config/config.yaml
 .env
 /.venv
 *.egg-info/
+/runtime/

@@ -7,14 +7,27 @@ from datetime import datetime
 from langchain_core.callbacks.base import BaseCallbackHandler
 from langchain_core.outputs.generation import Generation
 
+from llm4netlab.config import BASE_DIR
+
 
 class FileLoggerHandler(BaseCallbackHandler):
-    def __init__(self, log_path):
+    def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
         if not self.logger.handlers:
+            # read session info from file
+            with open(f"{BASE_DIR}/runtime/current_session.json", "r") as f:
+                session_info = json.load(f)
+            log_path = os.path.join(
+                BASE_DIR,
+                "results",
+                session_info["root_cause_name"],
+                session_info["task_level"],
+                session_info["session_id"],
+                "conversation.log",
+            )
             os.makedirs(os.path.dirname(log_path), exist_ok=True)
             file_handler = logging.FileHandler(log_path, encoding="utf-8", mode="a")
 

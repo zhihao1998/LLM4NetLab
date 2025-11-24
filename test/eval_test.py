@@ -10,7 +10,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 
-backend_model_name = "gpt-oss:20b"
+backend_model = "gpt-oss:20b"
 root_cause_category = "device_failure"
 root_cause_name = "frr_service_down"
 task_level = "detection"
@@ -20,8 +20,8 @@ orchestrator = Orchestrator()
 root_cause_category, task_desc, session_id, lab_name = orchestrator.init_problem(
     root_cause_name=root_cause_name,
     task_level=task_level,
-    agent_name="ReAct",
-    backend_model_name=backend_model_name,
+    agent_type="ReAct",
+    backend_model=backend_model,
     session_id=session_id,
     if_inject=False,
 )

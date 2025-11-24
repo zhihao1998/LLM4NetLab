@@ -16,10 +16,10 @@ from llm4netlab.orchestrator.orchestrator import Orchestrator
 # define agent
 class AgentWithMCP(AgentBase):
     def __init__(
-        self, agent_name, backend_model, llm, client, max_steps, log_path, system_prompt_template=MCP_PROMPT_TEMPLATE
+        self, agent_type, backend_model, llm, client, max_steps, log_path, system_prompt_template=MCP_PROMPT_TEMPLATE
     ):
         super().__init__()
-        self.agent_name = agent_name
+        self.agent_type = agent_type
         self.backend_model = backend_model
         self.callback_handler = FileLoggerHandler(log_path=log_path)
         self.agent = MCPAgent(
@@ -40,23 +40,23 @@ class AgentWithMCP(AgentBase):
 async def main():
     # 1. Initialize orchestrator and problem
     orchestrator = Orchestrator()
-    backend_model_name = "gpt-oss:20b"
+    backend_model = "gpt-oss:20b"
 
     task_desc, session_id, root_cause_name, lab_name = orchestrator.init_problem("frr_down_localization")
     # 2. Load MCP server and client
     mcp_server_config = MCPServerConfig(
-        backend_model_name=backend_model_name, session_id=session_id, root_cause_name=root_cause_name, lab_name=lab_name
+        backend_model=backend_model, session_id=session_id, root_cause_name=root_cause_name, lab_name=lab_name
     ).load_config()
     # 3. Create MCP client
     client = MCPClient.from_dict(mcp_server_config)
 
     # 4. Create and register Agent
-    llm = OllamaLLM(model=backend_model_name)
+    llm = OllamaLLM(model=backend_model)
 
-    log_path = os.path.join(f"{RESULTS_DIR}/{root_cause_name}/{session_id}_{backend_model_name}_conversation.log")
+    log_path = os.path.join(f"{RESULTS_DIR}/{root_cause_name}/{session_id}_{backend_model}_conversation.log")
     agent = AgentWithMCP(
-        agent_name=f"ReAct_Ollama_{backend_model_name}",
-        backend_model=backend_model_name,
+        agent_type=f"ReAct_Ollama_{backend_model}",
+        backend_model=backend_model,
         llm=llm,
         client=client,
         max_steps=20,

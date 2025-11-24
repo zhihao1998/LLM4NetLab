@@ -19,9 +19,9 @@ class LinkFragBase:
 
     symptom_desc = "Users report partial packet loss when communicating with other hosts."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseDHCP()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.switches[0]

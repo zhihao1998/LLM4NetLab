@@ -24,11 +24,11 @@ _NET_ENVS: Dict[str, NetworkEnvBase] = {
 }
 
 
-def get_net_env_instance(net_env_name: str, **kwargs) -> NetworkEnvBase:
+def get_net_env_instance(scenario_name: str, **kwargs) -> NetworkEnvBase:
     """Get an instance of the specified network environment.
 
     Args:
-        net_env_name: The name of the network environment.
+        scenario_name: The name of the network environment.
 
     Returns:
         An instance of the specified network environment.
@@ -36,9 +36,9 @@ def get_net_env_instance(net_env_name: str, **kwargs) -> NetworkEnvBase:
     Raises:
         ValueError: If the specified network environment is not found.
     """
-    if net_env_name not in _NET_ENVS:
-        raise ValueError(f"Network environment '{net_env_name}' not found in the pool.")
-    return _NET_ENVS[net_env_name](**kwargs)
+    if scenario_name not in _NET_ENVS:
+        raise ValueError(f"Network environment '{scenario_name}' not found in the pool.")
+    return _NET_ENVS[scenario_name](**kwargs)
 
 
 if __name__ == "__main__":

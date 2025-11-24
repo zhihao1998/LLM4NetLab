@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-from agent.llm.model_factory import load_default_model
+from agent.llm.model_factory import load_ollama_model
 from agent.utils.loggers import FileLoggerHandler
 from agent.utils.mcp_servers import MCPServerConfig
 from agent.utils.template import OVERALL_DIAGNOSIS_PROMPT
@@ -20,12 +20,11 @@ load_dotenv()
 class DiagnosisAgent:
     """An agent that performs the total process of network diagnosis using the ReAct framework."""
 
-    def __init__(self, session_key: SessionKey):
-        self.session_key = session_key
-        mcp_server_config = MCPServerConfig(session_key).load_config(if_submit=False)
+    def __init__(self, backend_model: str = "gpt-oss:20b"):
+        mcp_server_config = MCPServerConfig().load_config(if_submit=False)
         self.client = MultiServerMCPClient(connections=mcp_server_config)
         self.tools = None
-        self.llm = load_default_model(model=self.session_key.backend_model_name)
+        self.llm = load_ollama_model(backend_model=backend_model)
 
     async def load_tools(self):
         self.tools = await self.client.get_tools()
@@ -41,7 +40,7 @@ class DiagnosisAgent:
 
 async def run_diagnosis_agent():
     logging.basicConfig(level=logging.INFO)
-    backend_model_name = "gpt-oss:20b"
+    backend_model = "gpt-oss:20b"
     orchestrator = Orchestrator()
     root_cause_name = "frr_service_down"
     task_level = "rca"
@@ -56,15 +55,15 @@ async def run_diagnosis_agent():
         root_cause_category=root_cause_category,
         root_cause_name=root_cause_name,
         task_level=task_level,
-        backend_model_name=backend_model_name,
-        agent_name="DiagnosisAgent",
+        backend_model=backend_model,
+        agent_type="DiagnosisAgent",
     )
     submission_agent = DiagnosisAgent(session_key)
     await submission_agent.load_tools()
 
     log_path = os.path.join(
         f"{RESULTS_DIR}/{session_key.root_cause_category}/{session_key.root_cause_name}/{session_key.task_level}/"
-        f"{session_key.session_id}_{session_key.backend_model_name}_conversation.log"
+        f"{session_key.session_id}_{session_key.backend_model}_conversation.log"
     )
 
     graph = submission_agent.get_agent()

@@ -140,8 +140,8 @@ class DNSRecordErrorBase:
 
     symptom_desc = "Some hosts cannot access external websites."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.servers["dns"][0]

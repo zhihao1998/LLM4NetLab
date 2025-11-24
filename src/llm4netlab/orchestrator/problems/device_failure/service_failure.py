@@ -22,9 +22,9 @@ class Bmv2SwitchDownBase:
     root_cause_category = RootCauseCategory.DEVICE_FAILURE
     root_case_name = "bmv2_switch_down"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or P4BloomFilter()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.bmv2_switches[0]
@@ -76,9 +76,9 @@ class FrrDownBase:
 
     symptom_desc = "Users report connectivity issues to other hosts in the network."
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or SimpleBGP()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or SimpleBGP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.routers[0]

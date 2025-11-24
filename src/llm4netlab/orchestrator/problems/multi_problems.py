@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.base import TaskBase
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
@@ -14,9 +15,10 @@ class MultiFaultBase(TaskBase):
     root_cause_category = RootCauseCategory.MULTIPLE_FAULTS
     root_cause_name = ""  # can only be get after init
 
-    def __init__(self, sub_faults: list[TaskBase]):
+    def __init__(self, sub_faults: list[TaskBase], scenario_name: str, **kwargs):
         super().__init__()
         self.sub_faults = sub_faults
+        self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.root_cause_name = [f.root_cause_name for f in sub_faults]
         self.faulty_devices = []
         for sub_fault in self.sub_faults:

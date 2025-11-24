@@ -67,7 +67,7 @@ def list_avail_problems() -> list[str]:
     return list(_PROBLEMS.keys())
 
 
-def get_problem_instance(problem_names: list, task_level: TaskLevel, net_env_name: str, **kwargs) -> TaskBase:
+def get_problem_instance(problem_names: list, task_level: TaskLevel, scenario_name: str, **kwargs) -> TaskBase:
     """Get the problem instance for a specific root cause name and task level.
     Args:
         problem_names (list): The root cause names of the problem.
@@ -83,30 +83,36 @@ def get_problem_instance(problem_names: list, task_level: TaskLevel, net_env_nam
             case TaskLevel.DETECTION:
                 return MultiFaultDetection(
                     sub_faults=[
-                        _PROBLEMS[fault_name][task_level](net_env_name=net_env_name, **kwargs)
+                        _PROBLEMS[fault_name][task_level](scenario_name=scenario_name, **kwargs)
                         for fault_name in problem_names
                     ],
+                    scenario_name=scenario_name,
+                    **kwargs,
                 )
             case TaskLevel.LOCALIZATION:
                 return MultiFaultLocalization(
                     sub_faults=[
-                        _PROBLEMS[fault_name][task_level](net_env_name=net_env_name, **kwargs)
+                        _PROBLEMS[fault_name][task_level](scenario_name=scenario_name, **kwargs)
                         for fault_name in problem_names
                     ],
+                    scenario_name=scenario_name,
+                    **kwargs,
                 )
             case TaskLevel.RCA:
                 return MultiFaultRCA(
                     sub_faults=[
-                        _PROBLEMS[fault_name][task_level](net_env_name=net_env_name, **kwargs)
+                        _PROBLEMS[fault_name][task_level](scenario_name=scenario_name, **kwargs)
                         for fault_name in problem_names
                     ],
+                    scenario_name=scenario_name,
+                    **kwargs,
                 )
             case _:
                 raise ValueError(f"Unsupported task level for multi-fault: {task_level}")
 
     # Single-fault scenario
     else:
-        return _PROBLEMS[problem_names[0]][task_level](net_env_name=net_env_name, **kwargs)
+        return _PROBLEMS[problem_names[0]][task_level](scenario_name=scenario_name, **kwargs)
 
 
 if __name__ == "__main__":

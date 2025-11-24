@@ -17,8 +17,8 @@ class BGPAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "bgp_acl_block"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosBGP()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosBGP()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.routers[0]
@@ -76,8 +76,8 @@ class OSPFAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "ospf_acl_block"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.routers[0]
@@ -135,8 +135,8 @@ class ARPAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "arp_acl_block"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[0]
@@ -185,8 +185,8 @@ class IcmpAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "icmp_acl_block"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[0]
@@ -236,8 +236,8 @@ class HttpAclBlockBase:
     root_cause_category = RootCauseCategory.ACCESS_POLICY_MISCONFIGURATION
     root_case_name = "http_acl_block"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.hosts[0]

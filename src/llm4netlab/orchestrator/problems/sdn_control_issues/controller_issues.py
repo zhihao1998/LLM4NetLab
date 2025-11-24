@@ -20,9 +20,9 @@ class SDNControllerCrashBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SDN_CONTROL_PLANE_ISSUE
     root_cause_name: str = "sdn_controller_crash"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or SDNOpenFlow()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or SDNOpenFlow()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.sdn_controllers[0]
@@ -76,9 +76,9 @@ class SouthboundPortBlockBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SDN_CONTROL_PLANE_ISSUE
     root_cause_name: str = "southbound_port_block"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or SDNOpenFlow()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or SDNOpenFlow()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.sdn_controllers[0]
@@ -130,9 +130,9 @@ class SouthboundPortMismatchBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SDN_CONTROL_PLANE_ISSUE
     root_cause_name: str = "southbound_port_mismatch"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or SDNOpenFlow()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or SDNOpenFlow()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.sdn_controllers[0]
@@ -196,9 +196,9 @@ class FlowRuleShadowingBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.SDN_CONTROL_PLANE_ISSUE
     root_cause_name: str = "flow_rule_shadowing"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or SDNOpenFlow()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or SDNOpenFlow()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.ovs_switches[0]
@@ -254,9 +254,9 @@ class FlowRuleLoopBase:
     ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.SDN_CONTROL_PLANE_ISSUE
     ROOT_CAUSE_NAME: str = "flow_rule_loop"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or SDNOpenFlow()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or SDNOpenFlow()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.ovs_switches[:2]

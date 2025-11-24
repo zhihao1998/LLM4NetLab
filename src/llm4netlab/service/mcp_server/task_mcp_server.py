@@ -23,8 +23,8 @@ LAB_SESSION_ID = os.getenv("LAB_SESSION_ID")
 ROOT_CAUSE_CATEGORY = os.getenv("ROOT_CAUSE_CATEGORY")
 ROOT_CAUSE_NAME = os.getenv("ROOT_CAUSE_NAME")
 TASK_LEVEL = os.getenv("TASK_LEVEL")
-BACKEND_MODEL_NAME = os.getenv("BACKEND_MODEL_NAME")
-AGENT_NAME = os.getenv("AGENT_NAME")
+backend_model = os.getenv("backend_model")
+agent_type = os.getenv("agent_type")
 
 base_dir = os.getenv("BASE_DIR")
 results_dir = os.getenv("RESULTS_DIR")
@@ -42,7 +42,7 @@ def list_avail_problems() -> list[str]:
 
 @mcp.tool()
 def get_submission_template() -> str:
-    """Get the submission instruction for a specific problem.
+    """Get the submission instruction.
 
     Returns:
         str: The submission instruction.
@@ -69,14 +69,14 @@ def submit(submission: Dict[str, Any]) -> List[str]:
         bool: Indicates whether the submission was successful.
     """
     # record the result for evaluation
-    submission["backend_model_name"] = BACKEND_MODEL_NAME
-    submission["agent_name"] = AGENT_NAME
+    submission["backend_model"] = backend_model
+    submission["agent_type"] = agent_type
     os.makedirs(
-        f"{results_dir}/{ROOT_CAUSE_CATEGORY}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/",
+        f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}",
         exist_ok=True,
     )
     with open(
-        f"{results_dir}/{ROOT_CAUSE_CATEGORY}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}_{BACKEND_MODEL_NAME}_submission.log",
+        f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}/{backend_model}_submission.log",
         "a+",
     ) as log_file:
         log_file.write(json.dumps(submission))

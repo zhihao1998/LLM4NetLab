@@ -267,9 +267,9 @@ class BGPHijackingBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_hijacking"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosService()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = [router for router in self.net_env.routers if "leaf" in router][0]

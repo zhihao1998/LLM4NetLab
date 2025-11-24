@@ -16,7 +16,7 @@ class WebBrowsingTrafficGenerator:
         pages_per_session_range: tuple[int, int] = (3, 10),
         loop_forever: bool = True,
     ):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs)
+        self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.clients: list[str] = self.net_env.hosts
         self.web_servers: list[str] = self.net_env.servers["web"]

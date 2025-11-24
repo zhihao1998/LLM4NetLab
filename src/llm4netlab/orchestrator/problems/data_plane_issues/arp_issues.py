@@ -20,9 +20,9 @@ class ArpCachePoisoningBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DATA_PLANE_ISSUE
     root_cause_name: str = "arp_cache_poisoning"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.hosts[0]
@@ -79,9 +79,9 @@ class MacAddressConflictBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DATA_PLANE_ISSUE
     root_cause_name: str = "mac_address_conflict"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.hosts[:2]

@@ -17,8 +17,8 @@ class HostCrashBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
     root_cause_name: str = "host_crash"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseDHCP()
+    def __init__(self, scenario_name: str | None, **kwargs):
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.switches[0]

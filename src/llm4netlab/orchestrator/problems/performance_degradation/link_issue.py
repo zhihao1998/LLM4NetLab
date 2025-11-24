@@ -19,9 +19,9 @@ class LinkHighLatencyBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_high_latency"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosService()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.routers[0]
@@ -74,9 +74,9 @@ class LinkHighPacketLossBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_high_packet_loss"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosService()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.routers[0]
@@ -129,9 +129,9 @@ class LinkHighLatencyJitterBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_high_latency_jitter"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or DCClosService()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.routers[0]
@@ -184,9 +184,9 @@ class LinkHighPacketCorruptionBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_high_packet_corruption"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         self.faulty_devices: str = self.net_env.routers[0]
@@ -241,9 +241,9 @@ class LinkBandwidthThrottlingBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_bandwidth_throttling"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         if "switch_server_access" in self.net_env.routers:
@@ -301,9 +301,9 @@ class LinkQueueOverflowBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "link_queue_overflow"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or OSPFEnterpriseStatic()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         if "switch_server_access" in self.net_env.routers:

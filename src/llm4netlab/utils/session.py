@@ -1,6 +1,7 @@
-import datetime
 import json
 import os
+import shutil
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -18,8 +19,8 @@ class SessionKey(BaseModel):
     root_cause_category: str
     root_cause_name: str
     task_level: str
-    backend_model_name: str
-    agent_name: str
+    backend_model: str
+    agent_type: str
 
 
 class Session:
@@ -27,7 +28,6 @@ class Session:
         pass
 
     def init_session(self):
-        self.start_time = datetime.datetime.now().isoformat()
         self.session_id = generate_code()
 
     def load_running_session(self):
@@ -43,12 +43,33 @@ class Session:
     def update_session(self, key: str, value: str):
         setattr(self, key, value)
         self._write_session()
-        if hasattr(self, "root_cause_name") and hasattr(self, "task_level") and hasattr(self, "session_id"):
-            session_dir = f"{RESULTS_DIR}/{self.root_cause_name}/{self.task_level}/{self.session_id}"
-            os.makedirs(session_dir, exist_ok=True)
+
+    def write_gt(self, gt: str):
+        if hasattr(self, "problem_names") and hasattr(self, "task_level") and hasattr(self, "session_id"):
+            if len(self.problem_names) > 1:
+                self.root_cause_name = "multiple_faults"
+            else:
+                self.root_cause_name = self.problem_names[0]
+            self.session_dir = f"{RESULTS_DIR}/multiple_faults/{self.task_level}/{self.session_id}"
+            self._write_session()
+
+            os.makedirs(self.session_dir, exist_ok=True)
+            with open(self.session_dir + "/ground_truth.json", "w") as f:
+                f.write(gt)
 
     def clear_session(self):
-        os.remove(f"{BASE_DIR}/runtime/current_session.json")
+        shutil.move(
+            f"{BASE_DIR}/runtime/current_session.json",
+            f"{self.session_dir}/session_meta.json",
+        )
+
+    def start_session(self):
+        self.start_time = datetime.now().timestamp()
+        self._write_session()
+
+    def end_session(self):
+        self.end_time = datetime.now().timestamp()
+        self._write_session()
 
     def __str__(self) -> str:
         return json.dumps(self.__dict__, indent=4)
@@ -63,7 +84,7 @@ if __name__ == "__main__":
     session.update_session("root_cause_category", "connectivity")
     session.update_session("root_cause_name", "missing_route")
     session.update_session("task_level", "easy")
-    session.update_session("backend_model_name", "gpt-4")
-    session.update_session("agent_name", "default_agent")
+    session.update_session("backend_model", "gpt-4")
+    session.update_session("agent_type", "default_agent")
 
     session._write_session()

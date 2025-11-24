@@ -24,7 +24,7 @@ class DNSLookupLatencyBase:
 
     def __init__(self, net_env: NetworkEnvBase = DCClosService()):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs)
+        self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.servers["dns"][0]
@@ -78,7 +78,7 @@ class WebDoSBase:
 
     def __init__(self, net_env: NetworkEnvBase = OSPFEnterpriseDHCP()):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs)
+        self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorService(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.servers["web"][0]

@@ -20,9 +20,9 @@ class P4ParserMisconfigBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_parser_misconfiguration"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or P4BloomFilter()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.bmv2_switches[0]
@@ -90,9 +90,9 @@ class P4CompilationErrorHeaderBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_compilation_error_header"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or P4BloomFilter()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.bmv2_switches[0]
@@ -160,9 +160,9 @@ class P4CompilationErrorParserStateBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_compilation_error_parser_state"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or P4BloomFilter()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.bmv2_switches[0]
@@ -230,9 +230,9 @@ class P4TableEntryMissingBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_table_entry_missing"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or P4BloomFilter()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.bmv2_switches[0]
@@ -290,9 +290,9 @@ class P4TableEntryMisconfigBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_table_entry_misconfig"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or P4BloomFilter()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.bmv2_switches[0]
@@ -366,9 +366,9 @@ class P4AggressiveDetectionThresholdsBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_aggressive_detection_thresholds"
 
-    def __init__(self, net_env_name: str | None, **kwargs):
+    def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.net_env = get_net_env_instance(net_env_name, **kwargs) or P4BloomFilter()
+        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = self.net_env.bmv2_switches[0]
