@@ -41,7 +41,7 @@ class NetworkEnvBase:
                 self.bmv2_switches.append(machine)
             elif "frr" in image:
                 self.routers.append(machine)
-            elif "base" in image or "nginx" in image:
+            elif "base" in image or "nginx" in image or "wireguard" in image:
                 host_keys = ["pc", "host", "client"]
                 if any(key in machine for key in host_keys):
                     self.hosts.append(machine)
@@ -55,6 +55,8 @@ class NetworkEnvBase:
                     self.servers["dhcp"].append(machine)
                 elif "web" in machine:
                     self.servers["web"].append(machine)
+                elif "vpn" in machine:
+                    self.servers["vpn"].append(machine)
 
             elif "influxdb" in image:
                 self.hosts.append(machine)
