@@ -1,4 +1,4 @@
-import time
+import random
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
@@ -10,30 +10,31 @@ from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
 
 # ==========================================
-""" Problem: Host crash simulated by pausing a docker instance """
+# Problem: Host crash simulated by pausing a docker instance
+# ==========================================
 
 
 class HostCrashBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
     root_cause_name: str = "host_crash"
+    TAGS: str = ["host"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
+        super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.switches[0]
+        self.faulty_devices = random.choice(self.net_env.hosts)
 
     def inject_fault(self):
         self.injector.inject_host_down(
             host_name=self.faulty_devices,
         )
-        time.sleep(2)
 
     def recover_fault(self):
         self.injector.recover_host_down(
             host_name=self.faulty_devices,
         )
-        time.sleep(2)
 
 
 class HostCrashDetection(HostCrashBase, DetectionTask):
@@ -61,6 +62,3 @@ class HostCrashRCA(HostCrashBase, RCATask):
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
-
-    def __init__(self):
-        super().__init__()

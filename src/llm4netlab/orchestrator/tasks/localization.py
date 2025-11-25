@@ -104,13 +104,14 @@ class LocalizationTask(TaskBase):
 
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        accuracy = tp / len(correct_components) if len(correct_components) > 0 else 0.0
 
         if precision + recall == 0:
             f1 = 0.0
         else:
             f1 = 2 * precision * recall / (precision + recall)
 
-        return float(f1)
+        return round(float(accuracy), 4), round(float(precision), 4), round(float(recall), 4), round(float(f1), 4)
 
     def get_submission(self):
         assert self.faulty_devices, "Faulty devices not set in the task instance."

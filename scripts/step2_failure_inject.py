@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance, list_avail_problems
+from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance, list_avail_problem_names
 from llm4netlab.orchestrator.problems.problem_base import TaskLevel
 from llm4netlab.utils.session import Session
 
@@ -17,7 +17,7 @@ def inject_failure(problem_names: list[str], task_level: TaskLevel):
 
     for problem_name in problem_names:
         # check if problem_name in the available problems
-        if problem_name not in list_avail_problems():
+        if problem_name not in list_avail_problem_names():
             raise ValueError(f"Unknown problem name: {problem_name}")
 
     scenario_params = session.scenario_params if hasattr(session, "scenario_params") else {}

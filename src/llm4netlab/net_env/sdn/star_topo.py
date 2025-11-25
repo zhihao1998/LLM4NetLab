@@ -1,5 +1,7 @@
 import os
+import textwrap
 from ipaddress import IPv4Interface, IPv4Network
+from typing import Literal
 
 from Kathara.manager.Kathara import Kathara, Machine
 from Kathara.model.Lab import Lab
@@ -35,22 +37,38 @@ class HostMeta:
         self.ip_address = None
 
 
-class SDNOpenFlow(NetworkEnvBase):
-    LAB_NAME = "sdn_openflow"
+class SDNStar(NetworkEnvBase):
+    LAB_NAME = "sdn_star"
+    TOPO_LEVEL = "easy"
+    TOPO_SIZE = ["s", "m", "l"]
+    TAGS = ["link", "sdn", "host", "mac", "arp", "icmp"]
 
-    def __init__(self):
+    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        self.desc = "SDN OpenFlow"
-        SWITCH_NUM = 5
+        if topo_size_level == "s":
+            SWITCH_NUM = 4  # 1 center + 3 leaf
+        elif topo_size_level == "m":
+            SWITCH_NUM = 8  # 1 center + 7 leaf
+        elif topo_size_level == "l":
+            SWITCH_NUM = 16  # 1 center + 15 leaf
+        else:
+            raise ValueError("topo_size_level should be 1, 2, or 3.")
+        self.desc = textwrap.dedent("""\
+        The network is an SDN star topology with one central switch and multiple edge switches.
+        Each host is connected to exactly one edge switch.
+        All hosts share a single access subnet 10.0.0.0/24 and receive IP addresses from this range.
+        The central switch is connected to every edge switch, forming a star topology (hub-and-spoke).
+        All switches also participate in a management/control network 20.0.0.0/24.
+        An SDN controller runs at 20.0.0.100 and all switches are configured to use this controller via OpenFlow (tcp:20.0.0.100:6633).""")
 
         # add switches
         tot_switch_list = []
         for i in range(SWITCH_NUM + 1):
             switch_name = f"switch_{i}"
-            switch = self.lab.new_machine(switch_name, **{"image": "kathara/sdn", "cpus": 1, "mem": "512m"})
+            switch = self.lab.new_machine(switch_name, **{"image": "kathara/sdn", "cpus": 0.5, "mem": "256m"})
             switch_meta = SwitchMeta(
                 name=switch_name,
                 machine=switch,
@@ -63,7 +81,9 @@ class SDNOpenFlow(NetworkEnvBase):
         tot_host_list = []
         for host_id in range(SWITCH_NUM):
             host_name = f"host_{host_id + 1}"
-            host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+            host_machine = self.lab.new_machine(
+                host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
+            )
             host_meta = HostMeta(
                 name=host_name,
                 machine=host_machine,
@@ -74,7 +94,7 @@ class SDNOpenFlow(NetworkEnvBase):
 
         # add controller
         controller = self.lab.new_machine(
-            "controller", **{"image": "kathara/ryu-stress", "cpus": 1, "mem": "512m", "bridged": True}
+            "controller", **{"image": "kathara/ryu-stress", "cpus": 0.5, "mem": "256m", "bridged": True}
         )
 
         for switch_meta in tot_switch_list:
@@ -150,7 +170,7 @@ class SDNOpenFlow(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    ospf_enterprise = SDNOpenFlow()
+    ospf_enterprise = SDNStar()
     print("Lab description:", ospf_enterprise.desc)
     print("lab net summary:", ospf_enterprise.get_info())
     if ospf_enterprise.lab_exists():

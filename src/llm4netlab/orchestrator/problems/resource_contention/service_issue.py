@@ -1,3 +1,5 @@
+import random
+
 from llm4netlab.generator.fault.injector_host import FaultInjectorHost
 from llm4netlab.generator.fault.injector_tc import FaultInjectorTC
 from llm4netlab.net_env.net_env_pool import get_net_env_instance
@@ -16,19 +18,20 @@ class DNSLookupLatencyBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "dns_lookup_latency"
     symptom_desc: str = "Users experience high latency when accessing web services."
+    TAGS: str = ["dns", "http"]
 
     def __init__(self, scenario_name: str = "dc_clos_service", **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.servers["dns"][0]
+        self.faulty_devices = [random.choice(self.net_env.servers["dns"])]
 
     def inject_fault(self):
-        self.injector.inject_delay(host_name=self.faulty_devices, intf_name="eth0", delay_ms=1000)
+        self.injector.inject_delay(host_name=self.faulty_devices[0], intf_name="eth0", delay_ms=1000)
 
     def recover_fault(self):
-        self.injector.recover_delay(host_name=self.faulty_devices, intf_name="eth0")
+        self.injector.recover_delay(host_name=self.faulty_devices[0], intf_name="eth0")
 
 
 class DNSLookupLatencyDetection(DNSLookupLatencyBase, DetectionTask):
@@ -63,46 +66,47 @@ class DNSLookupLatencyRCA(DNSLookupLatencyBase, RCATask):
 # ==================================================================
 
 
-class LoadBalancerOverload:
+class LoadBalancerOverloadBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "load_balancer_overload"
+    TAGS: str = ["load_balancer", "http"]
 
     def __init__(self, scenario_name: str = "load_balancer", **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorHost(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.servers["load_balancer"][0]
+        self.faulty_devices = [random.choice(self.net_env.servers["load_balancer"])]
 
     def inject_fault(self):
-        self.injector.inject_stress_all(host_name=self.faulty_devices)
+        self.injector.inject_stress_all(host_name=self.faulty_devices[0])
 
     def recover_fault(self):
-        self.injector.recover_stress_all(host_name=self.faulty_devices)
+        self.injector.recover_stress_all(host_name=self.faulty_devices[0])
 
 
-class LoadBalancerOverloadDetection(LoadBalancerOverload, DetectionTask):
+class LoadBalancerOverloadDetection(LoadBalancerOverloadBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=LoadBalancerOverload.root_cause_category,
-        root_cause_name=LoadBalancerOverload.root_cause_name,
+        root_cause_category=LoadBalancerOverloadBase.root_cause_category,
+        root_cause_name=LoadBalancerOverloadBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
 
 
-class LoadBalancerOverloadLocalization(LoadBalancerOverload, LocalizationTask):
+class LoadBalancerOverloadLocalization(LoadBalancerOverloadBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=LoadBalancerOverload.root_cause_category,
-        root_cause_name=LoadBalancerOverload.root_cause_name,
+        root_cause_category=LoadBalancerOverloadBase.root_cause_category,
+        root_cause_name=LoadBalancerOverloadBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
 
 
-class LoadBalancerOverloadRCA(LoadBalancerOverload, RCATask):
+class LoadBalancerOverloadRCA(LoadBalancerOverloadBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=LoadBalancerOverload.root_cause_category,
-        root_cause_name=LoadBalancerOverload.root_cause_name,
+        root_cause_category=LoadBalancerOverloadBase.root_cause_category,
+        root_cause_name=LoadBalancerOverloadBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -110,6 +114,6 @@ class LoadBalancerOverloadRCA(LoadBalancerOverload, RCATask):
 
 if __name__ == "__main__":
     # Test the fault injection and recovery
-    problem = LoadBalancerOverload()
+    problem = LoadBalancerOverloadBase()
     problem.inject_fault()
     # problem.recover_fault()

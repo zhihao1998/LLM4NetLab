@@ -25,12 +25,15 @@ def _eval_problem(session: Session, judge_model: str):
     )
 
     if not os.path.exists(sub_log_path):
-        evaluator_score = -1
+        evaluator_acc = -1
+        evaluator_precision = -1
+        evaluator_recall = -1
+        evaluator_f1 = -1
     else:
         with open(sub_log_path, "r") as f:
             submission = json.load(f)
         # task-specific evaluation
-        evaluator_score = round(problem.eval(submission=submission), 2)
+        evaluator_acc, evaluator_precision, evaluator_recall, evaluator_f1 = problem.eval(submission=submission)
 
     # agent trace
     trace_path = os.path.join(session.session_dir, "conversation.log")
@@ -42,8 +45,8 @@ def _eval_problem(session: Session, judge_model: str):
         problem_description=problem.META.description,
         net_env_info=problem.net_env.get_info(),
         ground_truth=textwrap.dedent(f"""\
-                The root cause category is {problem.root_cause_category}.
-                The root cause name is {problem.root_cause_name}.
+                The root cause is {problem.root_cause_name}.
+                The faulty devices are: {", ".join(problem.faulty_devices)}.
             """),
         trace_path=trace_path,
         save_path=f"{session.session_dir}/llm_judge.json",
@@ -53,12 +56,13 @@ def _eval_problem(session: Session, judge_model: str):
     efficiency_score = judge_response.scores.efficiency.score
     clarity_score = judge_response.scores.clarity.score
     final_outcome_score = judge_response.scores.final_outcome.score
+    overall_score = judge_response.scores.overall_score.score
 
     # parse agent trace
     trace_parser = AgentTraceParser(trace_path=trace_path)
     trace_metrics = trace_parser.parse_trace()
 
-    logger.info(f"All Done! LLM Judge Score: {final_outcome_score}, Evaluator Score: {evaluator_score}")
+    logger.info(f"All Done! LLM Judge Score: {overall_score}, Evaluator F1 Score: {evaluator_f1}")
 
     # log evaluation results
     eval_result = EvalResult(
@@ -80,7 +84,11 @@ def _eval_problem(session: Session, judge_model: str):
         llm_judge_efficiency_score=efficiency_score,
         llm_judge_clarity_score=clarity_score,
         llm_judge_final_outcome_score=final_outcome_score,
-        evaluator_score=evaluator_score,
+        llm_judge_overall_score=overall_score,
+        evaluator_accuracy=evaluator_acc,
+        evaluator_precision=evaluator_precision,
+        evaluator_recall=evaluator_recall,
+        evaluator_f1=evaluator_f1,
     )
 
     record_eval_result(eval_result)

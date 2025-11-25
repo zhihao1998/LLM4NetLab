@@ -1,6 +1,7 @@
 import os
 import textwrap
 from ipaddress import IPv4Interface, IPv4Network
+from typing import Literal
 
 from Kathara.manager.Kathara import Kathara, Machine
 from Kathara.model.Lab import Lab
@@ -36,11 +37,6 @@ log file /var/log/frr/frr.log
 """
 
 
-DIST_SW_COUNT = 2  # per core router
-ACCESS_SW_PER_DIST = 2  # per dist switch
-HOST_PER_ACCESS = 2  # per access switch
-
-
 class RouterMeta:
     def __init__(self, name, machine: Machine, eth_index, cmd_list):
         self.name = name
@@ -71,20 +67,31 @@ class HostMeta:
 
 
 class OSPFEnterpriseDHCP(NetworkEnvBase):
-    LAB_NAME = "ospf_enterprise"
+    LAB_NAME = "ospf_enterprise_dhcp"
+    TOPO_LEVEL = "hard"
+    TOPO_SIZE = ["s", "m", "l"]
+    TAGS = ["arp", "link", "web", "icmp", "frr", "dns", "mpls", "ospf", "dhcp", "host", "mac", "http", "load_balancer"]
 
-    def __init__(self):
+    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
         self.desc = "An enterprise OSPF network with multiple areas."
 
+        match topo_size_level:
+            case "s":
+                DIST_SW_COUNT, ACCESS_SW_PER_DIST, HOST_PER_ACCESS = 1, 1, 1  # per core router
+            case "m":
+                DIST_SW_COUNT, ACCESS_SW_PER_DIST, HOST_PER_ACCESS = 2, 2, 2
+            case "l":
+                DIST_SW_COUNT, ACCESS_SW_PER_DIST, HOST_PER_ACCESS = 4, 4, 4
+
         # core layer, only core1 and core2 connect dist routers, core3 connect to server subnet
         core_routers = {}
         for core_id in range(1, 4):
             router_core = self.lab.new_machine(
-                f"router_core_{core_id}", **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                f"router_core_{core_id}", **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
             )
             router_core_meta = RouterMeta(
                 name=f"router_core_{core_id}",
@@ -101,9 +108,9 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         for core_id in range(1, 3):  # core1 and core2
             core_dists[core_id] = []
             for dist_id in range(1, DIST_SW_COUNT + 1):
-                dist_name = f"switch_dist_{core_id}_{dist_id}"
+                dist_name = f"router_dist_{core_id}_{dist_id}"
                 router_dist = self.lab.new_machine(
-                    dist_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                    dist_name, **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
                 )
                 dist_meta = RouterMeta(
                     name=dist_name,
@@ -119,7 +126,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
                 for access_id in range(1, ACCESS_SW_PER_DIST + 1):
                     access_name = f"switch_access_{core_id}_{dist_id}_{access_id}"
                     router_access = self.lab.new_machine(
-                        access_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+                        access_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
                     )
                     access_meta = SwitchMeta(
                         name=access_name,
@@ -135,7 +142,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
                     for host_id in range(1, HOST_PER_ACCESS + 1):
                         host_name = f"host_{core_id}_{dist_id}_{access_id}_{host_id}"
                         host_machine = self.lab.new_machine(
-                            host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+                            host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
                         )
                         host_meta = HostMeta(
                             name=host_name,
@@ -156,7 +163,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
 
         # dns
         host_name = "dns_server"
-        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"})
         host_meta = HostMeta(
             name=host_name,
             machine=host_machine,
@@ -168,7 +175,9 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         # web
         for web_idx in range(web_server_count):
             host_name = f"web_server_{web_idx}"
-            host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+            host_machine = self.lab.new_machine(
+                host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
+            )
             host_meta = HostMeta(
                 name=host_name,
                 machine=host_machine,
@@ -180,7 +189,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
 
         # load balancer and its backend servers
         lb_name = "load_balancer"
-        lb_machine = self.lab.new_machine(lb_name, **{"image": "kathara/nginx-stress", "cpus": 1, "mem": "512m"})
+        lb_machine = self.lab.new_machine(lb_name, **{"image": "kathara/nginx-stress", "cpus": 0.5, "mem": "256m"})
         lb_meta = HostMeta(
             name=lb_name,
             machine=lb_machine,
@@ -192,7 +201,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         for web_idx in range(3):  # 3 backend servers
             backend_name = f"backend_web_{web_idx}"
             backend_machine = self.lab.new_machine(
-                backend_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+                backend_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
             )
             backend_meta = HostMeta(
                 name=backend_name,
@@ -204,7 +213,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
 
         # dhcp
         host_name = "dhcp_server"
-        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"})
         host_meta = HostMeta(
             name=host_name,
             machine=host_machine,
@@ -214,12 +223,12 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         servers[host_name] = host_meta
 
         # server access switch
-        server_switch = self.lab.new_machine(
-            "switch_server_access", **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+        server_router = self.lab.new_machine(
+            "server_access_router", **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
         )
-        server_access_meta = RouterMeta(
-            name="switch_server_access",
-            machine=server_switch,
+        server_router_meta = RouterMeta(
+            name="server_access_router",
+            machine=server_router,
             eth_index=0,
             cmd_list=[],
         )
@@ -338,24 +347,24 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
                         access_meta.cmd_list.append(f"brctl addif br0 eth{access_meta.eth_index}")
                         access_meta.eth_index += 1
 
-        server_access_meta.cmd_list.append("brctl addbr br0")
-        server_access_meta.cmd_list.append("ip link set br0 up")
+        server_router_meta.cmd_list.append("brctl addbr br0")
+        server_router_meta.cmd_list.append("ip link set br0 up")
         # add ospf config
-        server_access_meta.frr_ospf_configs.append(f"network {server_network} area 0")
+        server_router_meta.frr_ospf_configs.append(f"network {server_network} area 0")
 
         # add default gateway to server access switch
-        server_access_meta.cmd_list.append(f"ip addr add {server_gateway_ip}/{server_network.prefixlen} dev br0")
+        server_router_meta.cmd_list.append(f"ip addr add {server_gateway_ip}/{server_network.prefixlen} dev br0")
 
         # connect servers to access switch
         for server_name, server_meta in servers.items():
             self.lab.connect_machine_to_link(
-                server_access_meta.machine.name, f"{server_access_meta.machine.name}_{server_meta.machine.name}"
+                server_router_meta.machine.name, f"{server_router_meta.machine.name}_{server_meta.machine.name}"
             )
             self.lab.connect_machine_to_link(
-                server_meta.machine.name, f"{server_access_meta.machine.name}_{server_meta.machine.name}"
+                server_meta.machine.name, f"{server_router_meta.machine.name}_{server_meta.machine.name}"
             )
             # add bridge setup command
-            server_access_meta.cmd_list.append(f"brctl addif br0 eth{server_access_meta.eth_index}")
+            server_router_meta.cmd_list.append(f"brctl addif br0 eth{server_router_meta.eth_index}")
             # attach server side
             server_ip = next(server_ip_gen)
             server_meta.cmd_list.append(
@@ -365,7 +374,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
             # add default route
             server_meta.cmd_list.append(f"ip route add default via {server_gateway_ip} dev eth{server_meta.eth_index}")
             server_meta.eth_index += 1
-            server_access_meta.eth_index += 1
+            server_router_meta.eth_index += 1
 
             # add dhcp relay
             if "dhcp" in server_name:
@@ -400,25 +409,25 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         # connect server access switch to core3
         core3_meta = core_routers[3]
         self.lab.connect_machine_to_link(
-            core3_meta.machine.name, f"{core3_meta.machine.name}_{server_access_meta.machine.name}"
+            core3_meta.machine.name, f"{core3_meta.machine.name}_{server_router_meta.machine.name}"
         )
         self.lab.connect_machine_to_link(
-            server_access_meta.machine.name, f"{core3_meta.machine.name}_{server_access_meta.machine.name}"
+            server_router_meta.machine.name, f"{core3_meta.machine.name}_{server_router_meta.machine.name}"
         )
         subnet = subnets_infra.pop(0)
         a_ip, b_ip = assign_p2p_ips(subnet)
         core3_meta.cmd_list.append(f"ip addr add {a_ip} dev eth{core3_meta.eth_index}")
-        server_access_meta.cmd_list.append(f"ip addr add {b_ip} dev eth{server_access_meta.eth_index}")
+        server_router_meta.cmd_list.append(f"ip addr add {b_ip} dev eth{server_router_meta.eth_index}")
         # add OSPF area network
         core3_meta.frr_ospf_configs.append(f"network {subnet} area 0")
-        server_access_meta.frr_ospf_configs.append(f"network {subnet} area 0")
+        server_router_meta.frr_ospf_configs.append(f"network {subnet} area 0")
         # add router ID
         if core3_meta.router_id == "":
             core3_meta.router_id = a_ip.split("/")[0]
-        if server_access_meta.router_id == "":
-            server_access_meta.router_id = b_ip.split("/")[0]
+        if server_router_meta.router_id == "":
+            server_router_meta.router_id = b_ip.split("/")[0]
         core3_meta.eth_index += 1
-        server_access_meta.eth_index += 1
+        server_router_meta.eth_index += 1
 
         """
         configure FRR and startup scripts for all routers, switches, and hosts
@@ -469,21 +478,21 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
                 )
 
         # add configurations for server switch
-        server_access_meta.machine.create_file_from_path(
+        server_router_meta.machine.create_file_from_path(
             os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/ospf/daemons"), "/etc/frr/daemons"
         )
-        server_access_meta.machine.create_file_from_path(
+        server_router_meta.machine.create_file_from_path(
             os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/ospf/vtysh.conf"), "/etc/frr/vtysh.conf"
         )
-        server_access_meta.frr_config = FRR_BASE_TEMPLATE.format(
-            router_id=server_access_meta.router_id,
-            ospf_networks="\n ".join(server_access_meta.frr_ospf_configs),
+        server_router_meta.frr_config = FRR_BASE_TEMPLATE.format(
+            router_id=server_router_meta.router_id,
+            ospf_networks="\n ".join(server_router_meta.frr_ospf_configs),
         )
-        server_access_meta.machine.create_file_from_string(server_access_meta.frr_config, "/etc/frr/frr.conf")
-        server_access_meta.cmd_list.append("service frr start")
+        server_router_meta.machine.create_file_from_string(server_router_meta.frr_config, "/etc/frr/frr.conf")
+        server_router_meta.cmd_list.append("service frr start")
         self.lab.create_file_from_list(
-            server_access_meta.cmd_list,
-            f"{server_access_meta.machine.name}.startup",
+            server_router_meta.cmd_list,
+            f"{server_router_meta.machine.name}.startup",
         )
 
         # add configurations for access switches
@@ -498,13 +507,8 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         # add configurations for hosts
         for access_key, host_metas in access_hosts.items():
             for host_meta in host_metas:
-                # add dns config
-                # ns_add_cmd = ""
-                # for dns in tot_dns:
-                #     ns_add_cmd += f"nameserver {dns.ip_address}\n"
-                # host_meta.machine.create_file_from_string(ns_add_cmd, "/etc/resolv.conf")
                 # startup file
-                host_meta.cmd_list.append("dhclient eth0")
+                host_meta.cmd_list.append("sleep 10 ; dhclient eth0")
                 self.lab.create_file_from_list(
                     host_meta.cmd_list,
                     f"{host_meta.machine.name}.startup",
@@ -629,28 +633,34 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
 
         # load machines after initialization
         self.load_machines()
-        self.desc = "An data center network with 4 levels using BGP routing."
+        self.desc = (
+            "An enterprise hierarchical network using OSPF with multiple areas, built from three core routers, distribution routers, and bridged access switches."
+            "User hosts sit in subnets of the form 10.<core>.<dist>.0/24, obtain their IP configuration via DHCP (with dist-layer DHCP relay to a central DHCP server), "
+            "and reach a server farm in 10.200.0.0/24 that hosts a DNS server for the local zone, several Apache web servers (web0.local…web3.local), "
+            "and an Nginx HTTP load balancer published as web99.local. "
+            "All infrastructure and server networks are advertised by FRR OSPF so that hosts can resolve and access the web services end-to-end."
+        )
 
         # add the website urls
         self.web_urls = []
         for web_idx, web in enumerate(web_servers):
             url = f"http://web{web_idx}.local"
             self.web_urls.append(url)
-        self.web_urls.append("http://web99.local")  # load balancer url
-        self.desc += f" Hosting web services at: {', '.join(self.web_urls)}. \n"
+        lb_url = "http://web99.local"
+        self.web_urls.append(lb_url)
 
         # add DNS
         self.dns_servers = [dns.ip_address for dns in tot_dns]
-        self.desc += f" Using DNS servers at: {', '.join(self.dns_servers)}. \n"
 
 
 if __name__ == "__main__":
-    ospf_enterprise = OSPFEnterpriseDHCP()
+    ospf_enterprise = OSPFEnterpriseDHCP(topo_size_level="l")
     print("lab net summary:", ospf_enterprise.get_info())
     if ospf_enterprise.lab_exists():
         print("Lab exists, undeploying it...")
         ospf_enterprise.undeploy()
         print("Lab undeployed")
+    print(ospf_enterprise.web_urls)
 
     # print("Deploying lab...")
     # ospf_enterprise.deploy()

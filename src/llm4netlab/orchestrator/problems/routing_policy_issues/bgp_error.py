@@ -1,9 +1,10 @@
 import ipaddress
 import logging
+import random
 import re
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
-from llm4netlab.net_env.data_center_routing.dc_clos_service.lab import DCClosService
+from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab_services import DCClosService
 from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
@@ -19,6 +20,7 @@ from llm4netlab.service.kathara import KatharaAPIALL
 class BGPAsnMisconfigBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_asn_misconfig"
+    TAGS: str = ["bgp"]
 
     symptom_desc = "Some hosts are experiencing connectivity issues."
 
@@ -27,11 +29,11 @@ class BGPAsnMisconfigBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = [router for router in self.net_env.routers if "leaf" in router][0]
+        self.faulty_devices = [random.choice(self.net_env.routers)]
 
     def inject_fault(self):
         asn = self.kathara_api.exec_cmd(
-            self.faulty_devices, "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
+            self.faulty_devices[0], "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
         )
         match = re.search(r"local AS number\s+(\d+)", asn)
         if match:
@@ -39,12 +41,12 @@ class BGPAsnMisconfigBase:
         else:
             raise ValueError("Could not find AS number in BGP summary output")
         self.injector.inject_bgp_misconfig(
-            host_name=self.faulty_devices, correct_asn=as_number, wrong_asn=as_number + 600
+            host_name=self.faulty_devices[0], correct_asn=as_number, wrong_asn=as_number + 600
         )
 
     def recover_fault(self):
         asn = self.kathara_api.exec_cmd(
-            self.faulty_devices, "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
+            self.faulty_devices[0], "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
         )
         match = re.search(r"local AS number\s+(\d+)", asn)
         if match:
@@ -52,7 +54,7 @@ class BGPAsnMisconfigBase:
         else:
             raise ValueError("Could not find AS number in BGP summary output")
         self.injector.recover_bgp_misconfig(
-            host_name=self.faulty_devices, correct_asn=as_number - 600, wrong_asn=as_number
+            host_name=self.faulty_devices[0], correct_asn=as_number - 600, wrong_asn=as_number
         )
 
 
@@ -91,20 +93,21 @@ class BGPAsnMisconfigRCA(BGPAsnMisconfigBase, RCATask):
 class BGPMissingAdvertiseBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_missing_route_advertisement"
+    TAGS: str = ["bgp"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = [router for router in self.net_env.routers if "leaf" in router][0]
+        self.faulty_devices = [random.choice(self.net_env.routers)]
 
     def inject_fault(self):
         # find the line in frr.conf that broadcasts the network and comment it out
-        self.injector.inject_bgp_remove_advertisement(host_name=self.faulty_devices)
+        self.injector.inject_bgp_remove_advertisement(host_name=self.faulty_devices[0])
 
     def recover_fault(self):
-        self.injector.recover_bgp_remove_advertisement(host_name=self.faulty_devices)
+        self.injector.recover_bgp_remove_advertisement(host_name=self.faulty_devices[0])
 
 
 class BGPMissingAdvertiseDetection(BGPMissingAdvertiseBase, DetectionTask):
@@ -142,29 +145,32 @@ class BGPMissingAdvertiseRCA(BGPMissingAdvertiseBase, RCATask):
 class StaticBlackHoleBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "host_static_blackhole"
+    TAGS: str = ["bgp"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = [router for router in self.net_env.routers if "leaf" in router][0]
-
-        connected_devices = self.kathara_api.get_connected_devices(self.faulty_devices)
-        connected_hosts = [dev for dev in connected_devices if "switch" not in dev and "router" not in dev]
-        self.victim_device = connected_hosts[0]
-        self.victim_ip = self.kathara_api.get_host_ip(self.victim_device, with_prefix=False)
+        for router in random.sample(self.net_env.routers, len(self.net_env.routers)):
+            connected_devices = self.kathara_api.get_connected_devices(router)
+            connected_hosts = [dev for dev in connected_devices if "switch" not in dev and "router" not in dev]
+            if connected_hosts:
+                self.faulty_devices = [router]
+                self.victim_device = connected_hosts[0]
+                self.victim_ip = self.kathara_api.get_host_ip(self.victim_device, with_prefix=False)
+                break
 
     def inject_fault(self):
         host_network = ipaddress.ip_network(
             self.kathara_api.get_host_ip(self.victim_device, with_prefix=True), strict=False
         )
-        self.injector.inject_add_route_blackhole_nexthop(host_name=self.faulty_devices, network=host_network)
+        self.injector.inject_add_route_blackhole_nexthop(host_name=self.faulty_devices[0], network=host_network)
 
     def recover_fault(self):
         host_ip = self.kathara_api.get_host_ip(self.victim_device, with_prefix=False)
         host_network = ipaddress.ip_network(host_ip, strict=False)
-        self.injector.recover_add_route_blackhole_nexthop(host_name=self.faulty_devices, network=host_network)
+        self.injector.recover_add_route_blackhole_nexthop(host_name=self.faulty_devices[0], network=host_network)
 
 
 class StaticBlackHoleDetection(StaticBlackHoleBase, DetectionTask):
@@ -202,23 +208,26 @@ class StaticBlackHoleRCA(StaticBlackHoleBase, RCATask):
 class BGPBlackholeRouteLeakBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_blackhole_route_leak"
+    TAGS: str = ["bgp"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-
-        self.faulty_devices = [router for router in self.net_env.routers if "leaf" in router][0]
-        connected_devices = self.kathara_api.get_connected_devices(self.faulty_devices)
-        connected_hosts = [dev for dev in connected_devices if "switch" not in dev and "router" not in dev]
-        self.victim_device = connected_hosts[0]
-        self.victim_ip = self.kathara_api.get_host_ip(self.victim_device, with_prefix=False)
+        for router in random.sample(self.net_env.routers, len(self.net_env.routers)):
+            connected_devices = self.kathara_api.get_connected_devices(router)
+            connected_hosts = [dev for dev in connected_devices if "switch" not in dev and "router" not in dev]
+            if connected_hosts:
+                self.faulty_devices = [router]
+                self.victim_device = connected_hosts[0]
+                self.victim_ip = self.kathara_api.get_host_ip(self.victim_device, with_prefix=False)
+                break
 
     def inject_fault(self):
         network_30 = ipaddress.ip_network(f"{self.victim_ip}/30", strict=False)
         asn_number = self.kathara_api.exec_cmd(
-            self.faulty_devices, "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
+            self.faulty_devices[0], "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
         )
         match = re.search(r"local AS number\s+(\d+)", asn_number)
         if match:
@@ -226,13 +235,13 @@ class BGPBlackholeRouteLeakBase:
         else:
             raise ValueError("Could not find AS number in BGP summary output")
         self.injector.inject_add_route_blackhole_advertise(
-            host_name=self.faulty_devices, network=network_30, AS=as_number
+            host_name=self.faulty_devices[0], network=network_30, AS=as_number
         )
 
     def recover_fault(self):
         network_30 = ipaddress.ip_network(f"{self.victim_ip}/30", strict=False)
         asn_number = self.kathara_api.exec_cmd(
-            self.faulty_devices, "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
+            self.faulty_devices[0], "vtysh -c 'show bgp summary' | grep 'BGP router identifier'"
         )
         match = re.search(r"local AS number\s+(\d+)", asn_number)
         if match:
@@ -240,7 +249,7 @@ class BGPBlackholeRouteLeakBase:
         else:
             raise ValueError("Could not find AS number in BGP summary output")
         self.injector.recover_add_route_blackhole_advertise(
-            host_name=self.faulty_devices, network=network_30, AS=as_number
+            host_name=self.faulty_devices[0], network=network_30, AS=as_number
         )
 
 
@@ -279,13 +288,14 @@ class BGPBlackholeRouteLeakRCA(BGPBlackholeRouteLeakBase, RCATask):
 class BGPHijackingBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.ROUTING_POLICY_MISCONFIGURATION
     root_cause_name: str = "bgp_hijacking"
+    TAGS: str = ["bgp", "http"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or DCClosService()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = [router for router in self.net_env.routers if "leaf" in router][0]
+        self.faulty_devices = [random.choice(self.net_env.routers)]
         web_server = self.net_env.servers["web"][-1]
         self.target_network = self.kathara_api.get_host_ip(web_server, with_prefix=True)
         self.target_network = str(

@@ -62,9 +62,22 @@ def _register_problems():
 _PROBLEMS: Dict[str, Type[TaskBase]] = _register_problems()
 
 
-def list_avail_problems() -> list[str]:
+def list_avail_problem_names() -> list[str]:
     """List all available root cause names."""
     return list(_PROBLEMS.keys())
+
+
+def list_avail_problem_instances() -> list[Type[TaskBase]]:
+    return _PROBLEMS
+
+
+def list_avail_tags() -> list[str]:
+    """List all available tags for problems."""
+    tags = set()
+    for problem_classes in _PROBLEMS.values():
+        for problem_class in problem_classes.values():
+            tags.add(problem_class.tag)
+    return list(tags)
 
 
 def get_problem_instance(problem_names: list, task_level: TaskLevel, scenario_name: str, **kwargs) -> TaskBase:
@@ -116,10 +129,6 @@ def get_problem_instance(problem_names: list, task_level: TaskLevel, scenario_na
 
 
 if __name__ == "__main__":
-    problems = list_avail_problems()
-    print("Total Problems:", len(problems))
+    problems = list_avail_tags()
 
-    for prob in problems:
-        print(prob)
-    prob = get_problem_instance(["bgp_hijacking"], "rca", "dc_clos_service")
-    print(prob.get_submission())
+    print(problems)

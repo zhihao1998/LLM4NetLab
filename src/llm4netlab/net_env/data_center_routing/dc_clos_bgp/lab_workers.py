@@ -1,5 +1,6 @@
 import os
 from ipaddress import IPv4Interface, IPv4Network
+from typing import Literal
 
 from Kathara.manager.Kathara import Kathara, Machine
 from Kathara.model.Lab import Lab
@@ -63,13 +64,24 @@ class HostMeta:
 
 class DCClosBGP(NetworkEnvBase):
     LAB_NAME = "dc_clos_bgp"
+    TOPO_LEVEL = "medium"
+    TOPO_SIZE = ["s", "m", "l"]
+    TAGS = ["arp", "link", "mac", "bgp", "icmp", "frr", "host"]
 
-    def __init__(self, super_spine_count: int = 2, spine_per_pod: int = 2, leaf_per_pod: int = 4):
+    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        self.desc = "An data center network with 4 levels using BGP routing protocol."
+
+        if topo_size_level == "s":
+            super_spine_count, spine_per_pod, leaf_per_pod = 1, 2, 2
+        elif topo_size_level == "m":
+            super_spine_count, spine_per_pod, leaf_per_pod = 2, 4, 4
+        elif topo_size_level == "l":
+            super_spine_count, spine_per_pod, leaf_per_pod = 4, 8, 8
+        else:
+            raise ValueError("topo_size_level should be s, m, or l.")
 
         pod_spines = {}
         pod_leaves = {}
@@ -86,7 +98,7 @@ class DCClosBGP(NetworkEnvBase):
 
         for ss in range(super_spine_count):
             ss_name = f"super_spine_router_{ss}"
-            router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"})
+            router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"})
             router_ss_meta = RouterMeta(
                 name=ss_name,
                 machine=router_ss,
@@ -101,7 +113,7 @@ class DCClosBGP(NetworkEnvBase):
             for spine_id in range(spine_per_pod):
                 spine_name = f"spine_router_{pod}_{spine_id}"
                 router_spine = self.lab.new_machine(
-                    spine_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                    spine_name, **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
                 )
                 spine_meta = RouterMeta(
                     name=spine_name,
@@ -117,7 +129,7 @@ class DCClosBGP(NetworkEnvBase):
             for leaf_id in range(leaf_per_pod):
                 leaf_name = f"leaf_router_{pod}_{leaf_id}"
                 router_leaf = self.lab.new_machine(
-                    leaf_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                    leaf_name, **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
                 )
                 leaf_meta = RouterMeta(
                     name=leaf_name,
@@ -132,7 +144,7 @@ class DCClosBGP(NetworkEnvBase):
             pod_hosts[pod] = []
             for host in range(leaf_per_pod):
                 host_name = f"pc_{pod}_{host}"
-                host = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+                host = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"})
                 host_meta = HostMeta(
                     name=host_name,
                     machine=host,
@@ -293,11 +305,16 @@ class DCClosBGP(NetworkEnvBase):
 
         # load machines after initialization
         self.load_machines()
-        self.desc = "An data center network with 4 levels using BGP routing."
+        self.desc = (
+            "A multi-tier data center Clos (fat-tree) topology using EBGP. Super-spine routers (AS 65000) connect to all spine routers."
+            "Each pod contains multiple spines and leaves; spines peer with super-spines and all leaves in their pod. "
+            "Each leaf connects to one host via a /24 subnet (10.<pod>.<leaf>.0/24) and advertises this network via BGP. "
+            "All inter-router links use /31 subnets from 172.16.0.0/16. Routing is entirely EBGP using FRR."
+        )
 
 
 if __name__ == "__main__":
-    dc_clos_bgp = DCClosBGP()
+    dc_clos_bgp = DCClosBGP(topo_size_level="l")
     print("Lab description:", dc_clos_bgp.desc)
     print("lab net summary:", dc_clos_bgp.get_info())
     if dc_clos_bgp.lab_exists():

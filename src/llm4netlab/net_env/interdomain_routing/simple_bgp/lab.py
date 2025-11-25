@@ -11,8 +11,11 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 
 class SimpleBGP(NetworkEnvBase):
     LAB_NAME = "simple_bgp"
+    TOPO_LEVEL = "easy"
+    TOPO_SIZE = None
+    TAGS = ["arp", "link", "mac", "bgp", "icmp", "frr", "host"]
 
-    def __init__(self, router_num: int = 2, host_num: int = 2):
+    def __init__(self, **kwargs):
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()

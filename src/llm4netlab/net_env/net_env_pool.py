@@ -1,34 +1,34 @@
-from typing import Dict
+from typing import Dict, Literal
 
-from llm4netlab.net_env.application.load_banlancer.lab import LoadBalancer
 from llm4netlab.net_env.base import NetworkEnvBase
-from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab import DCClosBGP
-from llm4netlab.net_env.data_center_routing.dc_clos_service.lab import DCClosService
-from llm4netlab.net_env.interdomain_routing.simple_bgp.lab import SimpleBGP
+from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab_services import DCClosService
+from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab_workers import DCClosBGP
 from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
 from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.intradomain_routing.rip_vpn.lab import RIPSmallInternetVPN
 from llm4netlab.net_env.p4.p4_bloom_filter.lab import P4BloomFilter
 from llm4netlab.net_env.p4.p4_counter.lab import P4Counter
 from llm4netlab.net_env.p4.p4_int.lab import P4INT
 from llm4netlab.net_env.p4.p4_mpls.lab import P4_MPLS
-from llm4netlab.net_env.sdn.lab import SDNOpenFlow
+from llm4netlab.net_env.sdn.clos_topo import SDNClos
+from llm4netlab.net_env.sdn.star_topo import SDNStar
 
 _NET_ENVS: Dict[str, NetworkEnvBase] = {
-    "dc_clos_bgp": DCClosBGP,
-    "dc_clos_service": DCClosService,
-    "simple_bgp": SimpleBGP,
-    "ospf_enterprise_dhcp": OSPFEnterpriseDHCP,
-    "ospf_enterprise_static": OSPFEnterpriseStatic,
-    "p4_bloom_filter": P4BloomFilter,
-    "p4_counter": P4Counter,
-    "p4_int": P4INT,
-    "p4_mpls": P4_MPLS,
-    "sdn_openflow": SDNOpenFlow,
-    "load_balancer": LoadBalancer,
+    DCClosBGP.LAB_NAME: DCClosBGP,
+    DCClosService.LAB_NAME: DCClosService,
+    OSPFEnterpriseDHCP.LAB_NAME: OSPFEnterpriseDHCP,
+    OSPFEnterpriseStatic.LAB_NAME: OSPFEnterpriseStatic,
+    RIPSmallInternetVPN.LAB_NAME: RIPSmallInternetVPN,
+    SDNStar.LAB_NAME: SDNStar,
+    SDNClos.LAB_NAME: SDNClos,
+    P4BloomFilter.LAB_NAME: P4BloomFilter,
+    P4Counter.LAB_NAME: P4Counter,
+    P4INT.LAB_NAME: P4INT,
+    P4_MPLS.LAB_NAME: P4_MPLS,
 }
 
 
-def get_net_env_instance(scenario_name: str, **kwargs) -> NetworkEnvBase:
+def get_net_env_instance(scenario_name: str, topo_size_level: Literal["s", "m", "l"]) -> NetworkEnvBase:
     """Get an instance of the specified network environment.
 
     Args:
@@ -42,13 +42,27 @@ def get_net_env_instance(scenario_name: str, **kwargs) -> NetworkEnvBase:
     """
     if scenario_name not in _NET_ENVS:
         raise ValueError(f"Network environment '{scenario_name}' not found in the pool.")
-    return _NET_ENVS[scenario_name](**kwargs)
+    return _NET_ENVS[scenario_name](topo_size_level=topo_size_level)
+
+
+def list_all_net_envs() -> dict[str, NetworkEnvBase]:
+    """List all available network environment names."""
+    return _NET_ENVS
 
 
 if __name__ == "__main__":
+    import json
+
+    res = {}
     for env_name, env_class in _NET_ENVS.items():
         env_instance = env_class()
-        print(f"Network Environment: {env_name}")
+        res[env_name] = {
+            "resizeable": True,
+        }
+    print(json.dumps(res, indent=4))
 
-    lab = get_net_env_instance("dc_clos_bgp", super_spine_count=3)
+    lab = get_net_env_instance(
+        "dc_clos_bgp",
+        topo_size_level="l",
+    )
     print(lab.routers)

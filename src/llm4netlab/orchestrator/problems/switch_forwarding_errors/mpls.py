@@ -18,6 +18,8 @@ class P4MPLSLabelLimitExceededBase:
     root_cause_category = RootCauseCategory.SWITCH_FORWARDING_ERRORS
     root_case_name = "mpls_label_limit_exceeded"
 
+    TAGS: str = ["mpls"]
+
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4_MPLS()

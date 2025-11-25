@@ -101,7 +101,7 @@ class KatharaTCAPI(KatharaBaseAPI, TCMixin):
 
 
 if __name__ == "__main__":
-    lab_name = "simple_bmv2"
+    lab_name = "p4_counter"
     kathara_api = KatharaTCAPI(lab_name)
     print(kathara_api.get_reachability())
     kathara_api.tc_set_netem(

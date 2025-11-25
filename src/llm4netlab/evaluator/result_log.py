@@ -28,7 +28,11 @@ class EvalResult:
     llm_judge_efficiency_score: int = None
     llm_judge_clarity_score: int = None
     llm_judge_final_outcome_score: int = None
-    evaluator_score: float = None
+    llm_judge_overall_score: int = None
+    evaluator_accuracy: float = None
+    evaluator_precision: float = None
+    evaluator_recall: float = None
+    evaluator_f1: float = None
 
 
 def record_eval_result(eval_result: EvalResult) -> None:

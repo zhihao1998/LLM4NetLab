@@ -1,4 +1,4 @@
-import time
+import random
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
@@ -17,6 +17,7 @@ from llm4netlab.service.kathara import KatharaBaseAPI
 class LinkFailureBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
     root_cause_name: str = "link_down"
+    TAGS: str = ["link"]
 
     symptom_desc = "Users report connectivity issues to other hosts."
 
@@ -25,7 +26,7 @@ class LinkFailureBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.hosts[0]
+        self.faulty_devices = [random.choice(self.net_env.hosts)]
         self.faulty_intf = "eth0"
 
     def inject_fault(self):
@@ -33,14 +34,12 @@ class LinkFailureBase:
             host_name=self.faulty_devices,
             intf_name=self.faulty_intf,
         )
-        time.sleep(2)
 
     def recover_fault(self):
         self.injector.recover_intf_down(
             host_name=self.faulty_devices,
             intf_name=self.faulty_intf,
         )
-        time.sleep(2)
 
 
 class LinkFailureDetection(LinkFailureBase, DetectionTask):
@@ -71,12 +70,14 @@ class LinkFailureRCA(LinkFailureBase, RCATask):
 
 
 # ==========================================
-""" Problem: Link flapping by manual script """
+# Problem: Link flapping by manual script
+# ==========================================
 
 
 class LinkFlapBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
     root_cause_name: str = "link_flap"
+    TAGS: str = ["link"]
 
     symptom_desc = "Users report connectivity issues to other hosts."
 
@@ -85,7 +86,7 @@ class LinkFlapBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.switches[0]
+        self.faulty_devices = [random.choice(self.net_env.hosts)]
         self.faulty_intf = "eth0"
 
     def inject_fault(self):
@@ -95,14 +96,12 @@ class LinkFlapBase:
             down_time=1,
             up_time=1,
         )
-        time.sleep(2)
 
     def recover_fault(self):
         self.injector.recover_link_flap(
             host_name=self.faulty_devices,
             intf_name=self.faulty_intf,
         )
-        time.sleep(2)
 
 
 class LinkFlapDetection(LinkFlapBase, DetectionTask):
@@ -133,12 +132,14 @@ class LinkFlapRCA(LinkFlapBase, RCATask):
 
 
 # ==========================================
-""" Problem: Link detached. Note: the recover is not working """
+# Problem: Link detached. Note: the recover is not working
+# ==========================================
 
 
 class LinkDetachBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.DEVICE_FAILURE
     root_cause_name: str = "link_detach"
+    TAGS: str = ["link"]
 
     symptom_desc = "Users report connectivity issues to other hosts."
 
@@ -147,7 +148,7 @@ class LinkDetachBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseDHCP()
         self.kathara_api = KatharaBaseAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.switches[0]
+        self.faulty_devices = [random.choice(self.net_env.routers)]
         self.faulty_intf = "eth0"
 
     def inject_fault(self):
@@ -155,14 +156,12 @@ class LinkDetachBase:
             host_name=self.faulty_devices,
             intf_name=self.faulty_intf,
         )
-        time.sleep(2)
 
     def recover_fault(self):
         self.injector.recover_link_detach(
             host_name=self.faulty_devices,
             intf_name=self.faulty_intf,
         )
-        time.sleep(2)
 
 
 class LinkDetachDetection(LinkDetachBase, DetectionTask):

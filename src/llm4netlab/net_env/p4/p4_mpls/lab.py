@@ -11,12 +11,15 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 
 class P4_MPLS(NetworkEnvBase):
     LAB_NAME = "p4_mpls"
+    TOPO_LEVEL = "medium"
+    TOPO_SIZE = None
+    TAGS = ["link", "host", "p4", "mac", "arp", "icmp", "mpls"]
 
     def _add_link(self, device_a: str, device_b: str):
         self.lab.connect_machine_to_link(device_a, f"{device_a}_to_{device_b}")
         self.lab.connect_machine_to_link(device_b, f"{device_a}_to_{device_b}")
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
@@ -31,7 +34,7 @@ class P4_MPLS(NetworkEnvBase):
         for i in range(1, 8):
             switch = self.lab.new_machine(
                 f"switch_{i}",
-                **{"image": "kathara/p4", "cpus": 1, "mem": "512m"},
+                **{"image": "kathara/p4", "cpus": 0.5, "mem": "256m"},
             )
             switches[f"switch_{i}"] = switch
 

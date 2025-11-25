@@ -11,6 +11,7 @@ from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
 
 logger = logging.getLogger(__name__)
+
 # ==================================================================
 # Problem: DNS service down
 # ==================================================================
@@ -22,6 +23,7 @@ class DNSServiceDownBase:
 
     faulty_devices = "dns_server"
     symptom_desc = "Some hosts cannot access external websites."
+    TAGS: str = ["dns"]
 
     def __init__(self):
         self.net_env = OSPFEnterpriseDHCP()
@@ -73,6 +75,7 @@ class DNSPortBlockedBase:
 
     faulty_devices = "dns_server"
     symptom_desc = "Some hosts cannot access external websites."
+    TAGS: str = ["dns"]
 
     def __init__(self):
         self.net_env = OSPFEnterpriseDHCP()
@@ -139,6 +142,7 @@ class DNSRecordErrorBase:
     root_cause_name: str = "dns_record_error"
 
     symptom_desc = "Some hosts cannot access external websites."
+    TAGS: str = ["dns"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or OSPFEnterpriseStatic()

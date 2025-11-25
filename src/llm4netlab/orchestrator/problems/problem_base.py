@@ -11,7 +11,7 @@ class RootCauseCategory(StrEnum):
         return obj
 
     DEVICE_FAILURE = ("device_failure", "Hardware or interface/module failure")
-    END_HOST_MISCONFIGURATION = ("end_host_misconfiguration", "Host misconfiguration: IP, gateway, DNS, DHCP issues")
+    END_HOST_FAILURE = ("end_host_failure", "Host misconfiguration: IP, gateway, DNS, DHCP issues")
     PERFORMANCE_DEGRADATION = ("performance_degradation", "High latency, packet loss, jitter, throughput drop")
     SERVICE_DEPENDENCY_FAILURE = ("service_dependency_failure", "External dependency: DNS, NTP, AAA, PKI")
     DATA_PLANE_ISSUE = ("data_plane_forwarding_issue", "Routing/forwarding blackhole, loop, asymmetry")

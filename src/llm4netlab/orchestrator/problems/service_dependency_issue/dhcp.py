@@ -20,6 +20,7 @@ class DHCPWrongGatewayBase:
 
     faulty_devices = "dhcp_server"
     symptom_desc = "Some hosts are experiencing connectivity issues."
+    TAGS: str = ["dhcp"]
 
     def __init__(self):
         self.net_env = OSPFEnterpriseDHCP()
@@ -90,6 +91,7 @@ class DHCPWrongDNSBase:
 
     faulty_devices = "dhcp_server"
     symptom_desc = "Some hosts can not access webservices."
+    TAGS: str = ["dhcp"]
 
     def __init__(self):
         self.net_env = OSPFEnterpriseDHCP()
@@ -153,6 +155,7 @@ class DHCPMissingSubnetBase:
 
     faulty_devices = "dhcp_server"
     symptom_desc = "Some hosts are experiencing connectivity issues."
+    TAGS: str = ["dhcp"]
 
     def __init__(self):
         self.net_env = OSPFEnterpriseDHCP()

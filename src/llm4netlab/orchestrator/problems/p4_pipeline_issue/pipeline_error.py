@@ -1,4 +1,5 @@
 import logging
+import random
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.net_env_pool import get_net_env_instance
@@ -19,38 +20,43 @@ logger = logging.getLogger(__name__)
 class P4ParserMisconfigBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_parser_misconfiguration"
+    TAGS: str = ["p4"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.bmv2_switches[0]
+        self.faulty_devices = [random.choice(self.net_env.bmv2_switches)]
+        # get the p4 program name
+        self.p4_name = self.kathara_api.exec_cmd(self.faulty_devices, "echo *.p4 | sed 's/\\.p4//'")
 
     def inject_fault(self):
         # replace the 16 to 8 in "bit<16>   identification;" line to simulate misconfiguration
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            "cp bloom_filter.p4 bloom_filter.p4.bak && "
-            "rm bloom_filter.json && "
-            "sed -Ei 's/bit<16>[[:space:]]+identification;/bit<8>   identification;/g' bloom_filter.p4 ",
+            self.faulty_devices[0],
+            f"cp {self.p4_name}.p4 {self.p4_name}.p4.bak && "
+            f"rm {self.p4_name}.json && "
+            f"sed -Ei 's/bit<16>[[:space:]]+identification;/bit<8>   identification;/g' {self.p4_name}.p4 ",
         )
         self.kathara_api.exec_cmd(self.faulty_devices, "pkill -f simple_switch")
         self.kathara_api.exec_cmd(
             self.faulty_devices,
-            f"./hostlab/{self.faulty_device}.startup",
+            f"./hostlab/{self.faulty_devices[0]}.startup",
         )
 
     def recover_fault(self):
         # restore the original p4 file
-        self.kathara_api.exec_cmd(self.faulty_devices, "cp bloom_filter.p4.bak bloom_filter.p4 && rm bloom_filter.json")
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0], f"cp {self.p4_name}.p4.bak {self.p4_name}.p4 && rm {self.p4_name}.json"
+        )
+        self.kathara_api.exec_cmd(
+            self.faulty_devices[0],
             "pkill -f simple_switch",
         )
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            f"./hostlab/{self.faulty_device}.startup",
+            self.faulty_devices[0],
+            f"./hostlab/{self.faulty_device[0]}.startup",
         )
 
 
@@ -86,139 +92,141 @@ class P4ParserMisconfigRCA(P4ParserMisconfigBase, RCATask):
 # ==================================================================
 
 
-class P4CompilationErrorHeaderBase:
-    root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
-    root_case_name = "p4_compilation_error_header"
+# class P4CompilationErrorHeaderBase:
+#     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
+#     root_case_name = "p4_compilation_error_header"
+#     TAGS: str = ["p4"]
 
-    def __init__(self, scenario_name: str | None, **kwargs):
-        super().__init__()
-        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
-        self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
-        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.bmv2_switches[0]
+#     def __init__(self, scenario_name: str | None, **kwargs):
+#         super().__init__()
+#         self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
+#         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
+#         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
+#         self.faulty_devices = self.net_env.bmv2_switches[0]
 
-    def inject_fault(self):
-        # introduce a syntax error in the p4 file to simulate compilation error
-        self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            "cp bloom_filter.p4 bloom_filter.p4.bak && "
-            "rm bloom_filter.json && "
-            "sed -Ei 's/bit<16>[[:space:]]+identification;/bit<6>   identification;/g' bloom_filter.p4 ",
-        )
-        self.kathara_api.exec_cmd(self.faulty_devices, "pkill -f simple_switch")
-        self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            f"./hostlab/{self.faulty_device}.startup",
-        )
+#     def inject_fault(self):
+#         # introduce a syntax error in the p4 file to simulate compilation error
+#         self.kathara_api.exec_cmd(
+#             self.faulty_devices,
+#             "cp bloom_filter.p4 bloom_filter.p4.bak && "
+#             "rm bloom_filter.json && "
+#             "sed -Ei 's/bit<16>[[:space:]]+identification;/bit<6>   identification;/g' bloom_filter.p4 ",
+#         )
+#         self.kathara_api.exec_cmd(self.faulty_devices, "pkill -f simple_switch")
+#         self.kathara_api.exec_cmd(
+#             self.faulty_devices,
+#             f"./hostlab/{self.faulty_device}.startup",
+#         )
 
-    def recover_fault(self):
-        # restore the original p4 file
-        self.kathara_api.exec_cmd(self.faulty_devices, "cp bloom_filter.p4.bak bloom_filter.p4")
-        self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            "pkill -f simple_switch",
-        )
-        self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            f"./hostlab/{self.faulty_device}.startup",
-        )
-
-
-class P4CompilationErrorHeaderDetection(P4CompilationErrorHeaderBase, DetectionTask):
-    META = ProblemMeta(
-        root_cause_category=P4CompilationErrorHeaderBase.root_cause_category,
-        root_cause_name=P4CompilationErrorHeaderBase.root_case_name,
-        task_level=TaskLevel.DETECTION,
-        description=TaskDescription.DETECTION,
-    )
+#     def recover_fault(self):
+#         # restore the original p4 file
+#         self.kathara_api.exec_cmd(self.faulty_devices, "cp bloom_filter.p4.bak bloom_filter.p4")
+#         self.kathara_api.exec_cmd(
+#             self.faulty_devices,
+#             "pkill -f simple_switch",
+#         )
+#         self.kathara_api.exec_cmd(
+#             self.faulty_devices,
+#             f"./hostlab/{self.faulty_device}.startup",
+#         )
 
 
-class P4CompilationErrorHeaderLocalization(P4CompilationErrorHeaderBase, LocalizationTask):
-    META = ProblemMeta(
-        root_cause_category=P4CompilationErrorHeaderBase.root_cause_category,
-        root_cause_name=P4CompilationErrorHeaderBase.root_case_name,
-        task_level=TaskLevel.LOCALIZATION,
-        description=TaskDescription.LOCALIZATION,
-    )
+# class P4CompilationErrorHeaderDetection(P4CompilationErrorHeaderBase, DetectionTask):
+#     META = ProblemMeta(
+#         root_cause_category=P4CompilationErrorHeaderBase.root_cause_category,
+#         root_cause_name=P4CompilationErrorHeaderBase.root_case_name,
+#         task_level=TaskLevel.DETECTION,
+#         description=TaskDescription.DETECTION,
+#     )
 
 
-class P4CompilationErrorHeaderRCA(P4CompilationErrorHeaderBase, RCATask):
-    META = ProblemMeta(
-        root_cause_category=P4CompilationErrorHeaderBase.root_cause_category,
-        root_cause_name=P4CompilationErrorHeaderBase.root_case_name,
-        task_level=TaskLevel.RCA,
-        description=TaskDescription.RCA,
-    )
+# class P4CompilationErrorHeaderLocalization(P4CompilationErrorHeaderBase, LocalizationTask):
+#     META = ProblemMeta(
+#         root_cause_category=P4CompilationErrorHeaderBase.root_cause_category,
+#         root_cause_name=P4CompilationErrorHeaderBase.root_case_name,
+#         task_level=TaskLevel.LOCALIZATION,
+#         description=TaskDescription.LOCALIZATION,
+#     )
 
 
-# ==================================================================
-# Problem: P4 compilation error due to parser state issue
-# ==================================================================
+# class P4CompilationErrorHeaderRCA(P4CompilationErrorHeaderBase, RCATask):
+#     META = ProblemMeta(
+#         root_cause_category=P4CompilationErrorHeaderBase.root_cause_category,
+#         root_cause_name=P4CompilationErrorHeaderBase.root_case_name,
+#         task_level=TaskLevel.RCA,
+#         description=TaskDescription.RCA,
+#     )
 
 
-class P4CompilationErrorParserStateBase:
-    root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
-    root_case_name = "p4_compilation_error_parser_state"
-
-    def __init__(self, scenario_name: str | None, **kwargs):
-        super().__init__()
-        self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
-        self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
-        self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.bmv2_switches[0]
-
-    def inject_fault(self):
-        # introduce a syntax error in the p4 file to simulate compilation error
-        self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            "cp bloom_filter.p4 bloom_filter.p4.bak && "
-            "rm bloom_filter.json && "
-            "sed -Ei 's/state ipv4/stete ipv4/g' bloom_filter.p4 ",
-        )
-        self.kathara_api.exec_cmd(self.faulty_devices, "pkill -f simple_switch")
-        self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            f"./hostlab/{self.faulty_device}.startup",
-        )
-
-    def recover_fault(self):
-        # restore the original p4 file
-        self.kathara_api.exec_cmd(self.faulty_devices, "cp bloom_filter.p4.bak bloom_filter.p4")
-        self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            "pkill -f simple_switch",
-        )
-        self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            f"./hostlab/{self.faulty_device}.startup",
-        )
+# # ==================================================================
+# # Problem: P4 compilation error due to parser state issue
+# # ==================================================================
 
 
-class P4CompilationErrorParserStateDetection(P4CompilationErrorParserStateBase, DetectionTask):
-    META = ProblemMeta(
-        root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
-        root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
-        task_level=TaskLevel.DETECTION,
-        description=TaskDescription.DETECTION,
-    )
+# class P4CompilationErrorParserStateBase:
+#     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
+#     root_case_name = "p4_compilation_error_parser_state"
+#     TAGS: str = ["p4"]
+
+#     def __init__(self, scenario_name: str | None, **kwargs):
+#         super().__init__()
+#         self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
+#         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
+#         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
+#         self.faulty_devices = self.net_env.bmv2_switches[0]
+
+#     def inject_fault(self):
+#         # introduce a syntax error in the p4 file to simulate compilation error
+#         self.kathara_api.exec_cmd(
+#             self.faulty_devices,
+#             "cp bloom_filter.p4 bloom_filter.p4.bak && "
+#             "rm bloom_filter.json && "
+#             "sed -Ei 's/state ipv4/stete ipv4/g' bloom_filter.p4 ",
+#         )
+#         self.kathara_api.exec_cmd(self.faulty_devices, "pkill -f simple_switch")
+#         self.kathara_api.exec_cmd(
+#             self.faulty_devices,
+#             f"./hostlab/{self.faulty_device}.startup",
+#         )
+
+#     def recover_fault(self):
+#         # restore the original p4 file
+#         self.kathara_api.exec_cmd(self.faulty_devices, "cp bloom_filter.p4.bak bloom_filter.p4")
+#         self.kathara_api.exec_cmd(
+#             self.faulty_devices,
+#             "pkill -f simple_switch",
+#         )
+#         self.kathara_api.exec_cmd(
+#             self.faulty_devices,
+#             f"./hostlab/{self.faulty_device}.startup",
+#         )
 
 
-class P4CompilationErrorParserStateLocalization(P4CompilationErrorParserStateBase, LocalizationTask):
-    META = ProblemMeta(
-        root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
-        root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
-        task_level=TaskLevel.LOCALIZATION,
-        description=TaskDescription.LOCALIZATION,
-    )
+# class P4CompilationErrorParserStateDetection(P4CompilationErrorParserStateBase, DetectionTask):
+#     META = ProblemMeta(
+#         root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
+#         root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
+#         task_level=TaskLevel.DETECTION,
+#         description=TaskDescription.DETECTION,
+#     )
 
 
-class P4CompilationErrorParserStateRCA(P4CompilationErrorParserStateBase, RCATask):
-    META = ProblemMeta(
-        root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
-        root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
-        task_level=TaskLevel.RCA,
-        description=TaskDescription.RCA,
-    )
+# class P4CompilationErrorParserStateLocalization(P4CompilationErrorParserStateBase, LocalizationTask):
+#     META = ProblemMeta(
+#         root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
+#         root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
+#         task_level=TaskLevel.LOCALIZATION,
+#         description=TaskDescription.LOCALIZATION,
+#     )
+
+
+# class P4CompilationErrorParserStateRCA(P4CompilationErrorParserStateBase, RCATask):
+#     META = ProblemMeta(
+#         root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
+#         root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
+#         task_level=TaskLevel.RCA,
+#         description=TaskDescription.RCA,
+#     )
 
 
 # ==================================================================
@@ -229,29 +237,30 @@ class P4CompilationErrorParserStateRCA(P4CompilationErrorParserStateBase, RCATas
 class P4TableEntryMissingBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_table_entry_missing"
+    TAGS: str = ["p4"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.bmv2_switches[0]
+        self.faulty_devices = [random.choice(self.net_env.bmv2_switches)]
 
     def inject_fault(self):
         # delete a table entry to simulate missing entry
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "simple_switch_CLI <<< 'table_clear MyIngress.ipv4_lpm'",
         )
-        logger.info(f"Injected fault: Deleted table entries on {self.faulty_device}")
+        logger.info(f"Injected fault: Deleted table entries on {self.faulty_devices[0]}")
 
     def recover_fault(self):
         # re-add the table entry
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "simple_switch_CLI <<< $(cat commands.txt)",
         )
-        logger.info(f"Recovered fault: Re-added table entries on {self.faulty_device}")
+        logger.info(f"Recovered fault: Re-added table entries on {self.faulty_devices[0]}")
 
 
 class P4TableEntryMissingDetection(P4TableEntryMissingBase, DetectionTask):
@@ -289,45 +298,46 @@ class P4TableEntryMissingRCA(P4TableEntryMissingBase, RCATask):
 class P4TableEntryMisconfigBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_table_entry_misconfig"
+    TAGS: str = ["p4"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.bmv2_switches[0]
+        self.faulty_devices = [self.net_env.bmv2_switches[0]]
 
     def inject_fault(self):
         # modify the entry in commands.txt to simulate misconfiguration by replacing the mac address
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "simple_switch_CLI <<< 'table_clear MyIngress.ipv4_lpm'",
         )
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            "sed -Ei.bak 's/00:00:0a:00:00:01/00:00:0a:00:00:66/g' commands.txt",
+            self.faulty_devices[0],
+            "sed -Ei.bak 's/00:00:/66:66:/g' commands.txt",
         )
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "simple_switch_CLI <<< $(cat commands.txt)",
         )
-        logger.info(f"Injected fault: Modified table entries on {self.faulty_device}")
+        logger.info(f"Injected fault: Modified table entries on {self.faulty_devices[0]}")
 
     def recover_fault(self):
         # restore the original commands.txt
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "simple_switch_CLI <<< 'table_clear MyIngress.ipv4_lpm'",
         )
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "simple_switch_CLI <<< $(cat commands.txt.bak)",
         )
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "rm commands.txt.bak",
         )
-        logger.info(f"Recovered fault: Restored table entries on {self.faulty_device}")
+        logger.info(f"Recovered fault: Restored table entries on {self.faulty_devices[0]}")
 
 
 class P4TableEntryMisconfigDetection(P4TableEntryMisconfigBase, DetectionTask):
@@ -365,38 +375,39 @@ class P4TableEntryMisconfigRCA(P4TableEntryMisconfigBase, RCATask):
 class P4AggressiveDetectionThresholdsBase:
     root_cause_category = RootCauseCategory.P4_PIPELINE_ISSUE
     root_case_name = "p4_aggressive_detection_thresholds"
+    TAGS: str = ["p4", "bloom_filter"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
         self.net_env = get_net_env_instance(scenario_name, **kwargs) or P4BloomFilter()
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.bmv2_switches[0]
+        self.faulty_devices = [random.choice(self.net_env.bmv2_switches)]
 
     def inject_fault(self):
         # introduce a syntax error in the p4 file to simulate compilation error
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "cp bloom_filter.p4 bloom_filter.p4.bak && "
             "rm bloom_filter.json && "
             "sed -Ei 's/#define PACKET_THRESHOLD 1000/#define PACKET_THRESHOLD 100/g' bloom_filter.p4 ",
         )
-        self.kathara_api.exec_cmd(self.faulty_devices, "pkill -f simple_switch")
+        self.kathara_api.exec_cmd(self.faulty_devices[0], "pkill -f simple_switch")
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            f"./hostlab/{self.faulty_device}.startup",
+            self.faulty_devices[0],
+            f"./hostlab/{self.faulty_devices[0]}.startup",
         )
 
     def recover_fault(self):
         # restore the original p4 file
-        self.kathara_api.exec_cmd(self.faulty_devices, "cp bloom_filter.p4.bak bloom_filter.p4")
+        self.kathara_api.exec_cmd(self.faulty_devices[0], "cp bloom_filter.p4.bak bloom_filter.p4")
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
+            self.faulty_devices[0],
             "pkill -f simple_switch",
         )
         self.kathara_api.exec_cmd(
-            self.faulty_devices,
-            f"./hostlab/{self.faulty_device}.startup",
+            self.faulty_devices[0],
+            f"./hostlab/{self.faulty_devices[0]}.startup",
         )
 
 

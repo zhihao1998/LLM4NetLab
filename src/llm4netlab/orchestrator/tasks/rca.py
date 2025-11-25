@@ -95,13 +95,14 @@ class RCATask(TaskBase):
 
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        accuracy = tp / len(correct_rc_names) if len(correct_rc_names) > 0 else 0.0
 
         if precision + recall == 0:
             f1 = 0.0
         else:
             f1 = 2 * precision * recall / (precision + recall)
 
-        return float(f1)
+        return round(float(accuracy), 4), round(float(precision), 4), round(float(recall), 4), round(float(f1), 4)
 
     def get_submission(self):
         assert self.root_cause_name, "Root cause name must be set in the task instance."

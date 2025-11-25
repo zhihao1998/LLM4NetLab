@@ -1,6 +1,7 @@
 import os
 import textwrap
 from ipaddress import IPv4Interface, IPv4Network
+from typing import Literal
 
 from Kathara.manager.Kathara import Kathara, Machine
 from Kathara.model.Lab import Lab
@@ -65,15 +66,30 @@ class HostMeta:
 
 class DCClosService(NetworkEnvBase):
     LAB_NAME = "dc_clos_service"
+    TOPO_LEVEL = "hard"
+    TOPO_SIZE = ["s", "m", "l"]
+    TAGS = ["arp", "link", "mac", "bgp", "icmp", "frr", "dns", "host", "http"]
 
-    def __init__(self, super_spine_count: int = 2, spine_count: int = 2, leaf_count: int = 4):
+    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        self.super_spine_count = super_spine_count
-        self.spine_count = spine_count
-        self.leaf_count = leaf_count
+        if topo_size_level == "s":
+            self.super_spine_count = 1
+            self.spine_count = 2
+            self.leaf_count = 2
+        elif topo_size_level == "m":
+            self.super_spine_count = 2
+            self.spine_count = 4
+            self.leaf_count = 4
+        elif topo_size_level == "l":
+            self.super_spine_count = 4
+            self.spine_count = 4
+            self.leaf_count = 8
+        else:
+            raise ValueError("Invalid topo_size_level. Choose from 's', 'm', 'l'.")
+
         pod_spines = {}
         pod_leaves = {}
         pod_dns = {}
@@ -92,7 +108,7 @@ class DCClosService(NetworkEnvBase):
 
         for ss in range(self.super_spine_count):
             ss_name = f"super_spine_router_{ss}"
-            router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"})
+            router_ss = self.lab.new_machine(ss_name, **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"})
             router_ss_meta = RouterMeta(
                 name=ss_name,
                 machine=router_ss,
@@ -107,7 +123,7 @@ class DCClosService(NetworkEnvBase):
             for spine_id in range(self.spine_count):
                 spine_name = f"spine_router_{pod}_{spine_id}"
                 router_spine = self.lab.new_machine(
-                    spine_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                    spine_name, **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
                 )
                 spine_meta = RouterMeta(
                     name=spine_name,
@@ -123,7 +139,7 @@ class DCClosService(NetworkEnvBase):
             for leaf_id in range(self.leaf_count):
                 leaf_name = f"leaf_router_{pod}_{leaf_id}"
                 router_leaf = self.lab.new_machine(
-                    leaf_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                    leaf_name, **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
                 )
                 leaf_meta = RouterMeta(
                     name=leaf_name,
@@ -138,7 +154,7 @@ class DCClosService(NetworkEnvBase):
             pod_dns[pod] = []
             # a dns and three webserver per pod
             dns_name = f"dns_pod{pod}"
-            dns_machine = self.lab.new_machine(dns_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+            dns_machine = self.lab.new_machine(dns_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"})
             dns_meta = HostMeta(
                 name=dns_name,
                 machine=dns_machine,
@@ -152,7 +168,7 @@ class DCClosService(NetworkEnvBase):
             for host in range(self.leaf_count - 1):
                 web_name = f"webserver{host}_pod{pod}"
                 web_machine = self.lab.new_machine(
-                    web_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+                    web_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
                 )
                 web_meta = HostMeta(
                     name=web_name,
@@ -167,7 +183,7 @@ class DCClosService(NetworkEnvBase):
         for client_id in range(self.super_spine_count):
             client_name = f"client_{client_id}"
             client_machine = self.lab.new_machine(
-                client_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+                client_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
             )
             client_meta = HostMeta(
                 name=client_name,
@@ -411,23 +427,18 @@ class DCClosService(NetworkEnvBase):
 
         # load machines after initialization
         self.load_machines()
-        self.desc = "An data center network with 4 levels using BGP routing."
-
-        # add the website urls
-        self.web_urls = []
-        for pod_idx, pod_webs in pod_webservers.items():
-            for web_idx, web in enumerate(pod_webs):
-                url = f"http://web{web_idx}.pod{pod_idx}"
-                self.web_urls.append(url)
-        self.desc += f" Hosting web services at: {', '.join(self.web_urls)}. \n"
-
-        # add DNS
-        self.dns_servers = [dns.ip_address for dns in tot_dns]
-        self.desc += f" Using DNS servers at: {', '.join(self.dns_servers)}. \n"
+        self.desc = (
+            "A 4-tier data center Clos (super-spine, spine, leaf, service hosts) using EBGP: all inter-router links are /31s from 172.16.0.0/16, "
+            "and each leaf connects to one service subnet 10.<pod>.<idx>.0/24 that it advertises via BGP."
+            "Each pod runs one DNS server (Bind, authoritative for zone podX) and several HTTP web servers; "
+            "DNS provides A records like web0.pod0 pointing to the web servers, which run python3 -m http.server on port 80."
+            "External client hosts sit in 192.168.<pod>.0/24 networks, use the pod DNS servers in /etc/resolv.conf, "
+            "and access the services via URLs such as http://web0.pod0 over the routed Clos fabric."
+        )
 
 
 if __name__ == "__main__":
-    dc_clos_service = DCClosService()
+    dc_clos_service = DCClosService(topo_size_level="m")
     print("lab net summary:", dc_clos_service.get_info())
     if dc_clos_service.lab_exists():
         print("Lab exists, undeploying it...")

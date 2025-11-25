@@ -5,7 +5,7 @@ from typing import List
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
-from llm4netlab.orchestrator.problems.prob_pool import list_avail_problems as _list_avail_problems
+from llm4netlab.orchestrator.problems.prob_pool import list_avail_problem_names as _list_avail_problems
 from llm4netlab.orchestrator.tasks.rca import RCASubmission
 from llm4netlab.utils.errors import safe_tool
 

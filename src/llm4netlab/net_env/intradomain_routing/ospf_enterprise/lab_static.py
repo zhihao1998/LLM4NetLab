@@ -1,6 +1,7 @@
 import os
 import textwrap
 from ipaddress import IPv4Interface, IPv4Network
+from typing import Literal
 
 from Kathara.manager.Kathara import Kathara, Machine
 from Kathara.model.Lab import Lab
@@ -36,11 +37,6 @@ log file /var/log/frr/frr.log
 """
 
 
-DIST_SW_COUNT = 2  # per core router
-ACCESS_SW_PER_DIST = 2  # per dist switch
-HOST_PER_ACCESS = 2  # per access switch
-
-
 class RouterMeta:
     def __init__(self, name, machine: Machine, eth_index, cmd_list):
         self.name = name
@@ -72,21 +68,29 @@ class HostMeta:
 
 class OSPFEnterpriseStatic(NetworkEnvBase):
     LAB_NAME = "ospf_enterprise_static"
+    TOPO_LEVEL = "medium"
+    TOPO_SIZE = ["s", "m", "l"]
+    TAGS = ["host", "ospf", "mac", "http", "link", "frr", "icmp", "arp"]
 
-    def __init__(self):
+    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        self.desc = "An enterprise OSPF network with multiple areas."
 
-        self.dns_ip = None
+        match topo_size_level:
+            case "s":
+                DIST_SW_COUNT, ACCESS_SW_PER_DIST, HOST_PER_ACCESS = 1, 1, 1  # per core router
+            case "m":
+                DIST_SW_COUNT, ACCESS_SW_PER_DIST, HOST_PER_ACCESS = 2, 2, 2
+            case "l":
+                DIST_SW_COUNT, ACCESS_SW_PER_DIST, HOST_PER_ACCESS = 4, 4, 4
 
         # core layer, only core1 and core2 connect dist routers, core3 connect to server subnet
         core_routers = {}
         for core_id in range(1, 4):
             router_core = self.lab.new_machine(
-                f"router_core_{core_id}", **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                f"router_core_{core_id}", **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
             )
             router_core_meta = RouterMeta(
                 name=f"router_core_{core_id}",
@@ -105,7 +109,7 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
             for dist_id in range(1, DIST_SW_COUNT + 1):
                 dist_name = f"switch_dist_{core_id}_{dist_id}"
                 router_dist = self.lab.new_machine(
-                    dist_name, **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+                    dist_name, **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
                 )
                 dist_meta = RouterMeta(
                     name=dist_name,
@@ -121,7 +125,7 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
                 for access_id in range(1, ACCESS_SW_PER_DIST + 1):
                     access_name = f"switch_access_{core_id}_{dist_id}_{access_id}"
                     router_access = self.lab.new_machine(
-                        access_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+                        access_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
                     )
                     access_meta = SwitchMeta(
                         name=access_name,
@@ -137,7 +141,7 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
                     for host_id in range(1, HOST_PER_ACCESS + 1):
                         host_name = f"host_{core_id}_{dist_id}_{access_id}_{host_id}"
                         host_machine = self.lab.new_machine(
-                            host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"}
+                            host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
                         )
                         host_meta = HostMeta(
                             name=host_name,
@@ -158,7 +162,7 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
 
         # dns
         host_name = "dns_server"
-        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+        host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"})
         host_meta = HostMeta(
             name=host_name,
             machine=host_machine,
@@ -170,7 +174,9 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
         # web
         for web_idx in range(web_server_count):
             host_name = f"web_server_{web_idx}"
-            host_machine = self.lab.new_machine(host_name, **{"image": "kathara/base-stress", "cpus": 1, "mem": "512m"})
+            host_machine = self.lab.new_machine(
+                host_name, **{"image": "kathara/base-stress", "cpus": 0.5, "mem": "256m"}
+            )
             host_meta = HostMeta(
                 name=host_name,
                 machine=host_machine,
@@ -182,7 +188,7 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
 
         # server access switch
         server_switch = self.lab.new_machine(
-            "switch_server_access", **{"image": "kathara/frr-stress", "cpus": 1, "mem": "512m"}
+            "switch_server_access", **{"image": "kathara/frr-stress", "cpus": 0.5, "mem": "256m"}
         )
         server_access_meta = RouterMeta(
             name="switch_server_access",
@@ -518,24 +524,29 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
 
         # load machines after initialization
         self.load_machines()
-        self.desc = "An data center network with 4 levels using BGP routing."
+        self.desc = (
+            "An enterprise hierarchical network using FRR OSPF with multiple areas: "
+            "three core routers form the backbone (area 0) with /31 infrastructure links from 172.16.0.0/16,"
+            "core1/core2 connect to distribution routers, which in turn bridge to access switches. "
+            "User hosts are statically addressed in subnets `10.<core>.<dist>.0/24` with their default gateway on the distribution switch "
+            "and DNS pointed to a central DNS server. "
+            "A server farm in `10.200.0.0/24` hangs off a dedicated OSPF router (area 0) and hosts one Bind DNS server for the `local` zone "
+            "plus several Apache web servers published as `web0.local`…`web3.local`, all reachable end-to-end via OSPF."
+        )
 
         # add the website urls
         self.web_urls = []
         for web_idx, web in enumerate(web_servers):
             url = f"http://web{web_idx}.local"
             self.web_urls.append(url)
-        self.desc += f" Hosting web services at: {', '.join(self.web_urls)}. \n"
 
         # add DNS
         self.dns_servers = [dns.ip_address for dns in tot_dns]
-        self.desc += f" Using DNS servers at: {', '.join(self.dns_servers)}. \n"
 
 
 if __name__ == "__main__":
-    ospf_enterprise = OSPFEnterpriseStatic()
+    ospf_enterprise = OSPFEnterpriseStatic(topo_size_level="l")
     print("lab net summary:", ospf_enterprise.get_info())
-    print("DNS server IP:", ospf_enterprise.dns_ip)
     if ospf_enterprise.lab_exists():
         print("Lab exists, undeploying it...")
         ospf_enterprise.undeploy()

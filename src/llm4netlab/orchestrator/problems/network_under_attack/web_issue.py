@@ -1,4 +1,5 @@
 import logging
+import random
 
 from llm4netlab.generator.fault.injector_service import FaultInjectorService
 from llm4netlab.net_env.base import NetworkEnvBase
@@ -20,6 +21,7 @@ class WebDoSBase:
     root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
     root_cause_name: str = "web_dos_attack"
     symptom_desc: str = "Users reports high latency when accessing some web services."
+    TAGS: str = ["http"]
 
     def __init__(self, scenario_name: NetworkEnvBase, **kwargs):
         super().__init__()
@@ -27,7 +29,7 @@ class WebDoSBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorService(lab_name=self.net_env.lab.name)
-        self.faulty_devices = self.net_env.servers["web"][0]
+        self.faulty_devices = [random.choice(self.net_env.servers["web"])]
 
         self.attacker_device = self.net_env.hosts[-1]
         self.target_website = self.kathara_api.get_host_ip(self.faulty_devices, with_prefix=False)

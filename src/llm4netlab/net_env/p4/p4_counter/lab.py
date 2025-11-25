@@ -10,9 +10,12 @@ cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class P4Counter(NetworkEnvBase):
-    LAB_NAME = "simple_bmv2"
+    LAB_NAME = "p4_counter"
+    TOPO_LEVEL = "easy"
+    TOPO_SIZE = None
+    TAGS = ["link", "host", "p4", "mac", "arp", "icmp"]
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
