@@ -12,3 +12,5 @@ config/config.yaml
 /.venv
 *.egg-info/
 /runtime/
+/.vscode/
+clean.sh

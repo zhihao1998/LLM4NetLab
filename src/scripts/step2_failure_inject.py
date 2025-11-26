@@ -6,7 +6,7 @@ from llm4netlab.orchestrator.problems.problem_base import TaskLevel
 from llm4netlab.utils.session import Session
 
 
-def inject_failure(problem_names: list[str], task_level: TaskLevel, re_inject: bool = False):
+def inject_failure(problem_names: list[str], task_level: TaskLevel, re_inject: bool = True):
     """
     Inject failure into the network environment based on the root cause name.
     """
@@ -35,7 +35,6 @@ def inject_failure(problem_names: list[str], task_level: TaskLevel, re_inject: b
     session.update_session("problem_names", problem_names)
     session.update_session("task_level", task_level)
     session.update_session("task_description", task_description)
-    logger.info(f"Task description: {task_description}")
 
     # save the ground truth for evaluation
     gt = problem.get_submission().model_dump_json()

@@ -38,7 +38,6 @@ class SubmissionAgent:
         for tool in self.tools:
             tool.handle_tool_error = True
             tool.handle_validation_error = True
-        print(self.tools)
 
     def get_agent(self):
         """Final submission node"""

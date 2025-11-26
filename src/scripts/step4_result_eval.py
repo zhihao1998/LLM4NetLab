@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def _eval_problem(session: Session, judge_model: str):
     """Evaluate the problem solution and log the results."""
-    sub_log_path = f"{session.session_dir}/{session.backend_model}_submission.log"
+    sub_log_path = f"{session.session_dir}/submission.json"
     problem = get_problem_instance(
         problem_names=session.problem_names,
         task_level=session.task_level,
@@ -105,8 +105,7 @@ def eval(judge_model, destroy_env=True):
 
     _eval_problem(session, judge_model)
     net_env = get_net_env_instance(session.scenario_name)
-    assert net_env.lab_exists(), "Network environment lab does not exist."
-    if destroy_env:
+    if destroy_env and net_env.lab_exists():
         net_env.undeploy()
     logger.info(f"Destroyed network environment: {session.scenario_name} with session ID: {session.session_id}")
     session.clear_session()

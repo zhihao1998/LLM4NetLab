@@ -20,7 +20,7 @@ def parse_kv(s):
     return key, value
 
 
-def start_net_env(scenario_name: str, topo_size: Literal["s", "m", "l"] | None = None, redeploy: bool = False):
+def start_net_env(scenario_name: str, topo_size: Literal["s", "m", "l"] | None = None, redeploy: bool = True):
     """
     Every run starts a new session.
     """
@@ -54,8 +54,8 @@ if __name__ == "__main__":
         "--scenario_params",
         nargs="*",
         type=parse_kv,
-        default=[("router_num", 2)],
-        help="Dynamic key=value pairs (e.g. --scenario_params router_num=2 as_number=65001)",
+        default=[],
+        help="Dynamic key=value pairs (e.g. --scenario_params topo_size=m )",
     )
 
     args = parser.parse_args()

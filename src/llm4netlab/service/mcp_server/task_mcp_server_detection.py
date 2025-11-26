@@ -21,8 +21,6 @@ LAB_SESSION_ID = os.getenv("LAB_SESSION_ID")
 ROOT_CAUSE_CATEGORY = os.getenv("ROOT_CAUSE_CATEGORY")
 ROOT_CAUSE_NAME = os.getenv("ROOT_CAUSE_NAME")
 TASK_LEVEL = os.getenv("TASK_LEVEL")
-backend_model = os.getenv("backend_model")
-agent_type = os.getenv("agent_type")
 
 base_dir = os.getenv("BASE_DIR")
 results_dir = os.getenv("RESULTS_DIR")
@@ -40,15 +38,8 @@ def submit(submission: DetectionSubmission) -> List[str]:
         List[str]: Submission status messages.
     """
     submission_dict = submission.model_dump()
-
-    submission_dict["backend_model"] = backend_model
-    submission_dict["agent_type"] = agent_type
-    os.makedirs(
-        f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}",
-        exist_ok=True,
-    )
     with open(
-        f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}/{backend_model}_submission.log",
+        f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}/submission.json",
         "a+",
     ) as log_file:
         log_file.write(json.dumps(submission_dict))

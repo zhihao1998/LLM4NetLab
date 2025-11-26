@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 
 import polars as pl
 
@@ -19,11 +20,12 @@ def run_benchmark():
     """Run benchmark tests based on the benchmark.csv file."""
     benchmark_file = os.path.join(cur_dir, "benchmark.csv")
     df = pl.read_csv(benchmark_file)
+    df = df.filter(pl.col("topo_size").is_in(["-", "s"]))
 
     for row in (
         df.select(["problem", "scenario", "topo_level", "topo_size"])
         .unique()
-        .sort(["problem", "scenario", "topo_size"])
+        .sample(fraction=1, shuffle=True)
         .iter_rows(named=True)
     ):
         problem = row["problem"]
@@ -37,7 +39,10 @@ def run_benchmark():
         is_scenario_started = False
         is_failure_injected = False
 
-        for task_level in ["detection", "localization", "rca"]:
+        # set random seed per problem-scenario to select the consistent failure point
+        random.seed(f"{problem}-{scenario}")
+
+        for task_level in ["localization"]:
             if not is_scenario_started:
                 # Step 1: Start Network Environment
                 start_net_env(scenario, topo_size=topo_size, redeploy=True)
@@ -61,7 +66,7 @@ def run_benchmark():
         # Finally, destroy the network environment if it was started
         net_env = get_net_env_instance(scenario, topo_size=topo_size)
         if net_env.lab_exists():
-            net_env.destroy()
+            net_env.undeploy()
 
 
 if __name__ == "__main__":

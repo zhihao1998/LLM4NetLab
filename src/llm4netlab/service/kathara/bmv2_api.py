@@ -80,6 +80,18 @@ class BMv2APIMixin:
         command = _build_thrift_command(["get_register_arrays()"])
         return self._run_cmd(switch_name, command)
 
+    def bmv2_register_read(
+        self: _SupportsBase,
+        switch_name: str,
+        register_name: str,
+        index: int = 0,
+    ) -> list[str]:
+        """
+        Read a register.
+        """
+        command = _build_thrift_command([f'register_read("{register_name}", {index})'])
+        return self._run_cmd(switch_name, command)
+
     # Table related API
     def bmv2_table_info(self: _SupportsBase, switch_name: str, table_name: str) -> list[str]:
         """

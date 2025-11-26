@@ -6,14 +6,14 @@ from llm4netlab.service.kathara import KatharaAPIALL as KatharaAPI
 from llm4netlab.utils.errors import safe_tool
 
 # Initialize FastMCP server
-mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000, log_level="DEBUG")
+mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000, log_level="INFO")
 LAB_NAME = os.getenv("LAB_NAME")
 
 
 @safe_tool
 @mcp.tool()
 async def get_reachability() -> str:
-    """Get the reachability of the net_env, i.e., ping results from each host to all other hosts in the lab.
+    """Get the complete ping results from each host to all other hosts in the lab.
 
     Returns:
         str: The ping results from each host to all other hosts in the lab.

@@ -1,3 +1,4 @@
+import logging
 import random
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
@@ -357,6 +358,7 @@ class DNSPortBlockedRCA(DNSPortBlockedBase, RCATask):
 
 
 if __name__ == "__main__":
-    problem = HttpAclBlockBase()
-    # problem.inject_fault()
-    problem.recover_fault()
+    logging.basicConfig(level=logging.INFO)
+    problem = HttpAclBlockBase(scenario_name="rip_small_internet_vpn")
+    problem.inject_fault()
+    # problem.recover_fault()

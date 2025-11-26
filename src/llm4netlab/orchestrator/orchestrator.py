@@ -94,7 +94,7 @@ class Orchestrator:
 
     def eval_problem(self):
         """Evaluate the problem solution and log the results."""
-        sub_log_path = f"{self.log_dir}/{self.log_prefix}_submission.log"
+        sub_log_path = f"{self.log_dir}/{self.log_prefix}_submission.json"
         if not os.path.exists(sub_log_path):
             evaluator_score = -1
         else:

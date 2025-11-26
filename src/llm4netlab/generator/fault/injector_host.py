@@ -103,7 +103,6 @@ class FaultInjectorHost:
             host_name,
             f"stress-ng --sock 0 --timeout {duration} &",
         )
-        print(res)
         self.logger.info(f"Injected high socket usage on {host_name} for {duration} seconds.")
 
     def recover_high_socket(self, host_name: str):

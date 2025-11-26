@@ -39,7 +39,6 @@ class WebBrowsingTrafficGenerator:
 
     async def _browse_once(self, src_host: str, web_domain: str):
         cmd = f"ab -n 500 -c 200 -k {web_domain}"
-        print(f"[{src_host}] Executing command: {cmd}")
         return await self.kathara_api._run_cmd_async(src_host, cmd)
 
     async def _client_session(self, src_host: str):
@@ -53,7 +52,6 @@ class WebBrowsingTrafficGenerator:
 
             for web_domain in domains_to_visit:
                 result = await self._browse_once(src_host, web_domain)
-                print(f"[{src_host}] Browsed {web_domain} with result: {result}")
 
                 delay = random.uniform(*self.request_delay_range)
                 await asyncio.sleep(delay)

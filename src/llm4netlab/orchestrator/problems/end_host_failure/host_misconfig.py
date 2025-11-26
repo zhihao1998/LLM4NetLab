@@ -179,7 +179,7 @@ class HostIncorrectIPBase:
         self.faulty_devices = [random.choice(self.net_env.hosts)]
 
     def inject_fault(self):
-        incorrect_ip = "10.2.1.20/24"
+        incorrect_ip = f"10.2.1.{random.randint(2, 254)}/24"
         ip_gateway = "10.2.1.1"
         self.injector.inject_ip_change(
             host_name=self.faulty_devices[0],
