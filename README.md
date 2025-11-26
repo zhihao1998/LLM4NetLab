@@ -13,7 +13,7 @@
 
 <h1 id="🤖overview">🤖 Overview</h1>
 
-![alt text](./assets/images/llm4netlab_architecture.png)
+![alt text](./assets/images/NIKA_architecture.png)
 
 NIKA (Network Incidents Benchmark for AI Agents) is a standardized, reproducible, and open benchmarking platform to build and evaluate AI agents on network troubleshooting with low operational effort. This platform primarily aims to *standardize* and *democratize* the experimentation with AI agents, by enabling researchers and practitioners -- including non domain-experts such as ML engineers and data scientists -- to focus on the evaluation of AI agents on curated problem sets, without concern for underlying operational complexities. Custom AI agents can be easily plugged through a single API and rapidly evaluated.
 
@@ -42,15 +42,22 @@ This is the code repository for the paper [Towards a Playground to Democratize E
 
 ## Setup
 
-Clone the repository and install the dependencies. NIKA uses [Poetry](https://python-poetry.org/docs/) to manage the dependencies. Follow [Poetry installation instructions](https://python-poetry.org/docs/#installation) to install Poetry. You can also use a standard `pip install -e .` to install the dependencies.
+Clone the repository and install the dependencies. 
+NIKA uses [uv](https://docs.astral.sh/uv) to manage the dependencies. Follow [uv installation instructions](https://docs.astral.sh/uv/getting-started/installation/) to install uv. You can also use a standard `pip install -e .` to install the dependencies.
 
 ```shell
-git clone https://github.com/zhihao1998/LLM4NetLab.git  
-poetry env use python3.12
-export PATH="$HOME/.local/bin:$PATH" # export poetry to PATH if needed
-poetry install # -vvv for verbose output
-poetry self add poetry-plugin-shell # installs poetry shell plugin
-poetry shell
+# Clone the repository
+git clone https://github.com/zhihao1998/NIKA.git
+cd NIKA
+
+# Install dependencies
+uv sync
+
+# Activate the environment
+uv venv activate
+
+# (Optional) Run an interactive shell in the environment
+uv run bash
 ```
 
 The Kathará API relies on Docker to function properly. We recommend to add current user to docker group to avoid calling with `sudo`. **However, please be aware of the security implications of this action.**
@@ -90,55 +97,32 @@ GOOGLE_SEARCH_CSE_ID=<>
 DEEPSEEK_API_KEY=<>
 ```
 
-## Agent Configuration
+## Step by step guide
+You can follow the steps below to run a complete troubleshooting task with NIKA.
 
-NIKA now supports [mcp-use <img src="https://mintlify.s3.us-west-1.amazonaws.com/mcpuse/logo/light.svg" alt="mcp-use" height="16" style="vertical-align:middle;background:white;">](https://docs.mcp-use.com/getting-started) (LangChain as backend) to integrate your agent with MCP support.
+1. **Start the network environment**
+  Check the specific scenario and its parameters under `llm4netlab/net_env`.
+   ```shell
+   python3 scripts/step1_net_env_start.py --scenario <scenario_name> --scenario_params key1=value1 key2=value2
+   ```
 
-💡 LangChain and LangGraph support is coming soon!
+2. **Inject faults into the network environment**
 
-## Example
+   ```shell
+   python3 scripts/step2_failure_inject.py --problems <problem_id_1> <problem_id_2> --task_level <detection|localization|rca>
+   ```
 
-You can find examples under `examples`, which show how to specify the network scenarios, tasks, and problems. For example, to run a device failure detection task, you can do the following:
+3. **Run the AI agent to troubleshoot the network**
+    ```shell
+    python3 scripts/step3_agent_run.py --agent_type <agent_type> --backend_model <backend_model> --max_steps <max_steps>
+    ```
 
-```python
-# 1. Define orchestrator and llm (DeepSeek here)
-from agent.utils.template import MCP_PROMPT_TEMPLATE
-from langchain_deepseek import ChatDeepSeek
-from mcp_use import MCPAgent, MCPClient
+4. **Evaluate the agent's performance**
 
-orchestrator = Orchestrator()
-llm = ChatDeepSeek(model="deepseek-reasoner")
+    ```shell
+    python3 scripts/step4_result_eval.py --judge_model <judge_model>
+    ```
 
-# 2. Configure the mcp servers and client
-config = {
-    "mcpServers": {
-        "kathara_base_mcp_server": {
-            "command": "python3",
-            "args": [f"{base_dir}/NIKA/service/mcp_server/kathara_base_mcp_server.py"],
-        },
-        ...
-    }
-}
-client = MCPClient.from_dict(config)
-
-# 3. Initialize agent
-agent = MCPAgent(
-    llm=llm,
-    client=client,
-    max_steps=20,
-    system_prompt_template=MCP_PROMPT_TEMPLATE,
-)
-orchestrator.register_agent(agent, agent.name)
-
-# 4. Select a problem, see all available problems in NIKA/orchestrator/problems
-task_desc = orchestrator.init_problem("frr_down_detection")
-
-# 5. Start your agent and enjoy!
-await agent.run(task_desc)
-
-# 6. Stop the problem and clean the environments after completion
-orchestrator.stop_problem()
-```
 
 <h1 id="🛠️usage">🛠️ Usage</h1>
 
@@ -174,7 +158,7 @@ Check all available problems at `LLM4NetLab/orchestrator/problems`. Some of them
 
 ## MCP Servers and Tools
 
-NIKA provides a set of MCP servers and tools to facilitate network troubleshooting tasks. All servers are available under `LLM4NetLab/service/mcp_server`. These include:
+NIKA provides a set of MCP servers and tools to facilitate network troubleshooting tasks. All servers are available under `src/llm4netlab/service/mcp_server`. These include:
 
 - **base mcp server for Kathará**: This server provides the basic functionality for interacting with Kathará network scenarios, including
   - `get_reachability` to check the reachability by pinging all pairs of hosts.
@@ -202,6 +186,41 @@ NIKA provides a set of MCP servers and tools to facilitate network troubleshooti
 💡 More tools are coming soon...
 
 You can also plug in your own MCP servers following the configuration instruction. Look for more MCP servers at [mcp.so](https://mcp.so/).
+
+### Plug in the servers to your Claude desktop
+
+#### Windows
+
+Since the network environment and kathará run on Linux, and Claude desktop runs on Windows, we need some tricks here.
+
+1. Modify the `xxx_mcp_server.py` files under `src/llm4netlab/service/mcp_server` as follows:
+   
+```python
+mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000)
+... # your tools can be kept as is
+mcp.run(transport="sse")
+```
+
+2. Run the server in VSCode terminal, it will automatically forward the port to Windows host, like 8000 -> 8000.
+
+1. Configure Claude's config file `xx/claude_desktop_config.json` as follows:
+
+```json
+{
+  "mcpServers": {
+    "kathara_base": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://127.0.0.1:8000/sse"
+      ]
+    }
+  }
+}
+```
+
+4. Enjoy!
+
 
 ## Logging and Observability
 

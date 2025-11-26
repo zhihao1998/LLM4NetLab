@@ -1,0 +1,5 @@
+FROM kathara/base:latest
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends stress-ng wireguard wireguard-tools && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
