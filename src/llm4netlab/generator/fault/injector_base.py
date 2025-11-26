@@ -57,27 +57,21 @@ class FaultInjectorBase:
         self.kathara_api.exec_cmd(host_name, stop_cmd)
         self.logger.info(f"Stopped link flap on {host_name}:{intf_name}")
 
-    def inject_link_detach(self, host_name: str, link_name: str):
-        """Detach a specific interface of a host.
-        Note: link_name is the name of the collision domain that the interface is connected to.
-        """
-        machine_obj = self.kathara_api.lab.get_machine(host_name)
-        link_obj = self.kathara_api.lab.get_link(link_name)
-        self.kathara_api.instance.disconnect_machine_from_link(machine=machine_obj, link=link_obj)
-        self.logger.info(f"Injected link detach on {host_name}:{link_name}")
+    def inject_link_detach(self, host_name: str, intf_name: str):
+        """Detach a specific interface of a host."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"ip link del {intf_name}",
+        )
+        self.logger.info(f"Injected link detach on {host_name}:{intf_name}")
 
-    def recover_link_detach(self, host_name: str, link_name: str):
-        """Recover from a link detach by re-attaching the interface to the link.
-        Note: link_name is the name of the collision domain that the interface is connected to.
-        TODO: Fix, not working
-        """
-        # machine_obj = self.kathara_api.lab.get_machine(host_name)
-        # link_obj = self.kathara_api.lab.get_link(link_name)
-        # machine_obj.remove_interface(link_obj)
-        # machine_obj.add_interface(link_obj)
-        # self.kathara_api.instance.connect_machine_to_link(machine=machine_obj, link=link_obj)
-        # self.logger.info(f"Recovered link detach on {host_name}:{link_name}")
-        pass
+    def recover_link_detach(self, host_name: str, intf_name: str):
+        """Recover from a link detach by re-attaching the interface to the link."""
+        self.kathara_api.exec_cmd(
+            host_name,
+            f"./hostlab/{host_name}.startup",
+        )
+        self.logger.info(f"Recovered link detach on {host_name}:{intf_name}")
 
     def inject_host_down(self, host_name: str):
         """Inject a fault by stopping a host."""

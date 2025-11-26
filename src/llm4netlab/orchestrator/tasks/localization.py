@@ -85,7 +85,7 @@ class LocalizationTask(TaskBase):
         try:
             parsed_submission = LocalizationSubmission.model_validate(submission)
         except ValidationError:
-            return -1.0
+            return -1.0, -1.0, -1.0, -1.0
 
         submitted_components = parsed_submission.faulty_devices
 

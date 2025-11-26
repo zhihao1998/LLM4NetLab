@@ -107,8 +107,11 @@ class RCATask(TaskBase):
     def get_submission(self):
         assert self.root_cause_name, "Root cause name must be set in the task instance."
         if isinstance(self.root_cause_name, str):
-            self.root_cause_name = [self.root_cause_name]
-        submission = RCASubmission(
-            root_cause_name=self.root_cause_name,
-        )
+            submission = RCASubmission(
+                root_cause_name=[self.root_cause_name],
+            )
+        elif isinstance(self.root_cause_name, list):
+            submission = RCASubmission(
+                root_cause_name=self.root_cause_name,
+            )
         return submission

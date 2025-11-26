@@ -347,7 +347,8 @@ class KatharaBaseAPI:
         Perform a curl web test to a URL for several times and return timing statistics.
         """
         command = (
-            f"curl -w 'namelookup:%{{time_namelookup}}, "
+            f"curl --connect-timeout 5 --max-time 10 "
+            f"-w 'namelookup:%{{time_namelookup}}, "
             f"connect:%{{time_connect}}, "
             f"appconnect:%{{time_appconnect}}, "
             f"pretransfer:%{{time_pretransfer}}, "

@@ -103,6 +103,38 @@ def bmv2_table_dump(switch_name: str, table_name: str) -> str:
     return kathara_api.bmv2_table_dump(switch_name, table_name)
 
 
+@safe_tool
+@mcp.tool()
+def bmv2_get_register_arrays(switch_name: str) -> str:
+    """Get the register arrays from the bmv2 switch.
+    Args:
+        switch_name (str): The name of the switch.
+    Returns:
+        str: The register array names from the bmv2 switch.
+    """
+    kathara_api = KatharaBMv2API(lab_name=LAB_NAME)
+    return kathara_api.bmv2_get_register_arrays(switch_name)
+
+
+@safe_tool
+@mcp.tool()
+def bmv2_register_read(
+    switch_name: str,
+    register_name: str,
+    index: int = 0,
+) -> str:
+    """Read a register from the bmv2 switch.
+    Args:
+        switch_name (str): The name of the switch.
+        register_name (str): The name of the register.
+        index (int, optional): The index of the register. Defaults to 0.
+    Returns:
+        str: The register value from the bmv2 switch.
+    """
+    kathara_api = KatharaBMv2API(lab_name=LAB_NAME)
+    return kathara_api.bmv2_register_read(switch_name, register_name, index)
+
+
 if __name__ == "__main__":
     # Initialize and run the server
     mcp.run(transport="stdio")

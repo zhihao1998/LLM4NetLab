@@ -81,7 +81,7 @@ class RIPSmallInternetVPN(NetworkEnvBase):
         internal_router_list: list[RIPRouterMeta] = []
         for range_idx in range(1, self.internal_router_num + 1):
             router_name = f"router{range_idx}"
-            router_machine = self.lab.new_machine(router_name, **{"image": "kathara/frr", "cpu": 1, "mem": "256m"})
+            router_machine = self.lab.new_machine(router_name, **{"image": "kathara/frr", "cpu": 0.5, "mem": "256m"})
             router_meta = RIPRouterMeta(
                 name=router_name,
                 machine=router_machine,
@@ -94,7 +94,7 @@ class RIPSmallInternetVPN(NetworkEnvBase):
         tot_host_list: list[HostMeta] = []
         for host_idx in range(1, self.host_num + 1):
             host_name = f"host_{host_idx}"
-            host_machine = self.lab.new_machine(host_name, **{"image": "kathara/wireguard", "cpu": 1, "mem": "256m"})
+            host_machine = self.lab.new_machine(host_name, **{"image": "kathara/wireguard", "cpu": 0.5, "mem": "256m"})
             host_meta = HostMeta(
                 name=host_name,
                 machine=host_machine,
@@ -105,7 +105,7 @@ class RIPSmallInternetVPN(NetworkEnvBase):
 
         # add the internet gateway router
         gateway_router_machine = self.lab.new_machine(
-            "gateway_router", **{"image": "kathara/frr", "cpu": 1, "mem": "256m"}
+            "gateway_router", **{"image": "kathara/frr", "cpu": 0.5, "mem": "256m"}
         )
         gateway_router_meta = RIPRouterMeta(
             name="gateway_router",
@@ -118,7 +118,7 @@ class RIPSmallInternetVPN(NetworkEnvBase):
         external_routers: list[RIPRouterMeta] = []
         for i in range(1, self.ext_router_num + 1):
             router_name = f"external_router_{i}"
-            router_machine = self.lab.new_machine(router_name, **{"image": "kathara/frr", "cpu": 1, "mem": "256m"})
+            router_machine = self.lab.new_machine(router_name, **{"image": "kathara/frr", "cpu": 0.5, "mem": "256m"})
             router_meta = RIPRouterMeta(
                 name=router_name,
                 machine=router_machine,
@@ -133,7 +133,7 @@ class RIPSmallInternetVPN(NetworkEnvBase):
             for server_idx in range(1, self.ext_server_num + 1):
                 server_name = f"web_server_{i}_{server_idx}"
                 server_machine = self.lab.new_machine(
-                    server_name, **{"image": "kathara/wireguard", "cpu": 1, "mem": "256m"}
+                    server_name, **{"image": "kathara/wireguard", "cpu": 0.5, "mem": "256m"}
                 )
                 server_meta = HostMeta(
                     name=server_name,
@@ -147,7 +147,7 @@ class RIPSmallInternetVPN(NetworkEnvBase):
         tot_vpn_dict = {}
         vpn_server_name = "vpn_server_1"
         vpn_server_machine = self.lab.new_machine(
-            vpn_server_name, **{"image": "kathara/wireguard", "cpu": 1, "mem": "256m"}
+            vpn_server_name, **{"image": "kathara/wireguard", "cpu": 0.5, "mem": "256m"}
         )
         vpn_server_meta = HostMeta(
             name=vpn_server_name,

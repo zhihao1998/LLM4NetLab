@@ -6,7 +6,7 @@ from llm4netlab.orchestrator.problems.prob_pool import list_avail_problem_instan
 cur_path = os.path.dirname(os.path.abspath(__file__))
 
 
-def generate_benchmark(topo_level: str = "easy", topo_size: str = "s"):
+def generate_benchmark():
     net_envs = list_all_net_envs()
     problem_instances = list_avail_problem_instances()
     benchmark_file = open("benchmark/benchmark.csv", "w")
@@ -21,11 +21,8 @@ def generate_benchmark(topo_level: str = "easy", topo_size: str = "s"):
                     topo_size = ["-"]
                 else:
                     topo_size = net_env_cls.TOPO_SIZE
-                if net_env_cls.TOPO_LEVEL == topo_level and (topo_size == "-" or topo_size == topo_size):
-                    for size in topo_size:
-                        benchmark_file.write(
-                            f"{prob_name},{prob_task},{net_env_name},{net_env_cls.TOPO_LEVEL},{size}\n"
-                        )
+                for size in topo_size:
+                    benchmark_file.write(f"{prob_name},{prob_task},{net_env_name},{net_env_cls.TOPO_LEVEL},{size}\n")
     benchmark_file.close()
 
 

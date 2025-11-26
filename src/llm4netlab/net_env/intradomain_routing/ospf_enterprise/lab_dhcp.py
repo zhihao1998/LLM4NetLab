@@ -508,7 +508,8 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         for access_key, host_metas in access_hosts.items():
             for host_meta in host_metas:
                 # startup file
-                host_meta.cmd_list.append("sleep 10 ; dhclient eth0")
+                host_meta.cmd_list.append("sleep 10")
+                host_meta.cmd_list.append("dhclient eth0")
                 self.lab.create_file_from_list(
                     host_meta.cmd_list,
                     f"{host_meta.machine.name}.startup",
