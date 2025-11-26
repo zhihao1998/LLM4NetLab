@@ -1,4 +1,4 @@
-from typing import Dict, Literal
+from typing import Dict
 
 from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab_services import DCClosService
@@ -28,7 +28,7 @@ _NET_ENVS: Dict[str, NetworkEnvBase] = {
 }
 
 
-def get_net_env_instance(scenario_name: str, topo_size_level: Literal["s", "m", "l"]) -> NetworkEnvBase:
+def get_net_env_instance(scenario_name: str, **kwargs) -> NetworkEnvBase:
     """Get an instance of the specified network environment.
 
     Args:
@@ -42,7 +42,7 @@ def get_net_env_instance(scenario_name: str, topo_size_level: Literal["s", "m", 
     """
     if scenario_name not in _NET_ENVS:
         raise ValueError(f"Network environment '{scenario_name}' not found in the pool.")
-    return _NET_ENVS[scenario_name](topo_size_level=topo_size_level)
+    return _NET_ENVS[scenario_name](**kwargs)
 
 
 def list_all_net_envs() -> dict[str, NetworkEnvBase]:
@@ -63,6 +63,6 @@ if __name__ == "__main__":
 
     lab = get_net_env_instance(
         "dc_clos_bgp",
-        topo_size_level="l",
+        topo_size="l",
     )
     print(lab.routers)

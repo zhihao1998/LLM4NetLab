@@ -59,12 +59,12 @@ class RIPSmallInternetVPN(NetworkEnvBase):
     TOPO_SIZE = ["s", "m", "l"]
     TAGS = ["link", "http", "host", "frr", "mac", "arp", "vpn", "icmp"]
 
-    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
+    def __init__(self, topo_size: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        match topo_size_level:
+        match topo_size:
             case "s":
                 self.internal_router_num, self.host_num, self.ext_router_num, self.ext_server_num = 2, 2, 1, 2
             case "m":
@@ -72,7 +72,7 @@ class RIPSmallInternetVPN(NetworkEnvBase):
             case "l":
                 self.internal_router_num, self.host_num, self.ext_router_num, self.ext_server_num = 8, 8, 4, 8
             case _:
-                raise ValueError("topo_size_level should be one of 's', 'm', 'l'.")
+                raise ValueError("topo_size should be one of 's', 'm', 'l'.")
 
         # addresses between routers
         infra_pool = list(IPv4Network("192.168.0.0/16").subnets(new_prefix=31))
@@ -345,7 +345,7 @@ class RIPSmallInternetVPN(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    rip_small_internet = RIPSmallInternetVPN(topo_size_level="l")
+    rip_small_internet = RIPSmallInternetVPN(topo_size="l")
     print("Lab description:", rip_small_internet.get_info())
     if rip_small_internet.lab_exists():
         print("Lab exists, undeploying it...")

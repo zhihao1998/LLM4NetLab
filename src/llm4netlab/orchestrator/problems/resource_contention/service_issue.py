@@ -15,7 +15,7 @@ from llm4netlab.service.kathara import KatharaAPIALL
 
 
 class DNSLookupLatencyBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
+    root_cause_category: RootCauseCategory = RootCauseCategory.RESOURCE_CONTENTION
     root_cause_name: str = "dns_lookup_latency"
     symptom_desc: str = "Users experience high latency when accessing web services."
     TAGS: str = ["dns", "http"]
@@ -67,7 +67,7 @@ class DNSLookupLatencyRCA(DNSLookupLatencyBase, RCATask):
 
 
 class LoadBalancerOverloadBase:
-    root_cause_category: RootCauseCategory = RootCauseCategory.PERFORMANCE_DEGRADATION
+    root_cause_category: RootCauseCategory = RootCauseCategory.RESOURCE_CONTENTION
     root_cause_name: str = "load_balancer_overload"
     TAGS: str = ["load_balancer", "http"]
 

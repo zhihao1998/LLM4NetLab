@@ -43,19 +43,19 @@ class SDNStar(NetworkEnvBase):
     TOPO_SIZE = ["s", "m", "l"]
     TAGS = ["link", "sdn", "host", "mac", "arp", "icmp"]
 
-    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
+    def __init__(self, topo_size: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        if topo_size_level == "s":
+        if topo_size == "s":
             SWITCH_NUM = 4  # 1 center + 3 leaf
-        elif topo_size_level == "m":
+        elif topo_size == "m":
             SWITCH_NUM = 8  # 1 center + 7 leaf
-        elif topo_size_level == "l":
+        elif topo_size == "l":
             SWITCH_NUM = 16  # 1 center + 15 leaf
         else:
-            raise ValueError("topo_size_level should be 1, 2, or 3.")
+            raise ValueError("topo_size should be 1, 2, or 3.")
         self.desc = textwrap.dedent("""\
         The network is an SDN star topology with one central switch and multiple edge switches.
         Each host is connected to exactly one edge switch.

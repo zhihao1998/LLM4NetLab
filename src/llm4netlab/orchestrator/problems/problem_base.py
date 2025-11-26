@@ -10,23 +10,13 @@ class RootCauseCategory(StrEnum):
         obj.description = description
         return obj
 
-    DEVICE_FAILURE = ("device_failure", "Hardware or interface/module failure")
+    LINK_FAILURE = ("link_failure", "Link failures: physical disconnections, interface down")
     END_HOST_FAILURE = ("end_host_failure", "Host misconfiguration: IP, gateway, DNS, DHCP issues")
-    PERFORMANCE_DEGRADATION = ("performance_degradation", "High latency, packet loss, jitter, throughput drop")
-    SERVICE_DEPENDENCY_FAILURE = ("service_dependency_failure", "External dependency: DNS, NTP, AAA, PKI")
-    DATA_PLANE_ISSUE = ("data_plane_forwarding_issue", "Routing/forwarding blackhole, loop, asymmetry")
-    SDN_CONTROL_PLANE_ISSUE = (
-        "sdn_control_plane_issue",
-        "SDN controller unreachable/crash, flow rule missing/conflict",
-    )
-    P4_PIPELINE_ISSUE = ("p4_pipeline_issue", "P4 program bug, table miss, action misconfiguration")
-    ROUTING_POLICY_MISCONFIGURATION = (
-        "routing_policy_misconfiguration",
-        "Wrong BGP/OSPF policy, metric misconfig",
-    )
-    ACCESS_POLICY_MISCONFIGURATION = ("access_policy_misconfiguration", "ACL / firewall / security group misconfig")
+    NETWORK_NODE_ERROR = ("network_node_error", "Router/switch crashes, reboots, high CPU/memory usage")
+    RESOURCE_CONTENTION = ("resource_contention", "Resource contention: bandwidth saturation, buffer overflows")
+    MISCONFIGURATION = ("misconfiguration", "Configuration errors: wrong IP, ACL, routing protocol settings")
+    NETWORK_UNDER_ATTACK = ("network_under_attack", "Security attacks: DDoS, BGP hijack, MITM, spoofing")
     MULTIPLE_FAULTS = ("multiple_faults", "Multiple simultaneous faults in the network")
-    SWITCH_FORWARDING_ERRORS = ("switch_forwarding_errors", "Switch forwarding errors due to misconfigurations or bugs")
 
 
 class TaskLevel(StrEnum):

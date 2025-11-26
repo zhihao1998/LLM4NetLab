@@ -27,9 +27,11 @@ dependencies = [
     "fs>=2.4.16",
     "langchain-ollama",
     "langchain==1.0",
+    "pandas>=2.3.3",
+    "polars>=1.35.2",
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["llm4netlab*", "agent*"]
+include = ["llm4netlab*", "agent*", "scripts*"]
 

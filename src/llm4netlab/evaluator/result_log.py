@@ -16,6 +16,7 @@ class EvalResult:
     root_cause_name: str = None
     task_level: str = None
     net_env: str = None
+    scenario_topo_size: str = None
     session_id: str = None
     in_tokens: int = None
     out_tokens: int = None

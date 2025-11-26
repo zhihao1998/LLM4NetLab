@@ -42,27 +42,27 @@ class SDNClos(NetworkEnvBase):
     TOPO_SIZE = ["s", "m", "l"]
     TAGS = ["link", "sdn", "host", "mac", "arp", "icmp"]
 
-    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
+    def __init__(self, topo_size: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        self.topo_size_level = topo_size_level
+        self.topo_size = topo_size
 
         # Level s:  1 spine, 4 leaf, 2 hosts per leaf
         # Level m:  2 spine, 8 leaf, 2 hosts per leaf
         # Level l:  4 spine, 16 leaf, 2 hosts per leaf
-        if topo_size_level == "s":
+        if topo_size == "s":
             SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 1, 4, 2
-        elif topo_size_level == "m":
+        elif topo_size == "m":
             SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 2, 8, 2
-        elif topo_size_level == "l":
+        elif topo_size == "l":
             SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 4, 16, 2
         else:
-            raise ValueError("topo_size_level should be s, m, or l.")
+            raise ValueError("topo_size should be s, m, or l.")
 
         self.desc = textwrap.dedent("""\
-            This experiment uses a scalable SDN spine–leaf topology whose size depends on the selected topo_size_level.
+            This experiment uses a scalable SDN spine–leaf topology whose size depends on the selected topo_size.
             Each leaf switch connects to all spine switches using point-to-point links.
             Each leaf switch connects to two hosts belong to the same subnet 10.0.0.0/24.
             All switches also join a management network 20.0.0.0/24.
@@ -212,7 +212,7 @@ class SDNClos(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    lab = SDNClos(topo_size_level="m")
+    lab = SDNClos(topo_size="m")
     print("Lab description:", lab.desc)
     print("lab net summary:", lab.get_info())
     if lab.lab_exists():

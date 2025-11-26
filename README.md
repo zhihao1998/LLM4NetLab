@@ -1,5 +1,5 @@
 <div align="center">
-<h1>LLM4NetLab</h1>
+<h1>Network Incidents Benchmarking Framework for AI Agents (NIKA)</h1>
 
 [🤖Overview](#🤖overview) | 
 [📦Installation](#📦installation) | 
@@ -13,13 +13,13 @@
 
 <h1 id="🤖overview">🤖 Overview</h1>
 
-![alt text](./assets/images/llm4netlab_architecture.png)
+![alt text](./assets/images/NIKA_architecture.png)
 
-LLM4NetLab is a standardized, reproducible, and open benchmarking platform to build and evaluate AI agents on network troubleshooting with low operational effort. This platform primarily aims to *standardize* and *democratize* the experimentation with AI agents, by enabling researchers and practitioners -- including non domain-experts such as ML engineers and data scientists -- to focus on the evaluation of AI agents on curated problem sets, without concern for underlying operational complexities. Custom AI agents can be easily plugged through a single API and rapidly evaluated.
+NIKA (Network Incidents Benchmark for AI Agents) is a standardized, reproducible, and open benchmarking platform to build and evaluate AI agents on network troubleshooting with low operational effort. This platform primarily aims to *standardize* and *democratize* the experimentation with AI agents, by enabling researchers and practitioners -- including non domain-experts such as ML engineers and data scientists -- to focus on the evaluation of AI agents on curated problem sets, without concern for underlying operational complexities. Custom AI agents can be easily plugged through a single API and rapidly evaluated.
 
 This is the code repository for the paper [Towards a Playground to Democratize Experimentation and Benchmarking of AI Agents for Network Troubleshooting](https://arxiv.org/abs/2507.01997), which was accepted at the [ACM SIGCOMM 2025 1st Workshop on Next-Generation Network Observability (NGNO)](https://conferences.sigcomm.org/sigcomm/2025/workshop/ngno/).
 
-💡 **Note:** We are actively developing LLM4NetLab. If you have any suggestions or are interested in contributing, feel free to reach out to us!
+💡 **Note:** We are actively developing NIKA. If you have any suggestions or are interested in contributing, feel free to reach out to us!
 
 ## Features
 
@@ -43,12 +43,12 @@ This is the code repository for the paper [Towards a Playground to Democratize E
 ## Setup
 
 Clone the repository and install the dependencies. 
-LLM4NetLab uses [uv](https://docs.astral.sh/uv) to manage the dependencies. Follow [uv installation instructions](https://docs.astral.sh/uv/getting-started/installation/) to install uv. You can also use a standard `pip install -e .` to install the dependencies.
+NIKA uses [uv](https://docs.astral.sh/uv) to manage the dependencies. Follow [uv installation instructions](https://docs.astral.sh/uv/getting-started/installation/) to install uv. You can also use a standard `pip install -e .` to install the dependencies.
 
 ```shell
 # Clone the repository
-git clone https://github.com/zhihao1998/LLM4NetLab.git
-cd LLM4NetLab
+git clone https://github.com/zhihao1998/NIKA.git
+cd NIKA
 
 # Install dependencies
 uv sync
@@ -98,7 +98,7 @@ DEEPSEEK_API_KEY=<>
 ```
 
 ## Step by step guide
-You can follow the steps below to run a complete troubleshooting task with LLM4NetLab.
+You can follow the steps below to run a complete troubleshooting task with NIKA.
 
 1. **Start the network environment**
   Check the specific scenario and its parameters under `llm4netlab/net_env`.
@@ -128,7 +128,7 @@ You can follow the steps below to run a complete troubleshooting task with LLM4N
 
 ## Network Scenarios
 
-LLM4NetLab supports multiple network scenarios under the `llm4netlab/net_env` directory, including data center networks, interdomain routing, intradomain routing, etc. Several supported scenarios based on Kathará include:
+NIKA supports multiple network scenarios under the `llm4netlab/net_env` directory, including data center networks, interdomain routing, intradomain routing, etc. Several supported scenarios based on Kathará include:
 
 - **Interdomain routing** with BGP
 - **Intradomain routing** with OSPF
@@ -158,7 +158,7 @@ Check all available problems at `llm4netlab/orchestrator/problems`. Some of them
 
 ## MCP Servers and Tools
 
-LLM4NetLab provides a set of MCP servers and tools to facilitate network troubleshooting tasks. All servers are available under `src/llm4netlab/service/mcp_server`. These include:
+NIKA provides a set of MCP servers and tools to facilitate network troubleshooting tasks. All servers are available under `src/llm4netlab/service/mcp_server`. These include:
 
 - **base mcp server for Kathará**: This server provides the basic functionality for interacting with Kathará network scenarios, including
   - `get_reachability` to check the reachability by pinging all pairs of hosts.
@@ -224,11 +224,11 @@ mcp.run(transport="sse")
 
 ## Logging and Observability
 
-With mcp-use, LLM4NetLab supports to log and monitor agents with Langfuse, Laminar, and LangSmith, check [mcp-use Observability](https://docs.mcp-use.com/development/observability) and [Langchain Callbacks](https://python.langchain.com/docs/concepts/callbacks/) for details.
+With mcp-use, NIKA supports to log and monitor agents with Langfuse, Laminar, and LangSmith, check [mcp-use Observability](https://docs.mcp-use.com/development/observability) and [Langchain Callbacks](https://python.langchain.com/docs/concepts/callbacks/) for details.
 
 ### Customized Logger
 
-LLM4NetLab allows users to implement customized logging solutions tailored to their specific needs. This can be achieved by plugging the callback function to `mcp_use.MCPAgent`. For example, 
+NIKA allows users to implement customized logging solutions tailored to their specific needs. This can be achieved by plugging the callback function to `mcp_use.MCPAgent`. For example, 
 
 ```python
 from langchain.callbacks.base import BaseCallbackHandler

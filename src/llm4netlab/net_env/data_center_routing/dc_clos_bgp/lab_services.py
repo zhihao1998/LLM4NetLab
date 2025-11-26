@@ -70,25 +70,25 @@ class DCClosService(NetworkEnvBase):
     TOPO_SIZE = ["s", "m", "l"]
     TAGS = ["arp", "link", "mac", "bgp", "icmp", "frr", "dns", "host", "http"]
 
-    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
+    def __init__(self, topo_size: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
-        if topo_size_level == "s":
+        if topo_size == "s":
             self.super_spine_count = 1
             self.spine_count = 2
             self.leaf_count = 2
-        elif topo_size_level == "m":
+        elif topo_size == "m":
             self.super_spine_count = 2
             self.spine_count = 4
             self.leaf_count = 4
-        elif topo_size_level == "l":
+        elif topo_size == "l":
             self.super_spine_count = 4
             self.spine_count = 4
             self.leaf_count = 8
         else:
-            raise ValueError("Invalid topo_size_level. Choose from 's', 'm', 'l'.")
+            raise ValueError("Invalid topo_size. Choose from 's', 'm', 'l'.")
 
         pod_spines = {}
         pod_leaves = {}
@@ -436,9 +436,14 @@ class DCClosService(NetworkEnvBase):
             "and access the services via URLs such as http://web0.pod0 over the routed Clos fabric."
         )
 
+        self.web_urls = []
+        for pod_idx in range(self.super_spine_count):
+            for web_idx in range(self.leaf_count - 1):
+                self.web_urls.append(f"http://web{web_idx}.pod{pod_idx}")
+
 
 if __name__ == "__main__":
-    dc_clos_service = DCClosService(topo_size_level="m")
+    dc_clos_service = DCClosService(topo_size="m")
     print("lab net summary:", dc_clos_service.get_info())
     if dc_clos_service.lab_exists():
         print("Lab exists, undeploying it...")

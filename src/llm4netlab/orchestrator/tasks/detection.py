@@ -49,10 +49,10 @@ class DetectionTask(TaskBase):
         elif is_anomaly in ["False", "false", "0", 0, False, "no", "No"]:
             is_anomaly = False
         else:
-            return 0.0
+            return 0.0, None, None, None
         if is_anomaly == self.get_submission().is_anomaly:
-            return 1.0
-        return 0.0
+            return 1.0, None, None, None
+        return 0.0, None, None, None
 
     def get_submission(self):
         detection_submission = DetectionSubmission(

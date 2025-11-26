@@ -49,7 +49,7 @@ def _register_problems():
             try:
                 problem_class: Type[TaskBase] = cls_obj
                 root_cause_name = problem_class.META.root_cause_name
-                task_level = problem_class.META.task_level.value
+                task_level = problem_class.META.task_level
                 if root_cause_name not in problems:
                     problems[root_cause_name] = {}
                 problems[root_cause_name][task_level] = problem_class
@@ -76,7 +76,7 @@ def list_avail_tags() -> list[str]:
     tags = set()
     for problem_classes in _PROBLEMS.values():
         for problem_class in problem_classes.values():
-            tags.add(problem_class.tag)
+            tags.update(problem_class.TAGS)
     return list(tags)
 
 
@@ -129,6 +129,6 @@ def get_problem_instance(problem_names: list, task_level: TaskLevel, scenario_na
 
 
 if __name__ == "__main__":
-    problems = list_avail_tags()
+    problems = list_avail_problem_names()
 
-    print(problems)
+    print(len(problems))

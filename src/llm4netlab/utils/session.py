@@ -29,6 +29,7 @@ class Session:
 
     def init_session(self):
         self.session_id = generate_code()
+        os.makedirs(f"{BASE_DIR}/runtime", exist_ok=True)
 
     def load_running_session(self):
         session_meta = json.load(open(f"{BASE_DIR}/runtime/current_session.json", "r"))

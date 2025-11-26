@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
@@ -10,7 +9,6 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from agent.llm.model_factory import load_model
 from agent.utils.loggers import FileLoggerHandler
 from agent.utils.mcp_servers import MCPServerConfig
-from llm4netlab.config import RESULTS_DIR
 from llm4netlab.orchestrator.orchestrator import Orchestrator
 from llm4netlab.utils.session import SessionKey
 
@@ -76,18 +74,13 @@ async def run_diagnosis_agent():
     submission_agent = DiagnosisAgent(session_key)
     await submission_agent.load_tools()
 
-    log_path = os.path.join(
-        f"{RESULTS_DIR}/{session_key.root_cause_category}/{session_key.root_cause_name}/{session_key.task_level}/"
-        f"{session_key.session_id}_{session_key.backend_model}_conversation.log"
-    )
-
     graph = submission_agent.get_agent()
     inputs = {
         "messages": [task_desc],
     }
     result = await graph.ainvoke(
         inputs,
-        config={"callbacks": [FileLoggerHandler(log_path=log_path)]},
+        config={"callbacks": [FileLoggerHandler()]},
     )
     print("Final result:", result)
 

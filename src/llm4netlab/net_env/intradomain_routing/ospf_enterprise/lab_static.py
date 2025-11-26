@@ -72,13 +72,13 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
     TOPO_SIZE = ["s", "m", "l"]
     TAGS = ["host", "ospf", "mac", "http", "link", "frr", "icmp", "arp"]
 
-    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
+    def __init__(self, topo_size: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
 
-        match topo_size_level:
+        match topo_size:
             case "s":
                 DIST_SW_COUNT, ACCESS_SW_PER_DIST, HOST_PER_ACCESS = 1, 1, 1  # per core router
             case "m":
@@ -545,7 +545,7 @@ class OSPFEnterpriseStatic(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    ospf_enterprise = OSPFEnterpriseStatic(topo_size_level="l")
+    ospf_enterprise = OSPFEnterpriseStatic(topo_size="l")
     print("lab net summary:", ospf_enterprise.get_info())
     if ospf_enterprise.lab_exists():
         print("Lab exists, undeploying it...")

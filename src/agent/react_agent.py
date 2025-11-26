@@ -28,7 +28,8 @@ class AgentState(TypedDict):
 
 
 class BasicReActAgent:
-    def __init__(self, backend_model):
+    def __init__(self, backend_model, max_steps: int = 20):
+        self.max_steps = max_steps
         # load agent and tools
         diagnosis_agent = DiagnosisAgent(backend_model=backend_model)
         asyncio.run(diagnosis_agent.load_tools())
@@ -50,16 +51,18 @@ class BasicReActAgent:
         # compile the graph
         self.graph = worker_builder.compile()
 
-    async def run(self, task_description: dict, max_steps: int = 20):
+    async def run(self, task_description: dict):
         result = await self.graph.ainvoke(
             {"messages": [HumanMessage(content=task_description)]},
-            config={"callbacks": [FileLoggerHandler()], "max_steps": max_steps},
+            config={"callbacks": [FileLoggerHandler()], "max_steps": self.max_steps},
         )
         return result
 
     async def diagnosis_agent_builder(self, state: AgentState):
         diagnosis_result = await self.diagnosis_agent.ainvoke(
-            {"messages": state["messages"]}, config={"callbacks": [FileLoggerHandler()]}, debug=True
+            {"messages": state["messages"]},
+            config={"callbacks": [FileLoggerHandler()], "max_steps": self.max_steps},
+            debug=True,
         )
         return {"diagnosis_result": [diagnosis_result["messages"][-1].content]}
 
@@ -72,7 +75,7 @@ class BasicReActAgent:
                     )
                 ]
             },
-            config={"callbacks": [FileLoggerHandler()]},
+            config={"callbacks": [FileLoggerHandler()], "max_steps": self.max_steps},
             debug=True,
         )
         return result

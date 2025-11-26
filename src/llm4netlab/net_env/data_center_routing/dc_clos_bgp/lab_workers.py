@@ -68,20 +68,20 @@ class DCClosBGP(NetworkEnvBase):
     TOPO_SIZE = ["s", "m", "l"]
     TAGS = ["arp", "link", "mac", "bgp", "icmp", "frr", "host"]
 
-    def __init__(self, topo_size_level: Literal["s", "m", "l"] = "s"):
+    def __init__(self, topo_size: Literal["s", "m", "l"] = "s"):
         super().__init__()
         self.lab = Lab(self.LAB_NAME)
         self.name = self.LAB_NAME
         self.instance = Kathara.get_instance()
 
-        if topo_size_level == "s":
+        if topo_size == "s":
             super_spine_count, spine_per_pod, leaf_per_pod = 1, 2, 2
-        elif topo_size_level == "m":
+        elif topo_size == "m":
             super_spine_count, spine_per_pod, leaf_per_pod = 2, 4, 4
-        elif topo_size_level == "l":
+        elif topo_size == "l":
             super_spine_count, spine_per_pod, leaf_per_pod = 4, 8, 8
         else:
-            raise ValueError("topo_size_level should be s, m, or l.")
+            raise ValueError("topo_size should be s, m, or l.")
 
         pod_spines = {}
         pod_leaves = {}
@@ -314,7 +314,7 @@ class DCClosBGP(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    dc_clos_bgp = DCClosBGP(topo_size_level="l")
+    dc_clos_bgp = DCClosBGP(topo_size="l")
     print("Lab description:", dc_clos_bgp.desc)
     print("lab net summary:", dc_clos_bgp.get_info())
     if dc_clos_bgp.lab_exists():
