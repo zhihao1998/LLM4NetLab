@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Bmv2SwitchDownBase:
     root_cause_category = RootCauseCategory.LINK_FAILURE
-    root_case_name = "bmv2_switch_down"
+    root_cause_name = "bmv2_switch_down"
     TAGS: str = ["p4"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -38,7 +38,7 @@ class Bmv2SwitchDownBase:
 class Bmv2SwitchDownDetection(Bmv2SwitchDownBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=Bmv2SwitchDownBase.root_cause_category,
-        root_cause_name=Bmv2SwitchDownBase.root_case_name,
+        root_cause_name=Bmv2SwitchDownBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -47,7 +47,7 @@ class Bmv2SwitchDownDetection(Bmv2SwitchDownBase, DetectionTask):
 class Bmv2SwitchDownLocalization(Bmv2SwitchDownBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=Bmv2SwitchDownBase.root_cause_category,
-        root_cause_name=Bmv2SwitchDownBase.root_case_name,
+        root_cause_name=Bmv2SwitchDownBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -56,7 +56,7 @@ class Bmv2SwitchDownLocalization(Bmv2SwitchDownBase, LocalizationTask):
 class Bmv2SwitchDownRCA(Bmv2SwitchDownBase, RCATask):
     META = ProblemMeta(
         root_cause_category=Bmv2SwitchDownBase.root_cause_category,
-        root_cause_name=Bmv2SwitchDownBase.root_case_name,
+        root_cause_name=Bmv2SwitchDownBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )

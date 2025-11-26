@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class P4HeaderDefinitionErrorBase:
     root_cause_category = RootCauseCategory.NETWORK_NODE_ERROR
-    root_case_name = "p4_header_definition_error"
+    root_cause_name = "p4_header_definition_error"
     TAGS: str = ["p4"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -60,7 +60,7 @@ class P4HeaderDefinitionErrorBase:
 class P4CompilationErrorHeaderDetection(P4HeaderDefinitionErrorBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=P4HeaderDefinitionErrorBase.root_cause_category,
-        root_cause_name=P4HeaderDefinitionErrorBase.root_case_name,
+        root_cause_name=P4HeaderDefinitionErrorBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -69,7 +69,7 @@ class P4CompilationErrorHeaderDetection(P4HeaderDefinitionErrorBase, DetectionTa
 class P4CompilationErrorHeaderLocalization(P4HeaderDefinitionErrorBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=P4HeaderDefinitionErrorBase.root_cause_category,
-        root_cause_name=P4HeaderDefinitionErrorBase.root_case_name,
+        root_cause_name=P4HeaderDefinitionErrorBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -78,7 +78,7 @@ class P4CompilationErrorHeaderLocalization(P4HeaderDefinitionErrorBase, Localiza
 class P4CompilationErrorHeaderRCA(P4HeaderDefinitionErrorBase, RCATask):
     META = ProblemMeta(
         root_cause_category=P4HeaderDefinitionErrorBase.root_cause_category,
-        root_cause_name=P4HeaderDefinitionErrorBase.root_case_name,
+        root_cause_name=P4HeaderDefinitionErrorBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -91,7 +91,7 @@ class P4CompilationErrorHeaderRCA(P4HeaderDefinitionErrorBase, RCATask):
 
 class P4CompilationErrorParserStateBase:
     root_cause_category = RootCauseCategory.NETWORK_NODE_ERROR
-    root_case_name = "p4_compilation_error_parser_state"
+    root_cause_name = "p4_compilation_error_parser_state"
     TAGS: str = ["p4"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -133,7 +133,7 @@ class P4CompilationErrorParserStateBase:
 class P4CompilationErrorParserStateDetection(P4CompilationErrorParserStateBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
-        root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
+        root_cause_name=P4CompilationErrorParserStateBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -142,7 +142,7 @@ class P4CompilationErrorParserStateDetection(P4CompilationErrorParserStateBase, 
 class P4CompilationErrorParserStateLocalization(P4CompilationErrorParserStateBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
-        root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
+        root_cause_name=P4CompilationErrorParserStateBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -151,7 +151,7 @@ class P4CompilationErrorParserStateLocalization(P4CompilationErrorParserStateBas
 class P4CompilationErrorParserStateRCA(P4CompilationErrorParserStateBase, RCATask):
     META = ProblemMeta(
         root_cause_category=P4CompilationErrorParserStateBase.root_cause_category,
-        root_cause_name=P4CompilationErrorParserStateBase.root_case_name,
+        root_cause_name=P4CompilationErrorParserStateBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -164,7 +164,7 @@ class P4CompilationErrorParserStateRCA(P4CompilationErrorParserStateBase, RCATas
 
 class P4TableEntryMissingBase:
     root_cause_category = RootCauseCategory.NETWORK_NODE_ERROR
-    root_case_name = "p4_table_entry_missing"
+    root_cause_name = "p4_table_entry_missing"
     TAGS: str = ["p4"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -194,7 +194,7 @@ class P4TableEntryMissingBase:
 class P4TableEntryMissingDetection(P4TableEntryMissingBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=P4TableEntryMissingBase.root_cause_category,
-        root_cause_name=P4TableEntryMissingBase.root_case_name,
+        root_cause_name=P4TableEntryMissingBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -203,7 +203,7 @@ class P4TableEntryMissingDetection(P4TableEntryMissingBase, DetectionTask):
 class P4TableEntryMissingLocalization(P4TableEntryMissingBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=P4TableEntryMissingBase.root_cause_category,
-        root_cause_name=P4TableEntryMissingBase.root_case_name,
+        root_cause_name=P4TableEntryMissingBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -212,7 +212,7 @@ class P4TableEntryMissingLocalization(P4TableEntryMissingBase, LocalizationTask)
 class P4TableEntryMissingRCA(P4TableEntryMissingBase, RCATask):
     META = ProblemMeta(
         root_cause_category=P4TableEntryMissingBase.root_cause_category,
-        root_cause_name=P4TableEntryMissingBase.root_case_name,
+        root_cause_name=P4TableEntryMissingBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -225,7 +225,7 @@ class P4TableEntryMissingRCA(P4TableEntryMissingBase, RCATask):
 
 class P4TableEntryMisconfigBase:
     root_cause_category = RootCauseCategory.NETWORK_NODE_ERROR
-    root_case_name = "p4_table_entry_misconfig"
+    root_cause_name = "p4_table_entry_misconfig"
     TAGS: str = ["p4"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -271,7 +271,7 @@ class P4TableEntryMisconfigBase:
 class P4TableEntryMisconfigDetection(P4TableEntryMisconfigBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=P4TableEntryMisconfigBase.root_cause_category,
-        root_cause_name=P4TableEntryMisconfigBase.root_case_name,
+        root_cause_name=P4TableEntryMisconfigBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -280,7 +280,7 @@ class P4TableEntryMisconfigDetection(P4TableEntryMisconfigBase, DetectionTask):
 class P4TableEntryMisconfigLocalization(P4TableEntryMisconfigBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=P4TableEntryMisconfigBase.root_cause_category,
-        root_cause_name=P4TableEntryMisconfigBase.root_case_name,
+        root_cause_name=P4TableEntryMisconfigBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -289,7 +289,7 @@ class P4TableEntryMisconfigLocalization(P4TableEntryMisconfigBase, LocalizationT
 class P4TableEntryMisconfigRCA(P4TableEntryMisconfigBase, RCATask):
     META = ProblemMeta(
         root_cause_category=P4TableEntryMisconfigBase.root_cause_category,
-        root_cause_name=P4TableEntryMisconfigBase.root_case_name,
+        root_cause_name=P4TableEntryMisconfigBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -302,7 +302,7 @@ class P4TableEntryMisconfigRCA(P4TableEntryMisconfigBase, RCATask):
 
 class P4MPLSLabelLimitExceededBase:
     root_cause_category = RootCauseCategory.NETWORK_NODE_ERROR
-    root_case_name = "mpls_label_limit_exceeded"
+    root_cause_name = "mpls_label_limit_exceeded"
 
     TAGS: str = ["mpls"]
 
@@ -346,7 +346,7 @@ class P4MPLSLabelLimitExceededBase:
 class P4MPLSLabelLimitExceededDetection(P4MPLSLabelLimitExceededBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=P4MPLSLabelLimitExceededBase.root_cause_category,
-        root_cause_name=P4MPLSLabelLimitExceededBase.root_case_name,
+        root_cause_name=P4MPLSLabelLimitExceededBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -355,7 +355,7 @@ class P4MPLSLabelLimitExceededDetection(P4MPLSLabelLimitExceededBase, DetectionT
 class P4MPLSLabelLimitExceededLocalization(P4MPLSLabelLimitExceededBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=P4MPLSLabelLimitExceededBase.root_cause_category,
-        root_cause_name=P4MPLSLabelLimitExceededBase.root_case_name,
+        root_cause_name=P4MPLSLabelLimitExceededBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -364,7 +364,7 @@ class P4MPLSLabelLimitExceededLocalization(P4MPLSLabelLimitExceededBase, Localiz
 class P4MPLSLabelLimitExceededRCA(P4MPLSLabelLimitExceededBase, RCATask):
     META = ProblemMeta(
         root_cause_category=P4MPLSLabelLimitExceededBase.root_cause_category,
-        root_cause_name=P4MPLSLabelLimitExceededBase.root_case_name,
+        root_cause_name=P4MPLSLabelLimitExceededBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )

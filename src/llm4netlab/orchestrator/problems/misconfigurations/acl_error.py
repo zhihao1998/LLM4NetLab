@@ -15,7 +15,7 @@ from llm4netlab.service.kathara import KatharaAPIALL
 
 class BGPAclBlockBase:
     root_cause_category = RootCauseCategory.MISCONFIGURATION
-    root_case_name = "bgp_acl_block"
+    root_cause_name = "bgp_acl_block"
     TAGS: str = ["bgp"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -45,7 +45,7 @@ class BGPAclBlockBase:
 class BGPAclBlockDetection(BGPAclBlockBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=BGPAclBlockBase.root_cause_category,
-        root_cause_name=BGPAclBlockBase.root_case_name,
+        root_cause_name=BGPAclBlockBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -54,7 +54,7 @@ class BGPAclBlockDetection(BGPAclBlockBase, DetectionTask):
 class BGPAclBlockLocalization(BGPAclBlockBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=BGPAclBlockBase.root_cause_category,
-        root_cause_name=BGPAclBlockBase.root_case_name,
+        root_cause_name=BGPAclBlockBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -63,7 +63,7 @@ class BGPAclBlockLocalization(BGPAclBlockBase, LocalizationTask):
 class BGPAclBlockRCA(BGPAclBlockBase, RCATask):
     META = ProblemMeta(
         root_cause_category=BGPAclBlockBase.root_cause_category,
-        root_cause_name=BGPAclBlockBase.root_case_name,
+        root_cause_name=BGPAclBlockBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -76,7 +76,7 @@ class BGPAclBlockRCA(BGPAclBlockBase, RCATask):
 
 class OSPFAclBlockBase:
     root_cause_category = RootCauseCategory.MISCONFIGURATION
-    root_case_name = "ospf_acl_block"
+    root_cause_name = "ospf_acl_block"
     TAGS: str = ["ospf"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -106,7 +106,7 @@ class OSPFAclBlockBase:
 class OSPFAclBlockDetection(OSPFAclBlockBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=OSPFAclBlockBase.root_cause_category,
-        root_cause_name=OSPFAclBlockBase.root_case_name,
+        root_cause_name=OSPFAclBlockBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -115,7 +115,7 @@ class OSPFAclBlockDetection(OSPFAclBlockBase, DetectionTask):
 class OSPFAclBlockLocalization(OSPFAclBlockBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=OSPFAclBlockBase.root_cause_category,
-        root_cause_name=OSPFAclBlockBase.root_case_name,
+        root_cause_name=OSPFAclBlockBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -124,7 +124,7 @@ class OSPFAclBlockLocalization(OSPFAclBlockBase, LocalizationTask):
 class OSPFAclBlockRCA(OSPFAclBlockBase, RCATask):
     META = ProblemMeta(
         root_cause_category=OSPFAclBlockBase.root_cause_category,
-        root_cause_name=OSPFAclBlockBase.root_case_name,
+        root_cause_name=OSPFAclBlockBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -137,7 +137,7 @@ class OSPFAclBlockRCA(OSPFAclBlockBase, RCATask):
 
 class ARPAclBlockBase:
     root_cause_category = RootCauseCategory.MISCONFIGURATION
-    root_case_name = "arp_acl_block"
+    root_cause_name = "arp_acl_block"
     TAGS: str = ["arp"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -158,7 +158,7 @@ class ARPAclBlockBase:
 class ARPAclBlockDetection(ARPAclBlockBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=ARPAclBlockBase.root_cause_category,
-        root_cause_name=ARPAclBlockBase.root_case_name,
+        root_cause_name=ARPAclBlockBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -167,7 +167,7 @@ class ARPAclBlockDetection(ARPAclBlockBase, DetectionTask):
 class ARPAclBlockLocalization(ARPAclBlockBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=ARPAclBlockBase.root_cause_category,
-        root_cause_name=ARPAclBlockBase.root_case_name,
+        root_cause_name=ARPAclBlockBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -176,7 +176,7 @@ class ARPAclBlockLocalization(ARPAclBlockBase, LocalizationTask):
 class ARPAclBlockRCA(ARPAclBlockBase, RCATask):
     META = ProblemMeta(
         root_cause_category=ARPAclBlockBase.root_cause_category,
-        root_cause_name=ARPAclBlockBase.root_case_name,
+        root_cause_name=ARPAclBlockBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -189,7 +189,7 @@ class ARPAclBlockRCA(ARPAclBlockBase, RCATask):
 
 class IcmpAclBlockBase:
     root_cause_category = RootCauseCategory.MISCONFIGURATION
-    root_case_name = "icmp_acl_block"
+    root_cause_name = "icmp_acl_block"
     TAGS: str = ["icmp"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -211,7 +211,7 @@ class IcmpAclBlockBase:
 class IcmpAclBlockDetection(IcmpAclBlockBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=IcmpAclBlockBase.root_cause_category,
-        root_cause_name=IcmpAclBlockBase.root_case_name,
+        root_cause_name=IcmpAclBlockBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -220,7 +220,7 @@ class IcmpAclBlockDetection(IcmpAclBlockBase, DetectionTask):
 class IcmpAclBlockLocalization(IcmpAclBlockBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=IcmpAclBlockBase.root_cause_category,
-        root_cause_name=IcmpAclBlockBase.root_case_name,
+        root_cause_name=IcmpAclBlockBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -229,7 +229,7 @@ class IcmpAclBlockLocalization(IcmpAclBlockBase, LocalizationTask):
 class IcmpAclBlockRCA(IcmpAclBlockBase, RCATask):
     META = ProblemMeta(
         root_cause_category=IcmpAclBlockBase.root_cause_category,
-        root_cause_name=IcmpAclBlockBase.root_case_name,
+        root_cause_name=IcmpAclBlockBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
@@ -242,7 +242,7 @@ class IcmpAclBlockRCA(IcmpAclBlockBase, RCATask):
 
 class HttpAclBlockBase:
     root_cause_category = RootCauseCategory.MISCONFIGURATION
-    root_case_name = "http_acl_block"
+    root_cause_name = "http_acl_block"
     TAGS: str = ["http", "host"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -264,7 +264,7 @@ class HttpAclBlockBase:
 class HttpAclBlockDetection(HttpAclBlockBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=HttpAclBlockBase.root_cause_category,
-        root_cause_name=HttpAclBlockBase.root_case_name,
+        root_cause_name=HttpAclBlockBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -273,7 +273,7 @@ class HttpAclBlockDetection(HttpAclBlockBase, DetectionTask):
 class HttpAclBlockLocalization(HttpAclBlockBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=HttpAclBlockBase.root_cause_category,
-        root_cause_name=HttpAclBlockBase.root_case_name,
+        root_cause_name=HttpAclBlockBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -282,7 +282,7 @@ class HttpAclBlockLocalization(HttpAclBlockBase, LocalizationTask):
 class HttpAclBlockRCA(HttpAclBlockBase, RCATask):
     META = ProblemMeta(
         root_cause_category=HttpAclBlockBase.root_cause_category,
-        root_cause_name=HttpAclBlockBase.root_case_name,
+        root_cause_name=HttpAclBlockBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )

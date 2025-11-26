@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class P4AggressiveDetectionThresholdsBase:
     root_cause_category = RootCauseCategory.NETWORK_NODE_ERROR
-    root_case_name = "p4_aggressive_detection_thresholds"
+    root_cause_name = "p4_aggressive_detection_thresholds"
     TAGS: str = ["p4", "bloom_filter"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -59,7 +59,7 @@ class P4AggressiveDetectionThresholdsBase:
 class P4AggressiveDetectionThresholdsDetection(P4AggressiveDetectionThresholdsBase, DetectionTask):
     META = ProblemMeta(
         root_cause_category=P4AggressiveDetectionThresholdsBase.root_cause_category,
-        root_cause_name=P4AggressiveDetectionThresholdsBase.root_case_name,
+        root_cause_name=P4AggressiveDetectionThresholdsBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -68,7 +68,7 @@ class P4AggressiveDetectionThresholdsDetection(P4AggressiveDetectionThresholdsBa
 class P4AggressiveDetectionThresholdsLocalization(P4AggressiveDetectionThresholdsBase, LocalizationTask):
     META = ProblemMeta(
         root_cause_category=P4AggressiveDetectionThresholdsBase.root_cause_category,
-        root_cause_name=P4AggressiveDetectionThresholdsBase.root_case_name,
+        root_cause_name=P4AggressiveDetectionThresholdsBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -77,7 +77,7 @@ class P4AggressiveDetectionThresholdsLocalization(P4AggressiveDetectionThreshold
 class P4AggressiveDetectionThresholdsRCA(P4AggressiveDetectionThresholdsBase, RCATask):
     META = ProblemMeta(
         root_cause_category=P4AggressiveDetectionThresholdsBase.root_cause_category,
-        root_cause_name=P4AggressiveDetectionThresholdsBase.root_case_name,
+        root_cause_name=P4AggressiveDetectionThresholdsBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
