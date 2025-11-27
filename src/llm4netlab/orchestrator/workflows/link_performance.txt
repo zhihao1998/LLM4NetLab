@@ -1,0 +1,15 @@
+Detect link performance degradation:
+
+- link_bandwidth_throttling
+- link_high_latency
+- link_high_latency_jitter
+- link_high_packet_loss
+- link_high_packet_corruption
+- link_queue_overflow
+
+Steps:
+1. Run bidirectional iperf3 for 30s with bandwidth 2× link capacity.
+2. On both ends run "tc -s qdisc show" and check dropped/overlimits.
+3. Run ping -c 1000 -i 0.2 and compute RTT, jitter, loss, duplicates, checksum errors.
+4. Check for tc police or shaping rules indicating throttling.
+Report each fault.

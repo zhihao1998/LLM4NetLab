@@ -1,0 +1,11 @@
+Detect wrong DNS configuration on hosts:
+
+- host_incorrect_dns
+- dhcp_wrong_dns
+
+Steps:
+1. On every host read /etc/resolv.conf.
+2. Test resolution with dig @configured_dns chaos txt version.bind.
+3. Compare configured DNS servers with topology expectations.
+4. If obtained via DHCP, inspect DHCP server options (option 6).
+Report both faults.

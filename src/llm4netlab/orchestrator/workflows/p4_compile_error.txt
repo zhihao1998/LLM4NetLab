@@ -1,0 +1,12 @@
+Detect P4 compilation and parser errors:
+
+- p4_compilation_error_header
+- p4_compilation_error_parser_state
+- p4_parser_misconfiguration
+
+Steps:
+1. Read BMv2 startup logs (docker logs or journalctl).
+2. Search for p4c errors related to headers or parser states.
+3. Compilation failure → corresponding compile error.
+4. Runtime "parser exception" packets with successful compile → p4_parser_misconfiguration.
+Report each.

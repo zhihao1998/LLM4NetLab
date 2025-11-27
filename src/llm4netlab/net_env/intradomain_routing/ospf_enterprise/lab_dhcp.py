@@ -71,7 +71,7 @@ class HostMeta:
 
 
 class OSPFEnterpriseDHCP(NetworkEnvBase):
-    LAB_NAME = "ospf_enterprise"
+    LAB_NAME = "ospf_enterprise_dhcp"
 
     def __init__(self):
         super().__init__()

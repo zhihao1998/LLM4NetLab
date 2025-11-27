@@ -24,8 +24,11 @@ class SessionKey(BaseModel):
 
 
 class Session:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, session_id = None) -> None:
+        if session_id is None:
+            pass
+        else:
+            self.session_id = session_id
 
     def init_session(self):
         self.session_id = generate_code()
@@ -44,13 +47,20 @@ class Session:
         setattr(self, key, value)
         self._write_session()
 
+    def set_problem(self, problem, root_cause_name: str):
+        self.problem = problem
+        if len(root_cause_name) > 1:
+            self.root_cause_name = "multiple_faults"
+        else:
+            self.root_cause_name = root_cause_name
+
     def write_gt(self, gt: str):
         if hasattr(self, "problem_names") and hasattr(self, "task_level") and hasattr(self, "session_id"):
             if len(self.problem_names) > 1:
                 self.root_cause_name = "multiple_faults"
             else:
                 self.root_cause_name = self.problem_names[0]
-                self.session_dir = f"{RESULTS_DIR}/{self.root_cause_name}/{self.task_level}/{self.session_id}"
+            self.session_dir = f"{RESULTS_DIR}/{self.root_cause_name}/{self.task_level}/{self.session_id}"
             self._write_session()
 
             os.makedirs(self.session_dir, exist_ok=True)

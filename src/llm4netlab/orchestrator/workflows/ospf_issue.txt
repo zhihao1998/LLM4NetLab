@@ -1,0 +1,10 @@
+Detect OSPF faults:
+
+- ospf_area_misconfiguration
+- ospf_neighbor_missing
+
+Steps:
+1. Run "show ip ospf neighbor" and "show ip ospf interface" on every router.
+2. Verify area IDs, network statements, costs match design.
+3. Confirm all expected neighbors are in FULL state.
+Report each.

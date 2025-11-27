@@ -1,0 +1,10 @@
+Detect DHCP misconfiguration:
+
+- dhcp_wrong_dns
+- dhcp_wrong_gateway
+
+Steps:
+1. Capture DHCP traffic or read dhcpd.leases.
+2. Inspect Option 3 (router) and Option 6 (DNS) in DHCPOFFER/ACK.
+3. Compare with topology expectations.
+Report each.

@@ -1,0 +1,15 @@
+Detect host IP misconfiguration:
+
+- host_ip_conflict
+- host_incorrect_ip
+- host_missing_ip
+- host_incorrect_netmask
+- host_incorrect_gateway
+- host_static_blackhole
+
+Steps:
+1. On every host run "ip -br a" and "ip route".
+2. Aggregate all IP/netmask/gateway configurations.
+3. Detect duplicate IPs, IPs outside subnet, missing IP, wrong netmask, wrong default gateway.
+4. Look for static routes to 0.0.0.0/0 pointing to Null0 or discard.
+Report each fault.

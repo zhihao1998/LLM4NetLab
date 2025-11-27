@@ -1,0 +1,14 @@
+Detect the following ACL blocking faults independently:
+
+- arp_acl_block
+- bgp_acl_block
+- http_acl_block
+- icmp_acl_block
+- ospf_acl_block
+
+Procedure:
+1. From suitable hosts, generate real traffic for each protocol (ARP request, BGP OPEN, HTTP GET to a server, ICMP echo, OSPF Hello).
+2. Capture packets on both sender and receiver simultaneously (tcpdump -i any -c 200).
+3. On BMv2 switches or Linux routers, check for ACL/table rules that DROP packets matching the specific protocol/port.
+4. If traffic is dropped and a matching DROP ACL exists → confirm that specific fault.
+Report each fault as Detected / Not Detected with evidence.

@@ -1,0 +1,4 @@
+Detect MPLS label exhaustion (mpls_label_limit_exceeded).
+
+Check "show mpls forwarding-table" and logs for "Label stack too deep" or label allocation failures.
+If label space exhausted → Detected.

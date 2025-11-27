@@ -1,0 +1,9 @@
+Detect ARP cache poisoning and MAC address conflict.
+
+Steps:
+1. On every host run "arp -an" or "ip neigh" and collect all ARP tables.
+2. Check for any IP mapped to multiple MACs (poisoning).
+3. Check for any MAC used by multiple IPs on different hosts (MAC conflict).
+4. On switches run "show mac address-table" and compare with ARP tables.
+5. Look for kernel logs containing "duplicate address detected".
+Report arp_cache_poisoning and mac_address_conflict separately.

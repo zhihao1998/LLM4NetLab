@@ -1,0 +1,6 @@
+Detect load balancer overload (load_balancer_overload).
+
+Steps:
+1. Check HAProxy/Nginx status page or stats socket.
+2. Inspect active connections, queue length, 5xx error rate.
+3. If connections > 80% of maxconn and backend queues full → Detected.

@@ -1,0 +1,14 @@
+Detect BGP faults:
+
+- bgp_asn_misconfig
+- bgp_missing_route_advertisement
+- bgp_blackhole_route_leak
+- bgp_hijacking
+
+Steps:
+1. On every router run "show ip bgp summary" and "show ip bgp".
+2. Verify neighbor ASNs match topology.
+3. Check expected prefixes are advertised.
+4. Detect unwanted private/blackhole prefixes being advertised.
+5. Look for unexpected ASNs in AS_PATH (hijacking).
+Report each.

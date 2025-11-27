@@ -1,0 +1,4 @@
+Detect disabled fragmentation (link_fragmentation_disabled).
+
+Send UDP packets larger than interface MTU+100 with DF bit set.
+If packets are silently dropped (no ICMP Frag Needed) and PMTUD is broken → Detected.

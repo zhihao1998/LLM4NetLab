@@ -1,0 +1,10 @@
+Detect flow rule conflicts:
+
+- flow_rule_loop
+- flow_rule_shadowing
+
+Steps:
+1. Dump all flows from controller.
+2. Build directed graph of match→action and detect cycles → loop.
+3. Detect higher-priority rules completely shadowing lower-priority ones.
+Report each.

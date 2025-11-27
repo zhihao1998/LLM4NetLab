@@ -1,0 +1,4 @@
+Detect high DNS lookup latency (dns_lookup_latency).
+
+Run 1000 consecutive "dig A example.com @dns_server" and compute average response time.
+If average > 500 ms → Detected.

@@ -1,12 +1,13 @@
 from typing import Dict
 
-from llm4netlab.net_env.application.load_banlancer.lab import LoadBalancer
+# from llm4netlab.net_env.application.load_banlancer.lab import LoadBalancer
 from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab import DCClosBGP
 from llm4netlab.net_env.data_center_routing.dc_clos_service.lab import DCClosService
 from llm4netlab.net_env.interdomain_routing.simple_bgp.lab import SimpleBGP
 from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
 from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
+from llm4netlab.net_env.intradomain_routing.rip_small_internet.lab import RIPSmallInternet
 from llm4netlab.net_env.p4.p4_bloom_filter.lab import P4BloomFilter
 from llm4netlab.net_env.p4.p4_counter.lab import P4Counter
 from llm4netlab.net_env.p4.p4_int.lab import P4INT
@@ -19,12 +20,13 @@ _NET_ENVS: Dict[str, NetworkEnvBase] = {
     "simple_bgp": SimpleBGP,
     "ospf_enterprise_dhcp": OSPFEnterpriseDHCP,
     "ospf_enterprise_static": OSPFEnterpriseStatic,
+    "rip_small_internet": RIPSmallInternet,
     "p4_bloom_filter": P4BloomFilter,
     "p4_counter": P4Counter,
     "p4_int": P4INT,
     "p4_mpls": P4_MPLS,
     "sdn_openflow": SDNOpenFlow,
-    "load_balancer": LoadBalancer,
+    # "load_balancer": LoadBalancer,
 }
 
 

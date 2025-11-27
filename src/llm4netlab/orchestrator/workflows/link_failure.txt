@@ -1,0 +1,17 @@
+Detect complete physical/device failures:
+
+- host_crash
+- link_detach
+- link_down
+- link_flap
+- bmv2_switch_down
+- frr_service_down
+- sdn_controller_crash
+
+Steps:
+1. Run "kathara llist" and "docker ps" to verify all devices are Up.
+2. For every interface check "ip link" carrier and operstate.
+3. Detect interfaces flapping >5 times in 5 minutes.
+4. Verify BMv2, FRR, and controller processes are running.
+5. A host with no process response but container Up → host_crash.
+Report each fault separately.

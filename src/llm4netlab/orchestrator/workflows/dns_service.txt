@@ -1,0 +1,11 @@
+Detect DNS service problems:
+
+- dns_service_down
+- dns_port_blocked
+- dns_record_error
+
+Steps:
+1. dig @dns chaos txt version.bind to test liveness.
+2. Check for RST or ICMP port unreachable on port 53.
+3. Query all records defined in topology; detect NXDOMAIN/SERVFAIL or wrong IPs.
+Report each.

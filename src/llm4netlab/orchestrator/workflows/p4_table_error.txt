@@ -1,0 +1,12 @@
+Detect P4 table entry issues:
+
+- p4_table_entry_missing
+- p4_table_entry_misconfig
+- p4_aggressive_detection_thresholds
+
+Steps:
+1. Dump every table using simple_switch_CLI or P4Runtime.
+2. Compare entries against expected MCP-intended configuration.
+3. Missing or wrong parameters → corresponding fault.
+4. Abnormally low thresholds causing legitimate traffic drop → aggressive thresholds.
+Report each.

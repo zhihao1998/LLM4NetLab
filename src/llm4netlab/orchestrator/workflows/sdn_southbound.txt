@@ -1,0 +1,10 @@
+Detect southbound interface problems:
+
+- southbound_port_block
+- southbound_port_mismatch
+
+Steps:
+1. Verify controller (Ryu/ONOS/ODL) and switches use the same OpenFlow port (6633/6653).
+2. Check firewall rules and tcpdump for blocked or RST packets.
+3. Inspect controller logs for connection/TLS failures.
+Report each.
