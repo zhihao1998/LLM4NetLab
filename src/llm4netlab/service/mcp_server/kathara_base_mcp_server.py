@@ -210,6 +210,21 @@ def cat_file(host_name: str, file_path: str) -> str:
     return result
 
 
+@safe_tool
+@mcp.tool()
+def exec_shell(host_name: str, command: str) -> str:
+    """Execute a shell command on a host.
+    Args:
+        host_name (str): Name of the host.
+        command (str): The shell command to execute.
+    Returns:
+        str: The output of the executed command.
+    """
+    kathara_api = KatharaAPI(lab_name=LAB_NAME)
+    result = kathara_api.exec_cmd(host_name=host_name, command=command)
+    return result
+
+
 if __name__ == "__main__":
     # Initialize and run the server
     mcp.run(transport="stdio")

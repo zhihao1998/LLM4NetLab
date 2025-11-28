@@ -92,6 +92,8 @@ class LocalizationTask(TaskBase):
         # 3. Get ground truth components
         if not gt:
             gt = self.get_submission()
+        else:
+            gt = LocalizationSubmission.model_validate(gt)
         gt_components_raw = gt.faulty_devices if gt else []
 
         # 4. Get normalized component sets

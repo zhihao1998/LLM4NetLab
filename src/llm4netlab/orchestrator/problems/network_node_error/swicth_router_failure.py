@@ -1,5 +1,6 @@
 import logging
 import random
+from venv import logger
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
 from llm4netlab.net_env.net_env_pool import get_net_env_instance
@@ -8,8 +9,9 @@ from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
 from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaAPIALL, KatharaBaseAPI
+from llm4netlab.utils.logger import system_logger
 
-logger = logging.getLogger(__name__)
+logger = system_logger
 
 # ==================================================================
 # Problem: P4 switch device failure (bmv2 switch down)

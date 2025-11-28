@@ -1,13 +1,12 @@
-import logging
-
 from llm4netlab.service.kathara import KatharaAPIALL
+from llm4netlab.utils.logger import system_logger
 
 
 class FaultInjectorHost:
     def __init__(self, lab_name: str):
         super().__init__()
         self.kathara_api = KatharaAPIALL(lab_name)
-        self.logger = logging.getLogger(__name__)
+        self.logger = system_logger
 
     def inject_host_default_route_missing(self, host_name: str, back_up_file: str = "/tmp/default_route_backup.txt"):
         """Inject a fault by removing the default route on a host."""

@@ -1,6 +1,6 @@
-import logging
 
 from llm4netlab.service.kathara import KatharaAPIALL
+from llm4netlab.utils.logger import system_logger
 
 """ Fault injector for Linux Traffic Control (tc) related faults """
 
@@ -8,7 +8,7 @@ from llm4netlab.service.kathara import KatharaAPIALL
 class FaultInjectorTC:
     def __init__(self, lab_name: str):
         self.kathara_api = KatharaAPIALL(lab_name)
-        self.logger = logging.getLogger(__name__)
+        self.logger = system_logger
 
     def inject_packet_loss(self, host_name: str, intf_name: str, loss_percentage: int):
         """Inject packet loss into a specific intf_name of a switch."""

@@ -4,6 +4,7 @@ import logging
 
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance, list_avail_problem_names
 from llm4netlab.orchestrator.problems.problem_base import TaskLevel
+from llm4netlab.utils.logger import system_logger
 from llm4netlab.utils.session import Session
 
 
@@ -11,10 +12,12 @@ def inject_failure(problem_names: list[str], re_inject: bool = True):
     """
     Inject failure into the network environment based on the root cause name.
     """
-    logger = logging.getLogger(__name__)
+    logger = system_logger
 
     session = Session()
     session.load_running_session()
+    # save session data for follow-up steps
+    session.update_session("problem_names", problem_names)
 
     for problem_name in problem_names:
         # check if problem_name in the available problems
@@ -31,8 +34,6 @@ def inject_failure(problem_names: list[str], re_inject: bool = True):
     logger.info(f"Session {session.session_id}, injected problem(s): {problem_names} under {session.scenario_name}.")
     task_description = problem.get_task_description()
 
-    # save session data for follow-up steps
-    session.update_session("problem_names", problem_names)
     session.update_session("task_description", task_description)
 
     # save the ground truth for evaluation

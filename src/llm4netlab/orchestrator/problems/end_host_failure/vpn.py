@@ -8,6 +8,7 @@ from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
 from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
+from llm4netlab.utils.logger import system_logger
 
 # ==========================================
 # Problem: VPN membership missing on end host causing inability to access services over VPN.
@@ -21,7 +22,7 @@ class VPNMembershipMissingBase:
 
     def __init__(self, scenario_name: str | None, **kwargs):
         super().__init__()
-        self.logger = logging.getLogger(__name__)
+        self.logger = system_logger
         self.net_env = get_net_env_instance(
             scenario_name,
             **kwargs,

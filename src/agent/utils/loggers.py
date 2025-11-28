@@ -5,6 +5,7 @@ import traceback
 from datetime import datetime
 
 from langchain_core.callbacks.base import BaseCallbackHandler
+from langchain_core.messages import ToolMessage
 from langchain_core.outputs.generation import Generation
 
 from llm4netlab.config import BASE_DIR
@@ -13,8 +14,9 @@ from llm4netlab.config import BASE_DIR
 class FileLoggerHandler(BaseCallbackHandler):
     def __init__(self, name=None):
         super().__init__()
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("LLMAgentLogger")
         self.logger.setLevel(logging.INFO)
+        self.logger.propagate = False
 
         for h in list(self.logger.handlers):
             self.logger.removeHandler(h)
@@ -92,8 +94,8 @@ class FileLoggerHandler(BaseCallbackHandler):
             },
         )
 
-    def on_tool_end(self, output, **kwargs):
-        if "Error executing tool" in output:
+    def on_tool_end(self, output: ToolMessage, **kwargs):
+        if output.status == "error":
             self._log(
                 "tool_error",
                 {
@@ -106,6 +108,7 @@ class FileLoggerHandler(BaseCallbackHandler):
             "tool_end",
             {
                 "output": output,
+                "output_type": type(output).__name__,
             },
         )
 

@@ -1,6 +1,5 @@
 import argparse
 import json
-import logging
 import os
 import textwrap
 
@@ -11,12 +10,12 @@ from llm4netlab.evaluator.trace_parser import AgentTraceParser
 from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance
 from llm4netlab.orchestrator.tasks.detection import DetectionSubmission
-from llm4netlab.orchestrator.tasks.localization import LocalizationSubmission
-from llm4netlab.orchestrator.tasks.rca import RCASubmission
+from llm4netlab.orchestrator.tasks.localization import LocalizationTask
+from llm4netlab.orchestrator.tasks.rca import RCATask
+from llm4netlab.utils.logger import system_logger
 from llm4netlab.utils.session import Session
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = system_logger
 
 
 def generic_eval(gt, submission):
@@ -32,21 +31,25 @@ def generic_eval(gt, submission):
 
     # localization evaluation
     try:
-        loc_acc, loc_prec, loc_rec, loc_f1 = LocalizationSubmission().eval(
+        loc_acc, loc_prec, loc_rec, loc_f1 = LocalizationTask().eval(
             submission={
                 "faulty_devices": submission.get("faulty_devices", []),
             },
-            gt=gt.get("faulty_devices", []),
+            gt={
+                "faulty_devices": gt.get("faulty_devices", []),
+            },
         )
     except Exception:
         loc_acc, loc_prec, loc_rec, loc_f1 = -1.0, -1.0, -1.0, -1.0
     # rca evaluation
     try:
-        rca_acc, rca_prec, rca_rec, rca_f1 = RCASubmission().eval(
+        rca_acc, rca_prec, rca_rec, rca_f1 = RCATask().eval(
             submission={
-                "root_cause": submission.get("root_cause", []),
+                "root_cause_name": submission.get("root_cause_name", []),
             },
-            gt=gt.get("root_cause", []),
+            gt={
+                "root_cause_name": gt.get("root_cause_name", []),
+            },
         )
     except Exception:
         rca_acc, rca_prec, rca_rec, rca_f1 = -1.0, -1.0, -1.0, -1.0

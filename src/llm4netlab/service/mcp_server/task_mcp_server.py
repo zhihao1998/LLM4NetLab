@@ -60,16 +60,24 @@ def list_avail_problems() -> list[str]:
 
 @safe_tool
 @mcp.tool()
-def submit(submission: SubmissionFormat) -> List[str]:
-    """Submit a task solution.
+def submit(
+    is_anomaly: bool,
+    faulty_devices: List[str],
+    root_cause_name: List[str],
+) -> List[str]:
+    """
+    Submit a task solution.
 
     Args:
-        submission (SubmissionFormat): The submission data based on your analysis.
-
-    Returns:
-        List[str]: Submission status messages.
+        is_anomaly: Indicates whether an anomaly was detected.
+        faulty_devices: List of localized devices that are identified as faulty.
+        root_cause_name: The name(s) of the identified root cause(s) of the network anomaly. MUST be selected from the result of 'list_avail_problems' tool.
     """
-    submission_dict = submission.model_dump()
+    submission_dict = {
+        "is_anomaly": is_anomaly,
+        "faulty_devices": faulty_devices,
+        "root_cause_name": root_cause_name,
+    }
     os.makedirs(
         f"{results_dir}/{ROOT_CAUSE_NAME}/{LAB_SESSION_ID}",
         exist_ok=True,

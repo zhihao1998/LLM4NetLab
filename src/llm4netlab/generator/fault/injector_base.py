@@ -1,10 +1,10 @@
-import logging
 import os
 
 import docker
 
 from llm4netlab.config import BASE_DIR
 from llm4netlab.service.kathara import KatharaAPIALL
+from llm4netlab.utils.logger import system_logger
 
 """ Fault injector for Kathara """
 
@@ -12,7 +12,7 @@ from llm4netlab.service.kathara import KatharaAPIALL
 class FaultInjectorBase:
     def __init__(self, lab_name: str):
         self.kathara_api = KatharaAPIALL(lab_name)
-        self.logger = logging.getLogger(__name__)
+        self.logger = system_logger
 
     def inject_intf_down(self, host_name: str, intf_name: str):
         """Bring down a specific interface of a host."""
@@ -77,14 +77,14 @@ class FaultInjectorBase:
         """Inject a fault by stopping a host."""
         docker_client = docker.from_env()
         container_name = docker_client.containers.list(filters={"name": f"{host_name}"})[0]
-        container_name.pause()
+        container_name.kill()
         self.logger.info(f"Injected host down fault on {host_name}.")
 
     def recover_host_down(self, host_name: str):
         """Recover from a fault by starting a host."""
         docker_client = docker.from_env()
         container_name = docker_client.containers.list(filters={"name": f"{host_name}"})[0]
-        container_name.unpause()
+        container_name.kill()
         self.logger.info(f"Recovered host down fault on {host_name}.")
 
     def inject_fragmentation_disabled(self, host_name: str, mtu: int = 100):

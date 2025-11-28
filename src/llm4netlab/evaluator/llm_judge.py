@@ -3,6 +3,7 @@ import os
 
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
+from langsmith import tracing_context
 from pydantic import BaseModel, Field
 
 # from agent.llm.langchain_deepseek import DeepSeekLLM
@@ -16,7 +17,7 @@ RESULTS_DIR = os.getenv("RESULTS_DIR")
 
 
 class Score(BaseModel):
-    score: int = Field(..., ge=1, le=10, description="Score from 1 to 10.")
+    score: int = Field(..., ge=1, le=5, description="Score from 1 to 5.")
     comment: str = Field(..., description="Comment explaining the rationale for the score.")
 
 
@@ -100,7 +101,8 @@ class LLMJudge:
             ground_truth=ground_truth,
             trace=trace,
         )
-        evaluation: JudgeResponse = self.llm.invoke(self.prompt)
+        with tracing_context(enabled=False):
+            evaluation: JudgeResponse = self.llm.invoke(self.prompt)
 
         # Save evaluation result to file
         with open(save_path, "w+") as f:

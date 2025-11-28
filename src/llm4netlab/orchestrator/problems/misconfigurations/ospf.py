@@ -12,6 +12,7 @@ from llm4netlab.orchestrator.tasks.localization import (
 )
 from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaFRRAPI
+from llm4netlab.utils.logger import system_logger
 
 # ==================================================================
 # Problem: OSPF Area Misconfiguration
@@ -29,7 +30,7 @@ class OSPFAreaMisconfigBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.logger = logging.getLogger(__name__)
+        self.logger = system_logger
         self.faulty_devices = [random.choice(self.net_env.routers)]
 
     def inject_fault(self):
@@ -119,7 +120,7 @@ class OSPFNeighborMissingBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaFRRAPI(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.logger = logging.getLogger(__name__)
+        self.logger = system_logger
         self.faulty_devices = [random.choice(self.net_env.routers)]
 
     def inject_fault(self):

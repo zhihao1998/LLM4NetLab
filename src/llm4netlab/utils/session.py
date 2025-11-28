@@ -31,26 +31,25 @@ class Session:
 
     def update_session(self, key: str, value: str):
         setattr(self, key, value)
-        self._write_session()
-
-    def write_gt(self, gt: str):
         if hasattr(self, "problem_names") and hasattr(self, "session_id"):
             if len(self.problem_names) > 1:
                 self.root_cause_name = "multiple_faults"
             else:
                 self.root_cause_name = self.problem_names[0]
                 self.session_dir = f"{RESULTS_DIR}/{self.root_cause_name}/{self.session_id}"
-            self._write_session()
+        self._write_session()
 
-            os.makedirs(self.session_dir, exist_ok=True)
-            with open(self.session_dir + "/ground_truth.json", "w") as f:
-                f.write(json.dumps(gt, indent=4))
+    def write_gt(self, gt: str):
+        os.makedirs(self.session_dir, exist_ok=True)
+        with open(self.session_dir + "/ground_truth.json", "w") as f:
+            f.write(json.dumps(gt, indent=4))
 
     def clear_session(self):
         shutil.move(
             f"{BASE_DIR}/runtime/current_session.json",
             f"{self.session_dir}/session_meta.json",
         )
+        shutil.move(f"{BASE_DIR}/runtime/system.log", f"{self.session_dir}/system.log")
 
     def start_session(self):
         self.start_time = datetime.now().timestamp()

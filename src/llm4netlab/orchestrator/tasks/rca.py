@@ -84,6 +84,8 @@ class RCATask(TaskBase):
         # 3. Get ground truth components
         if not gt:
             gt = self.get_submission()
+        else:
+            gt = RCASubmission.model_validate(gt)
 
         # 4. Get normalized component sets
         correct_rc_names = set([c for c in gt.root_cause_name])

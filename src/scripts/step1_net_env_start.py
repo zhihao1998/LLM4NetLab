@@ -1,12 +1,9 @@
 import argparse
-import logging
 from typing import Literal
 
 from llm4netlab.net_env.net_env_pool import get_net_env_instance
+from llm4netlab.utils.logger import refresh_logger, system_logger
 from llm4netlab.utils.session import Session
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 def parse_kv(s):
@@ -24,6 +21,7 @@ def start_net_env(scenario_name: str, topo_size: Literal["s", "m", "l"] | None =
     """
     Every run starts a new session.
     """
+    refresh_logger()
     net_env = get_net_env_instance(scenario_name, topo_size=topo_size)
     if net_env.lab_exists() and redeploy:
         net_env.undeploy()
@@ -36,7 +34,7 @@ def start_net_env(scenario_name: str, topo_size: Literal["s", "m", "l"] | None =
     session.init_session()
     session.update_session("scenario_name", scenario_name)
     session.update_session("scenario_topo_size", topo_size)
-    logger.info(f"Started network environment: {scenario_name} with session ID: {session.session_id}")
+    system_logger.info(f"Started network environment: {scenario_name} with session ID: {session.session_id}")
     return net_env
 
 

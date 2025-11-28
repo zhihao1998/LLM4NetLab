@@ -1,4 +1,3 @@
-import logging
 import random
 
 from llm4netlab.generator.fault.injector_base import FaultInjectorBase
@@ -8,8 +7,9 @@ from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
 from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaAPIALL
+from llm4netlab.utils.logger import system_logger
 
-logger = logging.getLogger(__name__)
+logger = system_logger
 
 
 # ==================================================================

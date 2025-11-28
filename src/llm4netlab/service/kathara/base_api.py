@@ -1,8 +1,11 @@
 import asyncio
 import json
+import re
 import time
+from collections import defaultdict
 from typing import Dict, Literal, Optional, Protocol, runtime_checkable
 
+from Kathara.exceptions import MachineNotFoundError
 from Kathara.manager.docker.stats.DockerLinkStats import DockerLinkStats
 from Kathara.manager.Kathara import Kathara, Lab
 from Kathara.model.Machine import Machine
@@ -222,57 +225,187 @@ class KatharaBaseAPI:
         Run a command on a machine and return its output as a string,
         decoding bytes and filtering out None/empty/zeros.
         """
-        output_generator = self.instance.exec(
-            machine_name=host_name, command=command, lab_name=self.lab.name, stream=False
-        )
-        for item in output_generator:
-            if not item or item == b"" or isinstance(item, int) or item is None or item == "None":
-                continue
-            if isinstance(item, bytes):
-                return item.decode("utf-8", errors="ignore").strip()
-            elif isinstance(item, str):
-                return item.strip()
-            else:
-                return str(item).strip()
+        try:
+            output_generator = self.instance.exec(
+                machine_name=host_name, command=command, lab_name=self.lab.name, stream=False
+            )
+            for item in output_generator:
+                if not item or item == b"" or isinstance(item, int) or item is None or item == "None":
+                    continue
+                if isinstance(item, bytes):
+                    return item.decode("utf-8", errors="ignore").strip()
+                elif isinstance(item, str):
+                    return item.strip()
+                else:
+                    return str(item).strip()
 
-        return ""
+            return ""
+        except MachineNotFoundError:
+            return {"error": f"Machine {host_name} not found in lab {self.lab.name}."}
 
     # asynchronous
     async def _run_cmd_async(self, host_name: str, command: str) -> list[str]:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self._run_cmd, host_name, command)
 
-    async def _check_ping_success_async(self, host: str, dst_ip: str) -> bool:
-        command = f"ping -c 4 {dst_ip}"
+    async def _check_ping_success_async(self, host: str, dst_ip: str) -> dict:
+        PING_STATS_RE = re.compile(
+            r"(?P<tx>\d+)\s+packets transmitted,\s+"
+            r"(?P<rx>\d+)\s+(?:packets\s+)?received,\s+"
+            r"(?P<loss>\d+(?:\.\d+)?)%\s+packet loss"
+            r"(?:,\s*time\s*(?P<time>\d+)ms)?",
+            re.MULTILINE,
+        )
+
+        RTT_RE = re.compile(
+            r"(?:rtt|round-trip)\s+min/avg/max/(?:mdev|stddev)\s*=\s*"
+            r"([\d\.]+)/([\d\.]+)/([\d\.]+)/([\d\.]+)\s*ms",
+            re.MULTILINE,
+        )
+
+        command = f"ping -c 4 -n -q {dst_ip}"
         result = await self._run_cmd_async(host, command)
-        # matches = re.findall(r"\d+ packets transmitted, \d+ received, .*? packet loss, time \d+ms", result)
-        # if len(matches) > 0:
-        #     return matches[0]
-        # else:
-        return result
+
+        stats_match = PING_STATS_RE.search(result)
+
+        tx = rx = None
+        loss = None
+        time_ms = None
+        rtt_min = rtt_avg = rtt_max = rtt_mdev = None
+
+        if stats_match:
+            tx = int(stats_match.group("tx"))
+            rx = int(stats_match.group("rx"))
+            loss = float(stats_match.group("loss"))
+            if stats_match.group("time") is not None:
+                time_ms = float(stats_match.group("time"))
+
+        rtt_match = RTT_RE.search(result)
+        if rtt_match:
+            rtt_min, rtt_avg, rtt_max, rtt_mdev = map(float, rtt_match.groups())
+
+        if tx is not None and rx is not None and loss is not None:
+            if rx > 0 and loss < 100:
+                status = "ok"
+            elif rx == 0 and loss == 100:
+                status = "down"
+            else:
+                status = "unstable"
+        else:
+            status = "unknown"
+
+        return {
+            "tx": tx,
+            "rx": rx,
+            "loss_percent": loss,
+            "time_ms": time_ms,
+            "rtt_min_ms": rtt_min,
+            "rtt_avg_ms": rtt_avg,
+            "rtt_max_ms": rtt_max,
+            "rtt_mdev_ms": rtt_mdev,
+            "status": status,
+        }
 
     async def get_reachability(self) -> str:
         return await self._get_reachability_async()
 
+    def load_machines(self):
+        self.bmv2_switches = []
+        self.ovs_switches = []
+        self.sdn_controllers = []
+        self.hosts = []
+        self.routers = []
+        self.links = []
+        self.switches = []
+        self.servers = defaultdict(list)
+
+        machines: Dict[str, Machine] = self.lab.machines
+        for machine, machine_obj in machines.items():
+            image = machine_obj.get_image()
+            if "p4" in image:
+                self.bmv2_switches.append(machine)
+            elif "frr" in image:
+                self.routers.append(machine)
+            elif "base" in image or "nginx" in image or "wireguard" in image:
+                host_keys = ["pc", "host", "client"]
+                if any(key in machine for key in host_keys):
+                    self.hosts.append(machine)
+                elif "load_balancer" in machine or "lb" in machine:
+                    self.servers["load_balancer"].append(machine)
+                elif "switch" in machine or "sw" in machine:
+                    self.switches.append(machine)
+                elif "dns" in machine:
+                    self.servers["dns"].append(machine)
+                elif "dhcp" in machine:
+                    self.servers["dhcp"].append(machine)
+                elif "web" in machine:
+                    self.servers["web"].append(machine)
+                elif "vpn" in machine:
+                    self.servers["vpn"].append(machine)
+
+            elif "influxdb" in image:
+                self.hosts.append(machine)
+            elif "sdn" in image:
+                self.ovs_switches.append(machine)
+            elif "pox" in image or "ryu" in image:
+                self.sdn_controllers.append(machine)
+            else:
+                print(f"Unknown machine type: {machine} with image {image}")
+
     async def _get_reachability_async(self) -> str:
-        host_names = [host for host in self.get_base_hosts()]
+        self.load_machines()
+
+        host_names = list(self.hosts)
+        for key, servers in self.servers.items():
+            for server in servers:
+                if server not in host_names:
+                    host_names.append(server)
+
         host_ips = {host_name: self.get_host_ip(host_name) for host_name in host_names}
-        result = []
 
         coroutines = []
-        labels = []
+        pairs = []  # [(src, dst)]
 
-        for host_name_i, host_ip_i in host_ips.items():
-            for host_name_j, host_ip_j in host_ips.items():
-                if host_name_i == host_name_j:
-                    continue
-                labels.append((host_name_i, host_name_j))
-                coroutines.append(self._check_ping_success_async(host_name_i, host_ip_j))
+        host_list = list(host_ips.items())  # [(name, ip)]
+        n = len(host_list)
+        for i in range(n):
+            src_name, src_ip = host_list[i]
+            for j in range(i + 1, n):
+                dst_name, dst_ip = host_list[j]
+                pairs.append((src_name, dst_name))
+                coroutines.append(self._check_ping_success_async(src_name, dst_ip))
 
         responses = await asyncio.gather(*coroutines)
-        for (host_i, host_j), is_success in zip(labels, responses):
-            result.append(f"{host_i} ping {host_j}: {is_success}")
-        return str(result)
+
+        results = []
+
+        for (src, dst), stats in zip(pairs, responses):
+            if stats is None or not isinstance(stats, dict):
+                stats = {}
+
+            result_entry = {
+                "src": src,
+                "dst": dst,
+                "dst_ip": host_ips.get(dst),
+                "tx": stats.get("tx"),
+                "rx": stats.get("rx"),
+                "loss_percent": stats.get("loss_percent"),
+                "time_ms": stats.get("time_ms"),
+                "rtt_avg_ms": stats.get("rtt_avg_ms"),
+                "rtt_min_ms": stats.get("rtt_min_ms"),
+                "rtt_max_ms": stats.get("rtt_max_ms"),
+                "rtt_mdev_ms": stats.get("rtt_mdev_ms"),
+                "status": stats.get("status"),
+            }
+
+            results.append(result_entry)
+
+        payload = {
+            "hosts": host_ips,
+            "results": results,
+        }
+
+        return json.dumps(payload, separators=(",", ":"))
 
     def ping_pair(self, host_a: str, host_b: str, count: int = 4, args: str = "") -> str:
         """
@@ -378,10 +511,10 @@ class KatharaBaseAPI:
 
 
 async def main():
-    api = KatharaBaseAPI(lab_name="dc_clos_service")
-    result = api.get_connected_devices("super_spine_router_0")
+    api = KatharaBaseAPI(lab_name="ospf_enterprise_dhcp")
+    # result = api.get_connected_devices("super_spine_router_0")
 
-    # result = await api.ping_pair("client_0", "webserver0_pod0", count=4)
+    result = await api.get_reachability()
     print(result)
 
 

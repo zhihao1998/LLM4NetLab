@@ -64,6 +64,6 @@ if __name__ == "__main__":
         # simple_bgp.instance.undeploy_lab(lab_name=simple_bgp.lab.name, selected_machines=["router1"])
         print("Lab undeployed")
 
-    # print("Deploying lab...")
-    # simple_bgp.deploy()
-    # print("Lab deployed")
+    print("Deploying lab...")
+    simple_bgp.deploy()
+    print("Lab deployed")

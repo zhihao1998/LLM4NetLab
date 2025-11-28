@@ -8,8 +8,9 @@ from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
 from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaAPIALL
+from llm4netlab.utils.logger import system_logger
 
-logger = logging.getLogger(__name__)
+logger = system_logger
 
 # ==================================================================
 # Problem: P4 header definition error
@@ -312,7 +313,7 @@ class P4MPLSLabelLimitExceededBase:
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
         self.faulty_devices = [random.choice(self.net_env.bmv2_switches)]
-        self.logger = logging.getLogger(__name__)
+        self.logger = system_logger
 
     def inject_fault(self):
         # replace the MPLS P4 program with one that has a lower label limit

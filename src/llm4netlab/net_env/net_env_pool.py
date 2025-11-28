@@ -3,6 +3,7 @@ from typing import Dict
 from llm4netlab.net_env.base import NetworkEnvBase
 from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab_services import DCClosService
 from llm4netlab.net_env.data_center_routing.dc_clos_bgp.lab_workers import DCClosBGP
+from llm4netlab.net_env.interdomain_routing.simple_bgp.lab import SimpleBGP
 from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_dhcp import OSPFEnterpriseDHCP
 from llm4netlab.net_env.intradomain_routing.ospf_enterprise.lab_static import OSPFEnterpriseStatic
 from llm4netlab.net_env.intradomain_routing.rip_vpn.lab import RIPSmallInternetVPN
@@ -25,6 +26,7 @@ _NET_ENVS: Dict[str, NetworkEnvBase] = {
     P4Counter.LAB_NAME: P4Counter,
     P4INT.LAB_NAME: P4INT,
     P4_MPLS.LAB_NAME: P4_MPLS,
+    SimpleBGP.LAB_NAME: SimpleBGP,
 }
 
 

@@ -1,6 +1,5 @@
 import importlib
 import inspect
-import logging
 import pkgutil
 from collections import defaultdict
 from typing import Dict, Type
@@ -8,9 +7,9 @@ from typing import Dict, Type
 from llm4netlab.orchestrator.problems.multi_problems import MultiFaultDetection, MultiFaultLocalization, MultiFaultRCA
 from llm4netlab.orchestrator.problems.problem_base import TaskLevel
 from llm4netlab.orchestrator.tasks.base import TaskBase
+from llm4netlab.utils.logger import system_logger
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = system_logger
 
 
 def _register_problems():

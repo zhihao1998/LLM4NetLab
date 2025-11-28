@@ -1,14 +1,14 @@
 import asyncio
-import logging
 
 from llm4netlab.service.kathara import KatharaAPIALL
+from llm4netlab.utils.logger import system_logger
 
 
 class FaultInjectorService:
     def __init__(self, lab_name: str):
         super().__init__()
         self.kathara_api = KatharaAPIALL(lab_name)
-        self.logger = logging.getLogger(__name__)
+        self.logger = system_logger
 
     async def _renew_dhcp_on_host(self, host: str):
         command = "dhclient -r eth0"

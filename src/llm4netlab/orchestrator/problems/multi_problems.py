@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 from llm4netlab.net_env.net_env_pool import get_net_env_instance
 from llm4netlab.orchestrator.problems.problem_base import ProblemMeta, RootCauseCategory, TaskDescription, TaskLevel
@@ -7,8 +6,6 @@ from llm4netlab.orchestrator.tasks.base import TaskBase
 from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
 from llm4netlab.orchestrator.tasks.rca import RCATask
-
-logger = logging.getLogger(__name__)
 
 
 class MultiFaultBase(TaskBase):

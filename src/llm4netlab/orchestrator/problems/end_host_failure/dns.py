@@ -8,9 +8,9 @@ from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
 from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
+from llm4netlab.utils.logger import system_logger
 
-logger = logging.getLogger(__name__)
-
+logger = system_logger
 
 # ==================================================================
 # Problem: DNS record error. Apps resolve domain but connect to wrong host.
@@ -98,6 +98,6 @@ class DNSRecordErrorRCA(DNSRecordErrorBase, RCATask):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    dns_error = DNSRecordErrorBase()
-    # dns_error.inject_fault()
-    dns_error.recover_fault()
+    dns_error = DNSRecordErrorBase(scenario_name="ospf_enterprise_dhcp")
+    dns_error.inject_fault()
+    # dns_error.recover_fault()

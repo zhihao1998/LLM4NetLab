@@ -71,7 +71,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
     LAB_NAME = "ospf_enterprise_dhcp"
     TOPO_LEVEL = "hard"
     TOPO_SIZE = ["s", "m", "l"]
-    TAGS = ["arp", "link", "web", "icmp", "frr", "dns", "mpls", "ospf", "dhcp", "host", "mac", "http", "load_balancer"]
+    TAGS = ["arp", "link", "web", "icmp", "frr", "dns", "ospf", "dhcp", "host", "mac", "http", "load_balancer"]
 
     def __init__(self, topo_size: Literal["s", "m", "l"] = "s"):
         super().__init__()
@@ -640,7 +640,8 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
             "An enterprise hierarchical network using OSPF with multiple areas, built from three core routers, distribution routers, and bridged access switches."
             "User hosts sit in subnets of the form 10.<core>.<dist>.0/24, obtain their IP configuration via DHCP (with dist-layer DHCP relay to a central DHCP server), "
             "and reach a server farm in 10.200.0.0/24 that hosts a DNS server for the local zone, several Apache web servers (web0.local…web3.local), "
-            "and an Nginx HTTP load balancer published as web99.local. "
+            "An Nginx HTTP load balancer published as web99.local, which load-balances requests to three backend web servers."
+            "Note that by design the backend web servers should not be directly accessible from the hosts. "
             "All infrastructure and server networks are advertised by FRR OSPF so that hosts can resolve and access the web services end-to-end."
         )
 
@@ -669,6 +670,6 @@ if __name__ == "__main__":
         print("Lab undeployed")
     print(ospf_enterprise.web_urls)
 
-    # print("Deploying lab...")
-    # ospf_enterprise.deploy()
-    # print("Lab deployed")
+    print("Deploying lab...")
+    ospf_enterprise.deploy()
+    print("Lab deployed")

@@ -61,3 +61,8 @@ class HostCrashRCA(HostCrashBase, RCATask):
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
+
+
+if __name__ == "__main__":
+    host_failure = HostCrashBase(scenario_name="simple_bgp")
+    host_failure.inject_fault()

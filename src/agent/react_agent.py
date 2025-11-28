@@ -1,6 +1,8 @@
 import asyncio
 import logging
+import os
 
+import langsmith as ls
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph.errors import GraphRecursionError
@@ -11,6 +13,7 @@ from typing_extensions import TypedDict
 from agent.domain_agents.diagnosis_agent import DiagnosisAgent
 from agent.domain_agents.submission_agent import SubmissionAgent
 from agent.utils.loggers import FileLoggerHandler
+from llm4netlab.utils.session import Session
 
 load_dotenv()
 
@@ -64,11 +67,24 @@ class BasicReActAgent:
         # compile the graph
         self.graph = worker_builder.compile()
 
+    def load_session(self):
+        self.session = Session()
+        self.session.load_running_session()
+
     async def run(self, task_description: str):
-        result = await self.graph.ainvoke(
-            {"messages": [HumanMessage(content=task_description)]},
-        )
-        return result
+        with ls.tracing_context(
+            project_name=os.getenv("LANGSMITH_PROJECT", "NIKA"),
+            metadata={
+                "scenario": self.session.scenario_name,
+                "problem": self.session.problem_names,
+                "topo_size": self.session.scenario_topo_size,
+                "backend_model": self.session.backend_model,
+            },
+        ):
+            result = await self.graph.ainvoke(
+                {"messages": [HumanMessage(content=task_description)]},
+            )
+            return result
 
     async def diagnosis_agent_builder(self, state: AgentState):
         try:
@@ -82,7 +98,7 @@ class BasicReActAgent:
             )
             return {"diagnosis_report": [diagnosis_report["messages"][-1].content], "is_max_steps_reached": False}
         except ValidationError as e:
-            return {"diagnosis_report": [f"Error: diagnosis agent failed with validation error: {str(e)}"]}
+            return {"messages": [HumanMessage(content=f"Error: {e}")]}
         except GraphRecursionError:
             return {
                 "messages": [HumanMessage(content="Error: diagnosis did not finish within max steps.")],
