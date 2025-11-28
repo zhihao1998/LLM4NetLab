@@ -16,7 +16,7 @@ class MCPServerConfig:
             config = {
                 "task_mcp_server": {
                     "command": "python3",
-                    "args": [f"{self.mcp_server_dir}/task_mcp_server_{self.session.task_level}.py"],
+                    "args": [f"{self.mcp_server_dir}/task_mcp_server.py"],
                     "transport": "stdio",
                 },
             }
@@ -49,7 +49,6 @@ class MCPServerConfig:
             server["env"] = {
                 "LAB_SESSION_ID": self.session.session_id,
                 "ROOT_CAUSE_NAME": self.session.root_cause_name,
-                "TASK_LEVEL": self.session.task_level,
                 "LAB_NAME": self.session.scenario_name,
                 "backend_model": self.session.backend_model,
                 "agent_type": self.session.agent_type,

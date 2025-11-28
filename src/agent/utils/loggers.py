@@ -11,7 +11,7 @@ from llm4netlab.config import BASE_DIR
 
 
 class FileLoggerHandler(BaseCallbackHandler):
-    def __init__(self, log_path: str = None):
+    def __init__(self, name=None):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
@@ -27,9 +27,8 @@ class FileLoggerHandler(BaseCallbackHandler):
             BASE_DIR,
             "results",
             session_info["root_cause_name"],
-            session_info["task_level"],
             session_info["session_id"],
-            "conversation.log",
+            f"conversation_{name}.log",
         )
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
@@ -94,6 +93,15 @@ class FileLoggerHandler(BaseCallbackHandler):
         )
 
     def on_tool_end(self, output, **kwargs):
+        if "Error executing tool" in output:
+            self._log(
+                "tool_error",
+                {
+                    "output": output,
+                },
+            )
+            return
+
         self._log(
             "tool_end",
             {

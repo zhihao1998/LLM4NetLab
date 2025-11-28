@@ -69,7 +69,7 @@ class LocalizationTask(TaskBase):
             ).strip()
             return text
 
-    def eval(self, submission: dict) -> float:
+    def eval(self, submission: dict, gt: dict) -> float:
         """Evaluate the localization task submission.
 
         Args:
@@ -90,7 +90,8 @@ class LocalizationTask(TaskBase):
         submitted_components = parsed_submission.faulty_devices
 
         # 3. Get ground truth components
-        gt = self.get_submission()
+        if not gt:
+            gt = self.get_submission()
         gt_components_raw = gt.faulty_devices if gt else []
 
         # 4. Get normalized component sets

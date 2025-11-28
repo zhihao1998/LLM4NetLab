@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance, list_avail_problem_names
@@ -6,7 +7,7 @@ from llm4netlab.orchestrator.problems.problem_base import TaskLevel
 from llm4netlab.utils.session import Session
 
 
-def inject_failure(problem_names: list[str], task_level: TaskLevel, re_inject: bool = True):
+def inject_failure(problem_names: list[str], re_inject: bool = True):
     """
     Inject failure into the network environment based on the root cause name.
     """
@@ -22,23 +23,28 @@ def inject_failure(problem_names: list[str], task_level: TaskLevel, re_inject: b
 
     scenario_params = session.scenario_params if hasattr(session, "scenario_params") else {}
     problem = get_problem_instance(
-        problem_names=problem_names, task_level=task_level, scenario_name=session.scenario_name, **scenario_params
+        problem_names=problem_names, task_level="detection", scenario_name=session.scenario_name, **scenario_params
     )
     if re_inject:
         problem.inject_fault()
-    logger.info(
-        f"Session {session.session_id}, injected problem(s): {problem_names} at task level {task_level} under {session.scenario_name}."
-    )
+
+    logger.info(f"Session {session.session_id}, injected problem(s): {problem_names} under {session.scenario_name}.")
     task_description = problem.get_task_description()
 
     # save session data for follow-up steps
     session.update_session("problem_names", problem_names)
-    session.update_session("task_level", task_level)
     session.update_session("task_description", task_description)
 
     # save the ground truth for evaluation
-    gt = problem.get_submission().model_dump_json()
-    session.write_gt(gt)
+    tot_gt = {}
+    for task_level in TaskLevel:
+        problem = get_problem_instance(
+            problem_names=problem_names, task_level=task_level, scenario_name=session.scenario_name, **scenario_params
+        )
+        gt = problem.get_submission().model_dump_json()
+        tot_gt.update(json.loads(gt))
+
+    session.write_gt(tot_gt)
     logger.info(f"Ground truth saved for session ID: {session.session_id}")
 
 

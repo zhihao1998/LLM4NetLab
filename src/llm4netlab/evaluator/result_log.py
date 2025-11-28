@@ -14,7 +14,6 @@ class EvalResult:
     backend_model: str = None
     root_cause_category: str = None
     root_cause_name: str = None
-    task_level: str = None
     net_env: str = None
     scenario_topo_size: str = None
     session_id: str = None
@@ -30,10 +29,15 @@ class EvalResult:
     llm_judge_clarity_score: int = None
     llm_judge_final_outcome_score: int = None
     llm_judge_overall_score: int = None
-    evaluator_accuracy: float = None
-    evaluator_precision: float = None
-    evaluator_recall: float = None
-    evaluator_f1: float = None
+    detection_score: float = None
+    localization_accuracy: float = None
+    localization_precision: float = None
+    localization_recall: float = None
+    localization_f1: float = None
+    rca_accuracy: float = None
+    rca_precision: float = None
+    rca_recall: float = None
+    rca_f1: float = None
 
 
 def record_eval_result(eval_result: EvalResult) -> None:

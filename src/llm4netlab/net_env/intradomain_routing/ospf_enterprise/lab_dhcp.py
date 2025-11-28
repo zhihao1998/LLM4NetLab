@@ -1,5 +1,6 @@
 import os
 import textwrap
+import time
 from ipaddress import IPv4Interface, IPv4Network
 from typing import Literal
 
@@ -508,8 +509,9 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         for access_key, host_metas in access_hosts.items():
             for host_meta in host_metas:
                 # startup file
-                host_meta.cmd_list.append("sleep 10")
-                host_meta.cmd_list.append("dhclient eth0")
+                host_meta.cmd_list.append("printf 'timeout 1;\nretry 1;\n' >> /etc/dhcp/dhclient.conf")
+                host_meta.cmd_list.append("dhclient -d eth0")
+
                 self.lab.create_file_from_list(
                     host_meta.cmd_list,
                     f"{host_meta.machine.name}.startup",
@@ -653,9 +655,13 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
         # add DNS
         self.dns_servers = [dns.ip_address for dns in tot_dns]
 
+    def deploy(self):
+        super().deploy()
+        time.sleep(30)  # wait for a while to make sure dhcp works
+
 
 if __name__ == "__main__":
-    ospf_enterprise = OSPFEnterpriseDHCP(topo_size="l")
+    ospf_enterprise = OSPFEnterpriseDHCP(topo_size="s")
     print("lab net summary:", ospf_enterprise.get_info())
     if ospf_enterprise.lab_exists():
         print("Lab exists, undeploying it...")

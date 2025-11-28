@@ -4,9 +4,9 @@ from typing import List
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
+from pydantic import BaseModel, Field
 
 from llm4netlab.orchestrator.problems.prob_pool import list_avail_problem_names as _list_avail_problems
-from llm4netlab.orchestrator.tasks.rca import RCASubmission
 from llm4netlab.utils.errors import safe_tool
 
 # Initialize FastMCP server
@@ -27,6 +27,26 @@ base_dir = os.getenv("BASE_DIR")
 results_dir = os.getenv("RESULTS_DIR")
 
 
+class SubmissionFormat(BaseModel):
+    is_anomaly: bool = Field(..., description="Indicates whether an anomaly was detected.")
+    faulty_devices: List[str] = Field(
+        ...,
+        description=(
+            "List of localized devices that are identified as faulty. "
+            "Each item is a device name (string). "
+            "Example: ['router_1', 'switch_2']"
+        ),
+    )
+    root_cause_name: List[str] = Field(
+        ...,
+        description=(
+            "The name(s) of the identified root cause(s) of the network anomaly. "
+            "MUST be from the provided list of root cause names. "
+            "Get the names from the 'list_avail_problems()' tool.",
+        ),
+    )
+
+
 @safe_tool
 @mcp.tool()
 def list_avail_problems() -> list[str]:
@@ -40,24 +60,21 @@ def list_avail_problems() -> list[str]:
 
 @safe_tool
 @mcp.tool()
-def submit(submission: RCASubmission) -> List[str]:
+def submit(submission: SubmissionFormat) -> List[str]:
     """Submit a task solution.
 
     Args:
-        submission (RCASubmission): The submission data.
+        submission (SubmissionFormat): The submission data based on your analysis.
 
     Returns:
         List[str]: Submission status messages.
     """
     submission_dict = submission.model_dump()
     os.makedirs(
-        f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}",
+        f"{results_dir}/{ROOT_CAUSE_NAME}/{LAB_SESSION_ID}",
         exist_ok=True,
     )
-    with open(
-        f"{results_dir}/{ROOT_CAUSE_NAME}/{TASK_LEVEL}/{LAB_SESSION_ID}/submission.json",
-        "a+",
-    ) as log_file:
+    with open(f"{results_dir}/{ROOT_CAUSE_NAME}/{LAB_SESSION_ID}/submission.json", "w+") as log_file:
         log_file.write(json.dumps(submission_dict))
 
     return ["Submission success."]

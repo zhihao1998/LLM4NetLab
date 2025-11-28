@@ -10,18 +10,15 @@ from agent.llm.model_factory import load_model
 from agent.utils.loggers import FileLoggerHandler
 from agent.utils.mcp_servers import MCPServerConfig
 from llm4netlab.orchestrator.orchestrator import Orchestrator
-from llm4netlab.utils.session import SessionKey
 
 load_dotenv()
 
 OVERALL_DIAGNOSIS_PROMPT = """\
-    You are a network anomaly diagnosis agent.
-
+    You are a network troubleshooting expert.
+    Focus on (1) detecting if there is an anomaly, (2) localizing the faulty devices, and (3) identifying the root cause.
+    
     Basic requirements:
-    - Follow the task instructions strictly (detection, localization, or RCA).
     - Use the provided tools to gather necessary information.
-    - Output only in the required structured format.
-    - Follow the required output schema exactly.
     - Do not provide mitigation unless explicitly required.
 """
 
@@ -43,16 +40,13 @@ class DiagnosisAgent:
 
     def get_agent(self):
         agent = create_agent(
-            model=self.llm,
-            system_prompt=OVERALL_DIAGNOSIS_PROMPT,
-            tools=self.tools,
+            model=self.llm, system_prompt=OVERALL_DIAGNOSIS_PROMPT, tools=self.tools, name="DiagnosisAgent"
         )
         return agent
 
 
 async def run_diagnosis_agent():
     logging.basicConfig(level=logging.INFO)
-    backend_model = "gpt-oss:20b"
     orchestrator = Orchestrator()
     root_cause_name = "frr_service_down"
     task_level = "rca"
@@ -61,16 +55,7 @@ async def run_diagnosis_agent():
         root_cause_name=root_cause_name, task_level=task_level
     )
 
-    session_key = SessionKey(
-        lab_name=lab_name,
-        session_id=session_id,
-        root_cause_category=root_cause_category,
-        root_cause_name=root_cause_name,
-        task_level=task_level,
-        backend_model=backend_model,
-        agent_type="DiagnosisAgent",
-    )
-    submission_agent = DiagnosisAgent(session_key)
+    submission_agent = DiagnosisAgent()
     await submission_agent.load_tools()
 
     graph = submission_agent.get_agent()

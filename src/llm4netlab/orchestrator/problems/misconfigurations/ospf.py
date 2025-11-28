@@ -34,7 +34,7 @@ class OSPFAreaMisconfigBase:
 
     def inject_fault(self):
         correct_area = self.kathara_api.exec_cmd(
-            self.faulty_router,
+            self.faulty_devices[0],
             "vtysh -c 'show running-config'",
         )
         pattern = re.compile(r"^\s*network\s+\S+\s+area\s+(\S+)", re.MULTILINE)

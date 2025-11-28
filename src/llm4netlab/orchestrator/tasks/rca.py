@@ -63,7 +63,7 @@ class RCATask(TaskBase):
             ).strip()
             return text
 
-    def eval(self, submission: dict) -> float:
+    def eval(self, submission: dict, gt: dict) -> float:
         """Evaluate the localization task submission.
 
         Args:
@@ -82,7 +82,8 @@ class RCATask(TaskBase):
             return -1.0
 
         # 3. Get ground truth components
-        gt = self.get_submission()
+        if not gt:
+            gt = self.get_submission()
 
         # 4. Get normalized component sets
         correct_rc_names = set([c for c in gt.root_cause_name])

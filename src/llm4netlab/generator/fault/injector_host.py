@@ -99,7 +99,7 @@ class FaultInjectorHost:
 
     def inject_high_socket(self, host_name: str, duration: int = 300):
         """Inject a fault by causing high socket usage on a host."""
-        res = self.kathara_api.exec_cmd(
+        self.kathara_api.exec_cmd(
             host_name,
             f"stress-ng --sock 0 --timeout {duration} &",
         )
