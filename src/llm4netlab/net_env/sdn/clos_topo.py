@@ -49,15 +49,15 @@ class SDNClos(NetworkEnvBase):
         self.instance = Kathara.get_instance()
         self.topo_size = topo_size
 
-        # Level s:  1 spine, 4 leaf, 2 hosts per leaf
-        # Level m:  2 spine, 8 leaf, 2 hosts per leaf
-        # Level l:  4 spine, 16 leaf, 2 hosts per leaf
+        # Level s:  1 spine, 2 leaf, 2 hosts per leaf
+        # Level m:  2 spine, 4 leaf, 4 hosts per leaf
+        # Level l:  4 spine, 8 leaf, 8 hosts per leaf
         if topo_size == "s":
-            SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 1, 4, 2
+            SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 1, 2, 2
         elif topo_size == "m":
-            SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 2, 8, 2
+            SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 2, 4, 4
         elif topo_size == "l":
-            SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 4, 16, 2
+            SPINE_NUM, LEAF_NUM, HOST_PER_LEAF = 4, 8, 8
         else:
             raise ValueError("topo_size should be s, m, or l.")
 

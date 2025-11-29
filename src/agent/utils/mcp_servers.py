@@ -48,7 +48,7 @@ class MCPServerConfig:
         for server in config.values():
             server["env"] = {
                 "LAB_SESSION_ID": self.session.session_id,
-                "ROOT_CAUSE_NAME": self.session.root_cause_name,
+                "root_cause_name": self.session.root_cause_name,
                 "LAB_NAME": self.session.scenario_name,
                 "backend_model": self.session.backend_model,
                 "agent_type": self.session.agent_type,

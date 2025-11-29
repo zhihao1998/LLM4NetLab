@@ -8,6 +8,7 @@ from llm4netlab.orchestrator.tasks.detection import DetectionTask
 from llm4netlab.orchestrator.tasks.localization import LocalizationTask
 from llm4netlab.orchestrator.tasks.rca import RCATask
 from llm4netlab.service.kathara import KatharaBaseAPI
+from llm4netlab.utils.logger import system_logger
 
 # ==================================================================
 # Problem: DHCP missing subnet
@@ -29,6 +30,9 @@ class DHCPMissingSubnetBase:
         self.faulty_devices.append(random.choice(self.net_env.hosts))
 
     def inject_fault(self):
+        system_logger.info(
+            f"Injecting DHCP missing subnet fault: DHCP server {self.faulty_devices[0]}, affected host {self.faulty_devices[1]}"
+        )
         subnet = str(
             ipaddress.ip_network(
                 self.kathara_api.get_host_ip(self.faulty_devices[1], with_prefix=True), strict=False
@@ -70,3 +74,9 @@ class DHCPMissingSubnetRCA(DHCPMissingSubnetBase, RCATask):
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )
+
+
+if __name__ == "__main__":
+    problem = DHCPMissingSubnetRCA(scenario_name="ospf_enterprise_dhcp")
+    # problem.inject_fault()
+    # problem.recover_fault()

@@ -26,7 +26,7 @@ class SDNControllerCrashBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices: str = [random.choice(self.net_env.sdn_controllers)]
+        self.faulty_devices = [random.choice(self.net_env.sdn_controllers)]
 
     def inject_fault(self):
         self.kathara_api.exec_cmd(
@@ -83,7 +83,7 @@ class SouthboundPortBlockBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices: str = self.net_env.sdn_controllers[0]
+        self.faulty_devices = [random.choice(self.net_env.sdn_controllers)]
         self.southbound_port: int = 6633  # Default OpenFlow port
 
     def inject_fault(self):
@@ -138,7 +138,7 @@ class SouthboundPortMismatchBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices: str = [random.choice(self.net_env.sdn_controllers)]
+        self.faulty_devices = [random.choice(self.net_env.sdn_controllers)]
         self.original_port: int = 6633  # Default OpenFlow port
         self.mismatched_port: int = 6653  # Common alternative OpenFlow port
 
@@ -205,7 +205,7 @@ class FlowRuleShadowingBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices: str = [random.choice(self.net_env.ovs_switches)]
+        self.faulty_devices = [random.choice(self.net_env.ovs_switches)]
 
     def inject_fault(self):
         # Inject a shadowing flow rule that matches all traffic and forwards to a blackhole
@@ -255,8 +255,8 @@ class FlowRuleShadowingRCA(FlowRuleShadowingBase, RCATask):
 
 
 class FlowRuleLoopBase:
-    ROOT_CAUSE_CATEGORY: RootCauseCategory = RootCauseCategory.NETWORK_NODE_ERROR
-    ROOT_CAUSE_NAME: str = "flow_rule_loop"
+    root_cause_category: RootCauseCategory = RootCauseCategory.NETWORK_NODE_ERROR
+    root_cause_name: str = "flow_rule_loop"
     TAGS: str = ["sdn"]
 
     def __init__(self, scenario_name: str | None, **kwargs):
@@ -264,7 +264,7 @@ class FlowRuleLoopBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorBase(lab_name=self.net_env.lab.name)
-        self.faulty_devices: str = self.net_env.ovs_switches[:2]
+        self.faulty_devices = self.net_env.ovs_switches[:2]
 
     def inject_fault(self):
         # Inject flow rules that create a forwarding loop between two ports
@@ -291,8 +291,8 @@ class FlowRuleLoopBase:
 
 class FlowRuleLoopDetection(FlowRuleLoopBase, DetectionTask):
     META = ProblemMeta(
-        root_cause_category=FlowRuleLoopBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=FlowRuleLoopBase.ROOT_CAUSE_NAME,
+        root_cause_category=FlowRuleLoopBase.root_cause_category,
+        root_cause_name=FlowRuleLoopBase.root_cause_name,
         task_level=TaskLevel.DETECTION,
         description=TaskDescription.DETECTION,
     )
@@ -300,8 +300,8 @@ class FlowRuleLoopDetection(FlowRuleLoopBase, DetectionTask):
 
 class FlowRuleLoopLocalization(FlowRuleLoopBase, LocalizationTask):
     META = ProblemMeta(
-        root_cause_category=FlowRuleLoopBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=FlowRuleLoopBase.ROOT_CAUSE_NAME,
+        root_cause_category=FlowRuleLoopBase.root_cause_category,
+        root_cause_name=FlowRuleLoopBase.root_cause_name,
         task_level=TaskLevel.LOCALIZATION,
         description=TaskDescription.LOCALIZATION,
     )
@@ -309,8 +309,8 @@ class FlowRuleLoopLocalization(FlowRuleLoopBase, LocalizationTask):
 
 class FlowRuleLoopRCA(FlowRuleLoopBase, RCATask):
     META = ProblemMeta(
-        root_cause_category=FlowRuleLoopBase.ROOT_CAUSE_CATEGORY,
-        root_cause_name=FlowRuleLoopBase.ROOT_CAUSE_NAME,
+        root_cause_category=FlowRuleLoopBase.root_cause_category,
+        root_cause_name=FlowRuleLoopBase.root_cause_name,
         task_level=TaskLevel.RCA,
         description=TaskDescription.RCA,
     )

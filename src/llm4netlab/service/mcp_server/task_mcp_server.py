@@ -19,9 +19,7 @@ load_dotenv(verbose=True)
 
 # The following environment variables should be passed from the MCP client (i.e., the agent)
 LAB_SESSION_ID = os.getenv("LAB_SESSION_ID")
-ROOT_CAUSE_CATEGORY = os.getenv("ROOT_CAUSE_CATEGORY")
-ROOT_CAUSE_NAME = os.getenv("ROOT_CAUSE_NAME")
-TASK_LEVEL = os.getenv("TASK_LEVEL")
+gt_root_cause_name = os.getenv("root_cause_name")
 
 base_dir = os.getenv("BASE_DIR")
 results_dir = os.getenv("RESULTS_DIR")
@@ -79,10 +77,10 @@ def submit(
         "root_cause_name": root_cause_name,
     }
     os.makedirs(
-        f"{results_dir}/{ROOT_CAUSE_NAME}/{LAB_SESSION_ID}",
+        f"{results_dir}/{gt_root_cause_name}/{LAB_SESSION_ID}",
         exist_ok=True,
     )
-    with open(f"{results_dir}/{ROOT_CAUSE_NAME}/{LAB_SESSION_ID}/submission.json", "w+") as log_file:
+    with open(f"{results_dir}/{gt_root_cause_name}/{LAB_SESSION_ID}/submission.json", "w+") as log_file:
         log_file.write(json.dumps(submission_dict))
 
     return ["Submission success."]

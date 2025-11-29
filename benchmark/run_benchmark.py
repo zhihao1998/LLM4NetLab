@@ -15,7 +15,7 @@ cur_dir = os.path.dirname(os.path.abspath(__file__))
 def run_benchmark():
     """Run benchmark tests based on the benchmark.csv file."""
     benchmark_file = os.path.join(cur_dir, "benchmark.csv")
-    df = pl.read_csv(benchmark_file)[9:]
+    df = pl.read_csv(benchmark_file)[28:]
 
     for row in df.iter_rows(named=True):
         problem = row["problem"]

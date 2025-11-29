@@ -565,18 +565,32 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
 
         # add configurations for web servers
         for web_idx, web_meta in enumerate(web_servers):
-            web_content = f"<html><body><h1>Welcome to Web Server {web_idx}</h1></body></html>\n"
-            web_meta.machine.create_file_from_string(web_content, "/var/www/html/index.html")
-            web_meta.cmd_list.append("service apache2 start")
+            web_meta.machine.create_file_from_path(
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/web/web_server.py"), "web_server.py"
+            )
+            web_meta.machine.create_file_from_path(
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/web/web_server.service"),
+                "/etc/systemd/system/web_server.service",
+            )
+            web_meta.cmd_list.append("systemctl daemon-reload")
+            web_meta.cmd_list.append("systemctl enable web_server")
+            web_meta.cmd_list.append("systemctl start web_server")
             self.lab.create_file_from_list(
                 web_meta.cmd_list,
                 f"{web_meta.machine.name}.startup",
             )
         # add configurations for load balancer backend servers
         for web_idx, backend_meta in enumerate(lb_backends):
-            web_content = f"<html><body><h1>Welcome to Load Balancer Backend Web Server {web_idx}</h1></body></html>\n"
-            backend_meta.machine.create_file_from_string(web_content, "/var/www/html/index.html")
-            backend_meta.cmd_list.append("service apache2 start")
+            backend_meta.machine.create_file_from_path(
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/web/web_server.py"), "web_server.py"
+            )
+            backend_meta.machine.create_file_from_path(
+                os.path.join(BASE_DIR, "src/llm4netlab/net_env/utils/web/web_server.service"),
+                "/etc/systemd/system/web_server.service",
+            )
+            backend_meta.cmd_list.append("systemctl daemon-reload")
+            backend_meta.cmd_list.append("systemctl enable web_server")
+            backend_meta.cmd_list.append("systemctl start web_server")
             self.lab.create_file_from_list(
                 backend_meta.cmd_list,
                 f"{backend_meta.machine.name}.startup",
@@ -658,7 +672,7 @@ class OSPFEnterpriseDHCP(NetworkEnvBase):
 
     def deploy(self):
         super().deploy()
-        time.sleep(30)  # wait for a while to make sure dhcp works
+        time.sleep(60)  # wait for a while to make sure dhcp works
 
 
 if __name__ == "__main__":

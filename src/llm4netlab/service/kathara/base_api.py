@@ -220,6 +220,13 @@ class KatharaBaseAPI:
         cmd = "/bin/bash -c '{}'".format(command.replace("'", "'\\''").replace('"', '\\"'))
         return self._run_cmd(host_name, cmd)
 
+    async def exec_cmd_async(self, host_name: str, command: str) -> str:
+        """
+        Run a command on a machine asynchronously and return its output as a string.
+        """
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self.exec_cmd, host_name, command)
+
     def _run_cmd(self, host_name: str, command: str) -> str:
         """
         Run a command on a machine and return its output as a string,
@@ -514,7 +521,8 @@ async def main():
     api = KatharaBaseAPI(lab_name="ospf_enterprise_dhcp")
     # result = api.get_connected_devices("super_spine_router_0")
 
-    result = await api.get_reachability()
+    # result = await api.get_reachability()
+    result = api.curl_web_test("host_1_1_1_1", "http://web0.local", times=3)
     print(result)
 
 

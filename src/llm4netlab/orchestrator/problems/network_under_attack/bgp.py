@@ -32,7 +32,7 @@ class BGPHijackingBase:
         )
 
     def inject_fault(self):
-        asn_number = self.kathara_api.frr_get_bgp_asn_number(self.faulty_devices)
+        asn_number = self.kathara_api.frr_get_bgp_asn_number(self.faulty_devices[0])
         self.injector.inject_bgp_add_interface(
             host_name=self.faulty_devices[0], intf_name="lo", ip_address=self.target_network
         )
@@ -41,7 +41,7 @@ class BGPHijackingBase:
         )
 
     def recover_fault(self):
-        asn_number = self.kathara_api.frr_get_bgp_asn_number(self.faulty_devices)
+        asn_number = self.kathara_api.frr_get_bgp_asn_number(self.faulty_devices[0])
         self.injector.recover_bgp_add_advertisement(
             host_name=self.faulty_devices[0], network=self.target_network, AS=asn_number
         )

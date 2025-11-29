@@ -5,6 +5,8 @@ import os
 import langsmith as ls
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage
+from langfuse import get_client
+from langfuse.langchain import CallbackHandler
 from langgraph.errors import GraphRecursionError
 from langgraph.graph import END, START, StateGraph
 from pydantic import Field, ValidationError
@@ -13,12 +15,24 @@ from typing_extensions import TypedDict
 from agent.domain_agents.diagnosis_agent import DiagnosisAgent
 from agent.domain_agents.submission_agent import SubmissionAgent
 from agent.utils.loggers import FileLoggerHandler
+from llm4netlab.utils.logger import system_logger
 from llm4netlab.utils.session import Session
 
 load_dotenv()
 
 
 logging.basicConfig(level=logging.INFO)
+
+# Initialize Langfuse client
+langfuse = get_client()
+
+# Initialize Langfuse CallbackHandler for Langchain (tracing)
+langfuse_handler = CallbackHandler()
+
+if langfuse.auth_check():
+    system_logger.info("Authentication to Langfuse successful.")
+else:
+    system_logger.warning("Authentication to Langfuse failed. Please check your LANGFUSE_API_KEY.")
 
 
 class AgentState(TypedDict):
@@ -72,17 +86,21 @@ class BasicReActAgent:
         self.session.load_running_session()
 
     async def run(self, task_description: str):
+        self.load_session()
         with ls.tracing_context(
             project_name=os.getenv("LANGSMITH_PROJECT", "NIKA"),
             metadata={
                 "scenario": self.session.scenario_name,
-                "problem": self.session.problem_names,
+                "problem": self.session.problem_names[0],
                 "topo_size": self.session.scenario_topo_size,
                 "backend_model": self.session.backend_model,
             },
         ):
             result = await self.graph.ainvoke(
-                {"messages": [HumanMessage(content=task_description)]},
+                {
+                    "messages": [HumanMessage(content=task_description)],
+                },
+                config={"callbacks": [langfuse_handler]},
             )
             return result
 
@@ -98,8 +116,17 @@ class BasicReActAgent:
             )
             return {"diagnosis_report": [diagnosis_report["messages"][-1].content], "is_max_steps_reached": False}
         except ValidationError as e:
-            return {"messages": [HumanMessage(content=f"Error: {e}")]}
+            FileLoggerHandler(name="diagnosis_agent").logger.error(f"Diagnosis agent validation error: {e}")
+            return {
+                "messages": [HumanMessage(content=f"Error: {e}")],
+                "diagnosis_report": ["ERROR_VALIDATION"],
+                "is_max_steps_reached": False,
+            }
         except GraphRecursionError:
+            FileLoggerHandler(name="diagnosis_agent")._log(
+                event_type="error",
+                payload={"message": "Diagnosis agent reached max recursion limit."},
+            )
             return {
                 "messages": [HumanMessage(content="Error: diagnosis did not finish within max steps.")],
                 "diagnosis_report": ["ERROR_MAX_STEPS_REACHED"],

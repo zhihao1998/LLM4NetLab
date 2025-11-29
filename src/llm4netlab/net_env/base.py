@@ -53,7 +53,7 @@ class NetworkEnvBase:
                     self.servers["dns"].append(machine)
                 elif "dhcp" in machine:
                     self.servers["dhcp"].append(machine)
-                elif "web" in machine:
+                elif "web" in machine and "backend" not in machine:
                     self.servers["web"].append(machine)
                 elif "vpn" in machine:
                     self.servers["vpn"].append(machine)

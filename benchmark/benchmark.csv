@@ -50,3 +50,7 @@ link_high_packet_corruption,dc_clos_bgp,s
 link_queue_overflow,dc_clos_bgp,s
 dns_lookup_latency,ospf_enterprise_dhcp,s
 load_balancer_overload,ospf_enterprise_dhcp,s
+incast_traffic_network_limitation,ospf_enterprise_dhcp,s
+sender_resource_contention,ospf_enterprise_dhcp,s
+sender_application_delay,ospf_enterprise_dhcp,s
+receiver_resource_contention,ospf_enterprise_dhcp,s
