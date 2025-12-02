@@ -1,12 +1,4 @@
-from langsmith import Client
+import polars as pl
 
-user_run_ids = ["3c30c498-969b-401d-bf07-a8e08a6a662b"]
-
-client = Client()
-for run_id in user_run_ids:
-    try:
-        client.run(run_id)
-    except Exception as e:
-        print(f"Failed to delete run {run_id}: {e}")
-
-        continue
+df = pl.read_csv("/home/ubuntu/codes/LLM4NetLab/results/0_summary/evaluation_summary.csv")
+print(df.with_columns((pl.col("in_tokens") + pl.col("out_tokens")).alias("total_tokens")).select(["in_tokens"]).sum())

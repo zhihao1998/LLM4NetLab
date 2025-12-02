@@ -13,8 +13,7 @@ LAB_NAME = os.getenv("LAB_NAME")
 @safe_tool
 @mcp.tool()
 def bmv2_get_log(switch_name: str, rows: int) -> str:
-    """Get the logs from the bmv2 switch.
-
+    """Get the logs from the bmv2 switch. Be careful when using this tool as the log size can be very large.
     Args:
         switch_name (str): The name of the switch.
         rows (int): Number of log lines to retrieve.

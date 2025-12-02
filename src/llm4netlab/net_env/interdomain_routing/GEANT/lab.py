@@ -3,6 +3,7 @@ import textwrap
 from ipaddress import IPv4Interface, IPv4Network
 from typing import Literal
 
+import networkx as nx
 from Kathara.manager.Kathara import Kathara, Machine
 from Kathara.model.Lab import Lab
 
@@ -10,6 +11,19 @@ from llm4netlab.config import BASE_DIR
 from llm4netlab.net_env.base import NetworkEnvBase
 
 cur_path = os.path.dirname(os.path.abspath(__file__))
+
+
+def read_nodes_edges():
+    G = nx.MultiDiGraph(nx.read_gml(os.path.join(cur_path, "Geant2010.gml")))
+    unique_edges = set()
+    for u, v in G.edges():
+        edge = tuple(sorted((u, v)))
+        unique_edges.add(edge)
+
+    G2 = nx.Graph()
+    G2.add_nodes_from(G.nodes(data=True))
+    G2.add_edges_from(unique_edges)
+    return list(G2.nodes(data=False)), list(G2.edges(data=False))
 
 
 # P2P links use 172.16.0.0/16 with /31 per link.

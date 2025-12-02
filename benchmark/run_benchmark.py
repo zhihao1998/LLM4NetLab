@@ -15,12 +15,18 @@ cur_dir = os.path.dirname(os.path.abspath(__file__))
 def run_benchmark():
     """Run benchmark tests based on the benchmark.csv file."""
     benchmark_file = os.path.join(cur_dir, "benchmark.csv")
-    df = pl.read_csv(benchmark_file)[28:]
+    df = pl.read_csv(benchmark_file)
 
     for row in df.iter_rows(named=True):
         problem = row["problem"]
         scenario = row["scenario"]
         topo_size = row["topo_size"]
+        # increase topo_size
+        if topo_size == "s":
+            topo_size = "l"
+        elif topo_size == "-":
+            continue
+
         # Start the scenario and inject failure only once per (problem and scenario)
         is_scenario_started = False
         is_failure_injected = False

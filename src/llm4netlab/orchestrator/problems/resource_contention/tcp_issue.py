@@ -88,7 +88,7 @@ class SenderApplicationDelayBase:
         self.net_env = get_net_env_instance(scenario_name, **kwargs)
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
-        self.faulty_devices = [random.choice(self.net_env.servers["host"])]
+        self.faulty_devices = [random.choice(self.net_env.servers["web"])]
 
     def inject_fault(self):
         # backup original web_server.py
@@ -112,7 +112,7 @@ class SenderApplicationDelayBase:
             host_name=self.faulty_devices[0],
             command="systemctl restart web_server.service",
         )
-        system_logger.info(f"Injected TCP slow sender issue on host {self.faulty_devices[0]}")
+        system_logger.info(f"Injected TCP sender application delay issue on host {self.faulty_devices[0]}")
 
     def recover_fault(self):
         # restore original web_server.py
@@ -213,5 +213,5 @@ class ReceiverResourceContentionRCA(ReceiverResourceContentionBase, RCATask):
 
 
 if __name__ == "__main__":
-    problem = SenderApplicationDelayBase(scenario_name="ospf_enterprise_dhcp")
-    problem.recover_fault()
+    problem = ReceiverResourceContentionBase(scenario_name="ospf_enterprise_dhcp")
+    problem.inject_fault()

@@ -85,6 +85,7 @@ class LinkBandwidthThrottlingBase:
         self.kathara_api = KatharaAPIALL(lab_name=self.net_env.lab.name)
         self.injector = FaultInjectorTC(lab_name=self.net_env.lab.name)
         self.faulty_devices = [random.choice(self.net_env.hosts)]
+        self.scenario_name = scenario_name
 
     def inject_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_devices[0])[0]
@@ -92,12 +93,29 @@ class LinkBandwidthThrottlingBase:
             host_name=self.faulty_devices[0], intf_name=intf_name, rate="30kbit", burst="64kb", limit="500kb"
         )
 
+        generator = ODFLowGenerator(lab_name=self.scenario_name)
+        od_dict = {}
+        mbps = 20
+        for host in self.net_env.hosts:
+            if host != self.faulty_devices[0]:
+                od_dict.setdefault(host, {})
+                od_dict[host][self.faulty_devices[0]] = mbps
+        res = generator.start_traffic_background(od_dicts=od_dict, interval=300, unit="M", udp=True)
+        system_logger.info(f"Started background traffic generation {res} to amplify the bandwidth throttling effect.")
+
     def recover_fault(self):
         intf_name = self.kathara_api.get_host_interfaces(self.faulty_devices[0])[0]
         self.injector.recover_bandwidth_limit(
             host_name=self.faulty_devices[0],
             intf_name=intf_name,
         )
+
+        # stop all background traffic
+        for host in self.net_env.hosts:
+            self.kathara_api.exec_cmd(host_name=host, command="pkill -f iperf3")
+        for server in self.net_env.servers["web"]:
+            self.kathara_api.exec_cmd(host_name=server, command="pkill -f iperf3")
+        system_logger.info("Stopped all background traffic generation.")
 
 
 class LinkBandwidthThrottlingDetection(LinkBandwidthThrottlingBase, DetectionTask):
@@ -162,8 +180,9 @@ class IncastTrafficNetworkLimitationBase:
         od_dict = {}
         mbps = 20
         for host in self.net_env.hosts:
-            od_dict.setdefault(host, {})
-            od_dict[host][self.faulty_devices[0]] = mbps
+            if host != self.faulty_devices[0]:
+                od_dict.setdefault(host, {})
+                od_dict[host][self.faulty_devices[0]] = mbps
         res = generator.start_traffic_background(od_dicts=od_dict, interval=300, unit="M", udp=True)
         system_logger.info(f"Started background traffic generation {res} to amplify the network limitation effect.")
 
@@ -207,6 +226,6 @@ class IncastTrafficNetworkLimitationRCA(IncastTrafficNetworkLimitationBase, RCAT
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    task = IncastTrafficNetworkLimitationBase(scenario_name="ospf_enterprise_dhcp")
-    task.recover_fault()
-    # task.inject_fault()
+    task = LinkBandwidthThrottlingBase(scenario_name="dc_clos_bgp", topo_size="m")
+    # task.recover_fault()
+    task.inject_fault()

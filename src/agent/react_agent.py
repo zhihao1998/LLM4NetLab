@@ -23,17 +23,6 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
-# Initialize Langfuse client
-langfuse = get_client()
-
-# Initialize Langfuse CallbackHandler for Langchain (tracing)
-langfuse_handler = CallbackHandler()
-
-if langfuse.auth_check():
-    system_logger.info("Authentication to Langfuse successful.")
-else:
-    system_logger.warning("Authentication to Langfuse failed. Please check your LANGFUSE_API_KEY.")
-
 
 class AgentState(TypedDict):
     """The state of the agent."""
@@ -52,6 +41,19 @@ class AgentState(TypedDict):
 class BasicReActAgent:
     def __init__(self, backend_model, max_steps: int = 20):
         self.max_steps = max_steps
+
+        # Set up Langfuse callback handler
+        # Initialize Langfuse client
+        langfuse = get_client()
+
+        # Initialize Langfuse CallbackHandler for Langchain (tracing)
+        self.langfuse_handler = CallbackHandler()
+
+        if langfuse.auth_check():
+            system_logger.info("Authentication to Langfuse successful.")
+        else:
+            system_logger.warning("Authentication to Langfuse failed. Please check your LANGFUSE_API_KEY.")
+
         # load agent and tools
         diagnosis_agent = DiagnosisAgent(backend_model=backend_model)
         asyncio.run(diagnosis_agent.load_tools())
@@ -100,7 +102,7 @@ class BasicReActAgent:
                 {
                     "messages": [HumanMessage(content=task_description)],
                 },
-                config={"callbacks": [langfuse_handler]},
+                config={"callbacks": [self.langfuse_handler]},
             )
             return result
 

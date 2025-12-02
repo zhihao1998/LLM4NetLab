@@ -18,14 +18,14 @@ class TelemetryAPIMixin:
     def influx_list_buckets(self: _SupportsBase, host_name: str = "collector") -> list[str]:
         """List all buckets in the InfluxDB instance."""
         query_cmd = "influx bucket list --json"
-        return [self._run_cmd(host_name=host_name, command=query_cmd)]
+        return [self.exec_cmd(host_name=host_name, command=query_cmd)]
 
     def influx_get_measurements(self: _SupportsBase, host_name: str = "collector") -> list[str]:
         """List all measurements (tables) in a database"""
         query_cmd = (
             f"""influx query 'import "influxdata/influxdb/schema" schema.measurements(bucket: "{self.bucket}")'"""
         )
-        return [self._run_cmd(host_name=host_name, command=query_cmd)]
+        return [self.exec_cmd(host_name=host_name, command=query_cmd)]
 
     def influx_count_measurements(self: _SupportsBase, measurement: str, host_name: str = "collector") -> list[str]:
         """Count the size of all records in a measurement"""
@@ -42,7 +42,7 @@ class TelemetryAPIMixin:
             f"  |> count()"
             "'"
         )
-        result = self._run_cmd(host_name=host_name, command=query_cmd)
+        result = self.exec_cmd(host_name=host_name, command=query_cmd)
         jsoned_result = self._csv_to_json(result)
         return [jsoned_result]
 
@@ -85,7 +85,7 @@ class TelemetryAPIMixin:
             f"  |> limit(n: {limit}, offset: {offset})"
             "'"
         )
-        query_result = self._run_cmd(host_name=host_name, command=query_cmd)
+        query_result = self.exec_cmd(host_name=host_name, command=query_cmd)
         jsoned_result = self._csv_to_json(query_result)
         return [jsoned_result]
 

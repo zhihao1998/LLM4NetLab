@@ -20,7 +20,7 @@ class NFTableMixin:
             str: The output of the nft list ruleset command.
         """
         command = "nft -a list ruleset"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def nft_list_tables(
         self: _SupportsBase,
@@ -36,7 +36,7 @@ class NFTableMixin:
             list[str]: The output of the nft list tables command.
         """
         command = "nft list tables"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def nft_list_chains(
         self: _SupportsBase,
@@ -53,7 +53,7 @@ class NFTableMixin:
             list[str]: The output of the nft list chains command.
         """
         command = "nft list chains"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def nft_add_table(
         self: _SupportsBase,
@@ -73,7 +73,7 @@ class NFTableMixin:
             list[str]: The output of the nft add table command.
         """
         command = f"nft add table {family} {table_name}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def nft_add_chain(
         self: _SupportsBase,
@@ -105,7 +105,7 @@ class NFTableMixin:
             if policy:
                 command += f" policy {policy} ;"
             command += " }'"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def nft_add_rule(
         self: _SupportsBase,
@@ -129,7 +129,7 @@ class NFTableMixin:
             list[str]: The output of the nft add rule command.
         """
         command = f"nft add rule {family} {table} {chain} {rule}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def nft_delete_table(
         self: _SupportsBase,
@@ -149,7 +149,7 @@ class NFTableMixin:
             list[str]: The output of the nft delete table command.
         """
         command = f"nft delete table {family} {table_name}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
 
 class KatharaNFTableAPI(KatharaBaseAPI, NFTableMixin):
@@ -158,7 +158,6 @@ class KatharaNFTableAPI(KatharaBaseAPI, NFTableMixin):
     """
 
     pass
-
 
 
 if __name__ == "__main__":

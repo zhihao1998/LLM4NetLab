@@ -5,6 +5,9 @@ import time
 from collections import defaultdict
 from typing import Dict, Literal, Optional, Protocol, runtime_checkable
 
+import func_timeout
+from func_timeout import func_timeout
+from func_timeout.exceptions import FunctionTimedOut
 from Kathara.exceptions import MachineNotFoundError
 from Kathara.manager.docker.stats.DockerLinkStats import DockerLinkStats
 from Kathara.manager.Kathara import Kathara, Lab
@@ -59,9 +62,9 @@ class KatharaBaseAPI:
         """
         config = {}
         config["host_name"] = host_name
-        config["ifconfig"] = self._run_cmd(host_name, "ifconfig -a")
-        config["ip_addr"] = self._run_cmd(host_name, "ip addr")
-        config["ip_route"] = self._run_cmd(host_name, "ip route")
+        config["ifconfig"] = self.exec_cmd(host_name, "ifconfig -a")
+        config["ip_addr"] = self.exec_cmd(host_name, "ip addr")
+        config["ip_route"] = self.exec_cmd(host_name, "ip route")
         return config
 
     def get_bmv2_switches(self) -> list[Machine]:
@@ -94,7 +97,7 @@ class KatharaBaseAPI:
         Get the default gateway of a host using `ip -j route`.
         """
         cmd = "ip -j route"
-        result = self._run_cmd(host_name, cmd)
+        result = self.exec_cmd(host_name, cmd)
 
         if isinstance(result, list):
             output = "\n".join(result)
@@ -122,7 +125,7 @@ class KatharaBaseAPI:
         :param iface:     interface name, default "eth0"
         """
         cmd = f"cat /sys/class/net/{iface}/address"
-        result = self._run_cmd(host_name, cmd)
+        result = self.exec_cmd(host_name, cmd)
         if result:
             return result.strip()
         return None
@@ -139,7 +142,7 @@ class KatharaBaseAPI:
         """
 
         cmd = "ip -j addr"
-        result = self._run_cmd(host_name, cmd)
+        result = self.exec_cmd(host_name, cmd)
 
         if isinstance(result, list):
             output = "\n".join(result)
@@ -181,7 +184,7 @@ class KatharaBaseAPI:
 
     def get_host_interfaces(self, host_name: str, include_loopback: bool = False) -> list[str]:
         cmd = "ip -j addr"
-        result = self._run_cmd(host_name, cmd)
+        result = self.exec_cmd(host_name, cmd)
         output = "\n".join(result) if isinstance(result, list) else result
 
         try:
@@ -217,8 +220,12 @@ class KatharaBaseAPI:
         """
         Run a command on a machine and return its output as a string.
         """
+        CMD_TIMEOUT = 10
         cmd = "/bin/bash -c '{}'".format(command.replace("'", "'\\''").replace('"', '\\"'))
-        return self._run_cmd(host_name, cmd)
+        try:
+            return func_timeout(CMD_TIMEOUT, self._run_cmd, args=(host_name, cmd))
+        except FunctionTimedOut:
+            return f"[TIMEOUT] Command '{command}' on '{host_name}' exceeded {CMD_TIMEOUT}s."
 
     async def exec_cmd_async(self, host_name: str, command: str) -> str:
         """
@@ -250,11 +257,6 @@ class KatharaBaseAPI:
         except MachineNotFoundError:
             return {"error": f"Machine {host_name} not found in lab {self.lab.name}."}
 
-    # asynchronous
-    async def _run_cmd_async(self, host_name: str, command: str) -> list[str]:
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self._run_cmd, host_name, command)
-
     async def _check_ping_success_async(self, host: str, dst_ip: str) -> dict:
         PING_STATS_RE = re.compile(
             r"(?P<tx>\d+)\s+packets transmitted,\s+"
@@ -271,7 +273,7 @@ class KatharaBaseAPI:
         )
 
         command = f"ping -c 4 -n -q {dst_ip}"
-        result = await self._run_cmd_async(host, command)
+        result = await self.exec_cmd_async(host, command)
 
         stats_match = PING_STATS_RE.search(result)
 
@@ -373,7 +375,7 @@ class KatharaBaseAPI:
         coroutines = []
         pairs = []  # [(src, dst)]
 
-        host_list = list(host_ips.items())  # [(name, ip)]
+        host_list = sorted(list(host_ips.items()))  # [(name, ip)]
         n = len(host_list)
         for i in range(n):
             src_name, src_ip = host_list[i]
@@ -419,14 +421,14 @@ class KatharaBaseAPI:
         Ping from one host to another in the lab.
         """
         command = f"ping -c {count} {self.get_host_ip(host_b)} {args}"
-        return self._run_cmd(host_a, command)
+        return self.exec_cmd(host_a, command)
 
     def traceroute(self, host_name: str, dst_ip: str) -> str:
         """
         Run a traceroute from a host to a destination IP.
         """
         command = f"traceroute {dst_ip}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def iperf_test(
         self,
@@ -440,13 +442,13 @@ class KatharaBaseAPI:
         Run an iperf test between two hosts.
         """
         # Start iperf server
-        self._run_cmd(server_host_name, f"iperf3 -s -D {server_args}")
+        self.exec_cmd(server_host_name, f"iperf3 -s -D {server_args}")
         # Run iperf client
-        result = self._run_cmd(
+        result = self.exec_cmd(
             client_host_name, f"iperf3 -c {self.get_host_ip(server_host_name)} -t {duration} {client_args}"
         )
         # Stop iperf server
-        self._run_cmd(server_host_name, "pkill iperf3")
+        self.exec_cmd(server_host_name, "pkill iperf3")
         return result
 
     def systemctl_ops(
@@ -455,7 +457,7 @@ class KatharaBaseAPI:
         """
         Perform systemctl operations (start, stop, restart, status) on a host.
         """
-        result = self._run_cmd(host_name, f"systemctl {operation} {service_name}")
+        result = self.exec_cmd(host_name, f"systemctl {operation} {service_name}")
         if operation != "status":
             time.sleep(5)
         return result
@@ -466,21 +468,21 @@ class KatharaBaseAPI:
         Example: -s for statistics, -tuln for listening ports.
         """
         command = f"netstat {args}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def ip_addr_statistics(self, host_name: str) -> str:
         """
         Get IP address statistics of a host.
         """
         command = "ip -s addr"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def ethtool(self, host_name: str, interface: str, args: str = "") -> str:
         """
         Run ethtool command on a specific interface of a host with given arguments.
         """
         command = f"ethtool {interface} {args}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def curl_web_test(self, host_name: str, url: str, times: int = 5) -> str:
         """
@@ -498,7 +500,7 @@ class KatharaBaseAPI:
         )
         res = ""
         for _ in range(times):
-            res += self._run_cmd(host_name, command) + "\n"
+            res += self.exec_cmd(host_name, command) + "\n"
         return res.strip()
 
     def ps(self, host_name: str, args: str = "aux") -> str:
@@ -507,22 +509,23 @@ class KatharaBaseAPI:
         Example: aux for all processes.
         """
         command = f"ps {args}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def show_dns_config(self, host_name: str) -> str:
         """
         Show DNS configuration of a host.
         """
         command = "cat /etc/resolv.conf"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
 
 async def main():
     api = KatharaBaseAPI(lab_name="ospf_enterprise_dhcp")
     # result = api.get_connected_devices("super_spine_router_0")
 
-    # result = await api.get_reachability()
-    result = api.curl_web_test("host_1_1_1_1", "http://web0.local", times=3)
+    result = await api.get_reachability()
+    # result = api.ping_pair("pc1", "pc2")
+    # result = api.curl_web_test("host_1_1_1_1", "http://web0.local", times=3)
     print(result)
 
 

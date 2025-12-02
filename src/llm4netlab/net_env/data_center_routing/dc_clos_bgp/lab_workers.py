@@ -314,7 +314,7 @@ class DCClosBGP(NetworkEnvBase):
 
 
 if __name__ == "__main__":
-    dc_clos_bgp = DCClosBGP(topo_size="l")
+    dc_clos_bgp = DCClosBGP(topo_size="s")
     print("Lab description:", dc_clos_bgp.desc)
     print("lab net summary:", dc_clos_bgp.get_info())
     if dc_clos_bgp.lab_exists():

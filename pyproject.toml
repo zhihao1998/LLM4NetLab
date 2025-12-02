@@ -29,6 +29,9 @@ dependencies = [
     "langchain==1.0",
     "pandas>=2.3.3",
     "polars>=1.35.2",
+    "func-timeout>=4.3.5",
+    "networkx>=3.6",
+    "jupyter>=1.1.1",
 ]
 
 [tool.setuptools.packages.find]

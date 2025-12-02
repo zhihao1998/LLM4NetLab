@@ -13,14 +13,14 @@ class IntfAPIMixin:
         Set a specific interface of a host on or off.
         """
         command = f"ip link set {interface} {state}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def intf_show(self: _SupportsBase, host_name: str, interface: str) -> list[str]:
         """
         Show the status of a specific interface of a host.
         """
         command = f"ip addr show {interface}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
 
 class KatharaIntfAPI(KatharaBaseAPI, IntfAPIMixin):

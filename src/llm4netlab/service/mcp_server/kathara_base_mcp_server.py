@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 from typing import Dict, List
 
@@ -10,7 +9,9 @@ from llm4netlab.utils.errors import safe_tool
 
 # Initialize FastMCP server
 mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000, log_level="INFO")
-LAB_NAME = os.getenv("LAB_NAME", "sdn_clos")
+LAB_NAME = os.getenv("LAB_NAME", "ospf_enterprise_dhcp")
+
+CMD_TIMEOUT = 1
 
 
 @safe_tool
@@ -28,7 +29,7 @@ async def get_reachability() -> str:
 
 @safe_tool
 @mcp.tool()
-def ping_pair(host_a: str, host_b: str, count: int, args: str = "") -> str:
+def ping_pair(host_a: str, host_b: str, count: int = 4, args: str = "") -> str:
     """Ping from one host to another in the lab.
 
     Args:
@@ -215,16 +216,20 @@ def cat_file(host_name: str, file_path: str) -> str:
 
 @safe_tool
 @mcp.tool()
-def exec_shell(host_name: str, command: str) -> str:
-    """Execute a shell command on a host.
-    Args:
-        host_name (str): Name of the host.
-        command (str): The shell command to execute.
-    Returns:
-        str: The output of the executed command.
+def exec_shell(
+    host_name: str,
+    command: str,
+) -> str:
     """
+    Execute a shell command on a host.
+
+    Args:
+        host_name (str): The name of the host.
+        command (str): The shell command to execute.
+    """
+
     kathara_api = KatharaAPI(lab_name=LAB_NAME)
-    result = kathara_api.exec_cmd(host_name=host_name, command=command)
+    result = kathara_api.exec_cmd(host_name, command)
     return result
 
 
@@ -237,47 +242,31 @@ async def exec_shell_dual(
     cmd2: str,
 ) -> Dict[str, List[str]]:
     """
-    Execute commands on two hosts concurrently using _run_cmd_async. Can be used for send-and-sniff scenarios.
-
+    Execute shell commands on two hosts concurrently.
     Args:
-        host1 (str): Name of the first host.
-        cmd1 (str): Command to run on the first host.
-        host2 (str): Name of the second host.
-        cmd2 (str): Command to run on the second host.
-
-    Returns:
-        Dict[str, List[str]]:
-            {
-                "host1": [...],
-                "host2": [...]
-            }
+        host1 (str): The name of the first host.
+        cmd1 (str): The shell command to execute on the first host.
+        host2 (str): The name of the second host.
+        cmd2 (str): The shell command to execute on the second host.
     """
-    # Run the two commands concurrently
     kathara_api = KatharaAPI(lab_name=LAB_NAME)
+
     result1, result2 = await asyncio.gather(
-        kathara_api._run_cmd_async(host1, cmd1),
-        kathara_api._run_cmd_async(host2, cmd2),
-        return_exceptions=False,
+        kathara_api.exec_cmd_async(host1, cmd1),
+        kathara_api.exec_cmd_async(host2, cmd2),
     )
 
-    return json.dumps(
-        {
-            "host1": [result1],
-            "host2": [result2],
-        }
-    )
+    return {"host1": [result1], "host2": [result2]}
 
 
 if __name__ == "__main__":
     # Initialize and run the server
-    mcp.run(transport="stdio")
+    # mcp.run(transport="stdio")
+
     # print(get_net_env_info())
-    # res = asyncio.run(
-    #     exec_shell_dual(
-    #         host1="host_1_1",
-    #         cmd1="ping -c 4 10.0.0.2",
-    #         host2="host_1_2",
-    #         cmd2="tcpdump -i eth0 -c 4",
-    #     )
-    # )
+    res = asyncio.run(get_reachability())
+    print(res)
+    # res = exec_shell(host_name="pc1", command="ping -c 400 10.0.0.2")
+    # print(res)
+    # res = get_host_net_config("host_2_1_1_1")
     # print(res)

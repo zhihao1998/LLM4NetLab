@@ -42,7 +42,7 @@ class BMv2APIMixin:
         Get the log file of a switch.
         """
         command = f"tail -n {rows} sw.log"
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     # Switch related API
     def bmv2_switch_info(self: _SupportsBase, switch_name: str) -> list[str]:
@@ -50,35 +50,35 @@ class BMv2APIMixin:
         Show the switch info.
         """
         command = _build_thrift_command(["show_switch_info()"])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_show_ports(self: _SupportsBase, switch_name: str) -> list[str]:
         """
         Show the ports of a switch.
         """
         command = _build_thrift_command(["show_ports()"])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_show_tables(self: _SupportsBase, switch_name: str) -> list[str]:
         """
         Show the tables of a switch.
         """
         command = _build_thrift_command(["show_tables()"])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_show_actions(self: _SupportsBase, switch_name: str) -> list[str]:
         """
         Show all actions of a switch.
         """
         command = _build_thrift_command(["show_actions()"])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_get_register_arrays(self: _SupportsBase, switch_name: str) -> list[str]:
         """
         Show all register_arrays of a switch.
         """
         command = _build_thrift_command(["get_register_arrays()"])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_register_read(
         self: _SupportsBase,
@@ -90,7 +90,7 @@ class BMv2APIMixin:
         Read a register.
         """
         command = _build_thrift_command([f'register_read("{register_name}", {index})'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     # Table related API
     def bmv2_table_info(self: _SupportsBase, switch_name: str, table_name: str) -> list[str]:
@@ -98,35 +98,35 @@ class BMv2APIMixin:
         Show the info of a table.
         """
         command = _build_thrift_command([f'table_info("{table_name}")'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_dump(self: _SupportsBase, switch_name: str, table_name: str) -> list[str]:
         """
         Dump the content of a table.
         """
         command = _build_thrift_command([f'table_dump("{table_name}")'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_show_actions(self: _SupportsBase, switch_name: str, table_name: str) -> list[str]:
         """
         Show the actions of a table.
         """
         command = _build_thrift_command([f'table_show_actions("{table_name}")'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_num_entries(self: _SupportsBase, switch_name: str, table_name: str) -> list[str]:
         """
         Show the number of entries in a table.
         """
         command = _build_thrift_command([f'table_num_entries("{table_name}")'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_clear(self: _SupportsBase, switch_name: str, table_name: str) -> list[str]:
         """
         Clear the content of a table.
         """
         command = _build_thrift_command([f'table_clear("{table_name}")'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_add(
         self: _SupportsBase,
@@ -146,7 +146,7 @@ class BMv2APIMixin:
         command = _build_thrift_command(
             [f'table_add("{table_name}", "{action_name}", {match_keys_str}, {action_params_str}, {prio})']
         )
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_get_entry_handle(
         self: _SupportsBase,
@@ -159,7 +159,7 @@ class BMv2APIMixin:
         """
         match_keys_str = _quote_list_double(match_keys)
         command = _build_thrift_command([f'get_handle_from_match("{table_name}", {match_keys_str})'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_set_timeout(
         self: _SupportsBase,
@@ -172,7 +172,7 @@ class BMv2APIMixin:
         Set the timeout of a table entry. The table has to support timeouts.
         """
         command = _build_thrift_command([f'table_set_timeout("{table_name}", "{entry_handle}", {timeout_ms})'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_modify(
         self: _SupportsBase,
@@ -189,7 +189,7 @@ class BMv2APIMixin:
         command = _build_thrift_command(
             [f'table_modify("{table_name}", "{action_name}", {entry_handle}, {action_params_str})']
         )
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_modify_match(
         self: _SupportsBase,
@@ -207,7 +207,7 @@ class BMv2APIMixin:
         command = _build_thrift_command(
             [f'table_modify_match("{table_name}", "{action_name}", {match_keys_str}, {action_params_str})']
         )
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_delete(
         self: _SupportsBase,
@@ -219,7 +219,7 @@ class BMv2APIMixin:
         Delete an entry from a table.
         """
         command = _build_thrift_command([f'table_delete("{table_name}", "{entry_handle}")'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_table_delete_match(
         self: _SupportsBase,
@@ -232,7 +232,7 @@ class BMv2APIMixin:
         """
         match_keys_str = _quote_list_double(match_keys)
         command = _build_thrift_command([f'table_delete_match("{table_name}", {match_keys_str})'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     # Counter related API
     def bmv2_get_counter_arrays(self: _SupportsBase, switch_name: str) -> list[str]:
@@ -240,7 +240,7 @@ class BMv2APIMixin:
         Show all counter_arrays of a switch.
         """
         command = _build_thrift_command(["get_counter_arrays()"])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def bmv2_counter_read(
         self: _SupportsBase,
@@ -252,7 +252,7 @@ class BMv2APIMixin:
         Read a counter.
         """
         command = _build_thrift_command([f'counter_read("{counter_name}", {index})'])
-        return self._run_cmd(switch_name, command)
+        return self.exec_cmd(switch_name, command)
 
     def read_p4_program(
         self: _SupportsBase,
@@ -261,8 +261,27 @@ class BMv2APIMixin:
         """
         Read the P4 program from the switch.
         """
-        command = "cat *.p4"
-        return self._run_cmd(switch_name, command)
+        list_root = self.exec_cmd(switch_name, "ls *.p4 2>/dev/null || true").strip()
+        if list_root:
+            p4_files = list_root.split()
+            results = []
+            for f in p4_files:
+                content = self.exec_cmd(switch_name, f"cat {f}")
+                results.append(content)
+            return results
+
+        # If not found, try p4_src/
+        list_p4src = self.exec_cmd(switch_name, "ls p4_src/*.p4 2>/dev/null || true").strip()
+        if list_p4src:
+            p4_files = list_p4src.split()
+            results = []
+            for f in p4_files:
+                content = self.exec_cmd(switch_name, f"cat {f}")
+                results.append(content)
+            return results
+
+        # Nothing found
+        return []
 
 
 class KatharaBMv2API(KatharaBaseAPI, BMv2APIMixin):
@@ -274,12 +293,13 @@ class KatharaBMv2API(KatharaBaseAPI, BMv2APIMixin):
 
 
 async def main():
-    lab_name = "p4_mpls"
+    lab_name = "p4_counter"
     kathara_api = KatharaBMv2API(lab_name)
     # result = await kathara_api.get_reachability()
     # print(result)
 
-    result = kathara_api.bmv2_table_dump("switch_1", "MyIngress.mpls_tbl")
+    # result = kathara_api.bmv2_table_dump("switch_1", "MyIngress.mpls_tbl")
+    result = kathara_api.read_p4_program("s1")
     print(result)
 
 

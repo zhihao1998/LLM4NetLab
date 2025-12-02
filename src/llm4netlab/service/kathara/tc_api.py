@@ -68,7 +68,7 @@ class TCMixin:
         if limit is not None:
             command += f" limit {limit}"
 
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def tc_set_tbf(
         self: _SupportsBase,
@@ -107,28 +107,28 @@ class TCMixin:
 
         command += f" tbf rate {rate} burst {burst} limit {limit}"
 
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def tc_show_intf(self: _SupportsBase, host_name: str, intf_name: str) -> list[str]:
         """
         Show traffic control (tc) parameters on a specific intf_name of a host.
         """
         command = f"tc qdisc show dev {intf_name}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def tc_show_statistics(self: _SupportsBase, host_name: str, intf_name: str) -> list[str]:
         """
         Show traffic control (tc) statistics on a specific intf_name of a host.
         """
         command = f"tc -s qdisc show dev {intf_name}"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
     def tc_clear_intf(self: _SupportsBase, host_name: str, intf_name: str) -> list[str]:
         """
         Clear traffic control (tc) parameters on a specific intf_name of a host.
         """
         command = f"tc qdisc del dev {intf_name} root"
-        return self._run_cmd(host_name, command)
+        return self.exec_cmd(host_name, command)
 
 
 class KatharaTCAPI(KatharaBaseAPI, TCMixin):
