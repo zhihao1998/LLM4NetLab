@@ -30,7 +30,6 @@ class NetworkEnvBase:
         self.sdn_controllers = []
         self.hosts = []
         self.routers = []
-        self.links = []
         self.switches = []
         self.servers = defaultdict(list)
 
@@ -59,13 +58,24 @@ class NetworkEnvBase:
                     self.servers["vpn"].append(machine)
 
             elif "influxdb" in image:
-                self.hosts.append(machine)
+                self.servers["database"].append(machine)
+
             elif "sdn" in image:
                 self.ovs_switches.append(machine)
             elif "pox" in image or "ryu" in image:
                 self.sdn_controllers.append(machine)
             else:
                 print(f"Unknown machine type: {machine} with image {image}")
+
+        # sort all lists
+        self.bmv2_switches = sorted(self.bmv2_switches)
+        self.ovs_switches = sorted(self.ovs_switches)
+        self.sdn_controllers = sorted(self.sdn_controllers)
+        self.hosts = sorted(self.hosts)
+        self.routers = sorted(self.routers)
+        self.switches = sorted(self.switches)
+        for server_type in self.servers:
+            self.servers[server_type] = sorted(self.servers[server_type])
 
     def get_topology(self) -> dict:
         """

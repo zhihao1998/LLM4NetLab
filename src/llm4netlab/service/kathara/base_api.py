@@ -1,11 +1,11 @@
 import asyncio
 import json
+import random
 import re
 import time
 from collections import defaultdict
 from typing import Dict, Literal, Optional, Protocol, runtime_checkable
 
-import func_timeout
 from func_timeout import func_timeout
 from func_timeout.exceptions import FunctionTimedOut
 from Kathara.exceptions import MachineNotFoundError
@@ -32,6 +32,17 @@ class KatharaBaseAPI:
         self.lab = self.instance.get_lab_from_api(lab_name=lab_name)
         if self.lab is None:
             raise ValueError(f"Lab {lab_name} not found.")
+
+    def exec_cmd(self, host_name: str, command: str) -> str:
+        """
+        Run a command on a machine and return its output as a string.
+        """
+        CMD_TIMEOUT = 10
+        cmd = "/bin/bash -c '{}'".format(command.replace("'", "'\\''").replace('"', '\\"'))
+        try:
+            return func_timeout(CMD_TIMEOUT, self._run_cmd, args=(host_name, cmd))
+        except FunctionTimedOut:
+            return f"[TIMEOUT] Command '{command}' on '{host_name}' exceeded {CMD_TIMEOUT}s."
 
     def get_hosts(self) -> list[Machine]:
         """
@@ -216,17 +227,6 @@ class KatharaBaseAPI:
                 result[link.name] = (link.containers[0].labels["name"], link.containers[1].labels["name"])
         return result
 
-    def exec_cmd(self, host_name: str, command: str) -> str:
-        """
-        Run a command on a machine and return its output as a string.
-        """
-        CMD_TIMEOUT = 10
-        cmd = "/bin/bash -c '{}'".format(command.replace("'", "'\\''").replace('"', '\\"'))
-        try:
-            return func_timeout(CMD_TIMEOUT, self._run_cmd, args=(host_name, cmd))
-        except FunctionTimedOut:
-            return f"[TIMEOUT] Command '{command}' on '{host_name}' exceeded {CMD_TIMEOUT}s."
-
     async def exec_cmd_async(self, host_name: str, command: str) -> str:
         """
         Run a command on a machine asynchronously and return its output as a string.
@@ -234,7 +234,7 @@ class KatharaBaseAPI:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.exec_cmd, host_name, command)
 
-    def _run_cmd(self, host_name: str, command: str) -> str:
+    def _run_cmd(self, host_name: str, command: str, max_chars: int = 4000) -> str:
         """
         Run a command on a machine and return its output as a string,
         decoding bytes and filtering out None/empty/zeros.
@@ -246,16 +246,26 @@ class KatharaBaseAPI:
             for item in output_generator:
                 if not item or item == b"" or isinstance(item, int) or item is None or item == "None":
                     continue
+
                 if isinstance(item, bytes):
-                    return item.decode("utf-8", errors="ignore").strip()
+                    out = item.decode("utf-8", errors="ignore").strip()
                 elif isinstance(item, str):
-                    return item.strip()
+                    out = item.strip()
                 else:
-                    return str(item).strip()
+                    out = str(item).strip()
+
+                if len(out) > max_chars:
+                    return out[:max_chars] + f"...[truncated, {len(out) - max_chars} chars omitted]"
+
+                return out
 
             return ""
+
         except MachineNotFoundError:
-            return {"error": f"Machine {host_name} not found in lab {self.lab.name}."}
+            return f"Machine {host_name} not found in lab {self.lab.name}."
+
+        except Exception as e:
+            return f"Error executing command on {host_name}: {e}"
 
     async def _check_ping_success_async(self, host: str, dst_ip: str) -> dict:
         PING_STATS_RE = re.compile(
@@ -272,7 +282,7 @@ class KatharaBaseAPI:
             re.MULTILINE,
         )
 
-        command = f"ping -c 4 -n -q {dst_ip}"
+        command = f"ping -c 2 -n -q {dst_ip}"
         result = await self.exec_cmd_async(host, command)
 
         stats_match = PING_STATS_RE.search(result)
@@ -324,7 +334,6 @@ class KatharaBaseAPI:
         self.sdn_controllers = []
         self.hosts = []
         self.routers = []
-        self.links = []
         self.switches = []
         self.servers = defaultdict(list)
 
@@ -347,19 +356,30 @@ class KatharaBaseAPI:
                     self.servers["dns"].append(machine)
                 elif "dhcp" in machine:
                     self.servers["dhcp"].append(machine)
-                elif "web" in machine:
+                elif "web" in machine and "backend" not in machine:
                     self.servers["web"].append(machine)
                 elif "vpn" in machine:
                     self.servers["vpn"].append(machine)
 
             elif "influxdb" in image:
-                self.hosts.append(machine)
+                self.servers["database"].append(machine)
+
             elif "sdn" in image:
                 self.ovs_switches.append(machine)
             elif "pox" in image or "ryu" in image:
                 self.sdn_controllers.append(machine)
             else:
                 print(f"Unknown machine type: {machine} with image {image}")
+
+        # sort all lists
+        self.bmv2_switches = sorted(self.bmv2_switches)
+        self.ovs_switches = sorted(self.ovs_switches)
+        self.sdn_controllers = sorted(self.sdn_controllers)
+        self.hosts = sorted(self.hosts)
+        self.routers = sorted(self.routers)
+        self.switches = sorted(self.switches)
+        for server_type in self.servers:
+            self.servers[server_type] = sorted(self.servers[server_type])
 
     async def _get_reachability_async(self) -> str:
         self.load_machines()
@@ -376,11 +396,21 @@ class KatharaBaseAPI:
         pairs = []  # [(src, dst)]
 
         host_list = sorted(list(host_ips.items()))  # [(name, ip)]
-        n = len(host_list)
-        for i in range(n):
+
+        # if there is too many hosts, randomly sample 2 hosts as destinations
+        if len(host_list) > 2:
+            dst_list = host_list.copy()
+            random.shuffle(dst_list)
+            dst_list = dst_list[:2]
+        else:
+            dst_list = host_list
+
+        for i in range(len(host_list)):
             src_name, src_ip = host_list[i]
-            for j in range(i + 1, n):
-                dst_name, dst_ip = host_list[j]
+            for j in range(len(dst_list)):
+                dst_name, dst_ip = dst_list[j]
+                if src_name == dst_name:
+                    continue
                 pairs.append((src_name, dst_name))
                 coroutines.append(self._check_ping_success_async(src_name, dst_ip))
 
@@ -420,7 +450,14 @@ class KatharaBaseAPI:
         """
         Ping from one host to another in the lab.
         """
-        command = f"ping -c {count} {self.get_host_ip(host_b)} {args}"
+        ip_re = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
+        if not re.match(ip_re, host_b):
+            host_b_ip = self.get_host_ip(host_b)
+            if host_b_ip is None:
+                return f"Cannot get IP address of host {host_b}."
+            host_b = host_b_ip
+
+        command = f"ping -c {count} {host_b} {args}"
         return self.exec_cmd(host_a, command)
 
     def traceroute(self, host_name: str, dst_ip: str) -> str:
@@ -523,8 +560,9 @@ async def main():
     api = KatharaBaseAPI(lab_name="ospf_enterprise_dhcp")
     # result = api.get_connected_devices("super_spine_router_0")
 
-    result = await api.get_reachability()
-    # result = api.ping_pair("pc1", "pc2")
+    # result = await api.get_reachability()
+    result = api.exec_cmd("load_balancer", "curl http://20.200.0.2")
+
     # result = api.curl_web_test("host_1_1_1_1", "http://web0.local", times=3)
     print(result)
 

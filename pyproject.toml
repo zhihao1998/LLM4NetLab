@@ -32,6 +32,8 @@ dependencies = [
     "func-timeout>=4.3.5",
     "networkx>=3.6",
     "jupyter>=1.1.1",
+    "pyarrow>=22.0.0",
+    "seaborn>=0.13.2",
 ]
 
 [tool.setuptools.packages.find]

@@ -1,6 +1,6 @@
-import argparse
 import json
 import logging
+import random
 
 from llm4netlab.orchestrator.problems.prob_pool import get_problem_instance, list_avail_problem_names
 from llm4netlab.orchestrator.problems.problem_base import TaskLevel
@@ -25,11 +25,17 @@ def inject_failure(problem_names: list[str], re_inject: bool = True):
             raise ValueError(f"Unknown problem name: {problem_name}")
 
     scenario_params = session.scenario_params if hasattr(session, "scenario_params") else {}
-    problem = get_problem_instance(
-        problem_names=problem_names, task_level="detection", scenario_name=session.scenario_name, **scenario_params
-    )
+
+    tot_tasks = []
+    for task_level in TaskLevel:
+        random.seed(session.session_id[-4:])
+        problem = get_problem_instance(
+            problem_names=problem_names, task_level=task_level, scenario_name=session.scenario_name, **scenario_params
+        )
+        tot_tasks.append(problem)
+
     if re_inject:
-        problem.inject_fault()
+        tot_tasks[0].inject_fault()
 
     logger.info(f"Session {session.session_id}, injected problem(s): {problem_names} under {session.scenario_name}.")
     task_description = problem.get_task_description()
@@ -38,10 +44,7 @@ def inject_failure(problem_names: list[str], re_inject: bool = True):
 
     # save the ground truth for evaluation
     tot_gt = {}
-    for task_level in TaskLevel:
-        problem = get_problem_instance(
-            problem_names=problem_names, task_level=task_level, scenario_name=session.scenario_name, **scenario_params
-        )
+    for problem in tot_tasks:
         gt = problem.get_submission().model_dump_json()
         tot_gt.update(json.loads(gt))
 
@@ -52,24 +55,4 @@ def inject_failure(problem_names: list[str], re_inject: bool = True):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    parser = argparse.ArgumentParser(description="Inject Failure into Network Environment")
-    parser.add_argument(
-        "--problems",
-        type=str,
-        nargs="*",
-        default=["link_down", "host_missing_ip"],
-        help="Name(s) of the problem(s) to inject, space-separated if multiple (default: link_failure)",
-    )
-    parser.add_argument(
-        "--task_level",
-        type=str,
-        nargs="?",
-        choices=[level.value for level in TaskLevel],
-        default=TaskLevel.RCA,
-        help="Task level for the problem (default: detection)",
-    )
-    args = parser.parse_args()
-
-    problem_names = [name.strip() for name in args.problems]
-    task_level = TaskLevel(args.task_level)
-    inject_failure(problem_names, task_level)
+    inject_failure(["frr_service_down"], True)

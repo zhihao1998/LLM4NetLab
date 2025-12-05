@@ -16,7 +16,7 @@ def load_model(backend_model: str = "gpt-oss:20b") -> BaseChatModel:
             validate_model_on_init=True,
             base_url=os.getenv("OLLAMA_API_URL"),
         )
-    elif backend_model in ["gpt-5-mini"]:
+    elif backend_model in ["gpt-5-mini", "gpt-5"]:
         llm = ChatOpenAI(
             model_name=backend_model,
         )

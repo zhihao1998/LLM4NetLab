@@ -44,7 +44,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--scenario",
         type=str,
-        default="simple_bgp",
+        default="dc_clos_service",
         help="Name of the network environment to start (default: simple_bgp)",
     )
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         "--scenario_params",
         nargs="*",
         type=parse_kv,
-        default=[],
+        default=[("topo_size", "m")],
         help="Dynamic key=value pairs (e.g. --scenario_params topo_size=m )",
     )
 

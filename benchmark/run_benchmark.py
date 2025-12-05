@@ -1,5 +1,4 @@
 import os
-import random
 
 import polars as pl
 
@@ -23,7 +22,7 @@ def run_benchmark():
         topo_size = row["topo_size"]
         # increase topo_size
         if topo_size == "s":
-            topo_size = "l"
+            topo_size = "m"
         elif topo_size == "-":
             continue
 
@@ -31,8 +30,7 @@ def run_benchmark():
         is_scenario_started = False
         is_failure_injected = False
 
-        # set random seed per problem-scenario to select the consistent failure point
-        random.seed(f"{problem}-{scenario}")
+        print(f"Running benchmark for Problem: {problem}, Scenario: {scenario}, Topo Size: {topo_size}")
 
         if not is_scenario_started:
             # Step 1: Start Network Environment
@@ -50,7 +48,7 @@ def run_benchmark():
 
         # Step 3: Start Agent
         start_agent(
-            # gpt-oss:20b, gpt-5-mini, qwen3:32b
+            # gpt-oss:20b, gpt-5-mini, qwen3:32b, gpt-5.1
             agent_type="react",
             backend_model="gpt-5-mini",
             max_steps=40,

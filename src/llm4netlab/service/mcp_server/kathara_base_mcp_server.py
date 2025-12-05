@@ -11,13 +11,12 @@ from llm4netlab.utils.errors import safe_tool
 mcp = FastMCP(name="kathara_base_mcp_server", host="127.0.0.1", port=8000, log_level="INFO")
 LAB_NAME = os.getenv("LAB_NAME", "ospf_enterprise_dhcp")
 
-CMD_TIMEOUT = 1
-
 
 @safe_tool
 @mcp.tool()
 async def get_reachability() -> str:
     """Get the complete ping results from each host to all other hosts in the lab.
+    Note that if there are too many hosts, only a subset of hosts will be tested to reduce time cost.
 
     Returns:
         str: The ping results from each host to all other hosts in the lab.
@@ -81,18 +80,18 @@ def get_host_net_config(host_name: str) -> dict:
 
 @safe_tool
 @mcp.tool()
-def get_tc_statistics(host_name: str, interface: str) -> list[str]:
+def get_tc_statistics(host_name: str, intf_name: str) -> str:
     """Get the traffic control (tc) statistics of a specific interface on a host.
 
     Args:
         host_name (str): The name of the host.
-        interface (str): The name of the interface.
+        intf_name (str): The name of the interface.
 
     Returns:
-        list[str]: The tc statistics of the specified interface.
+        str: The tc statistics of the specified interface.
     """
     kathara_api = KatharaAPI(lab_name=LAB_NAME)
-    stats = kathara_api.tc_show_statistics(host_name=host_name, interface=interface)
+    stats = kathara_api.tc_show_statistics(host_name=host_name, intf_name=intf_name)
     return stats
 
 
@@ -261,11 +260,11 @@ async def exec_shell_dual(
 
 if __name__ == "__main__":
     # Initialize and run the server
-    # mcp.run(transport="stdio")
+    mcp.run(transport="stdio")
 
     # print(get_net_env_info())
-    res = asyncio.run(get_reachability())
-    print(res)
+    # res = asyncio.run(get_reachability())
+    # print(res)
     # res = exec_shell(host_name="pc1", command="ping -c 400 10.0.0.2")
     # print(res)
     # res = get_host_net_config("host_2_1_1_1")

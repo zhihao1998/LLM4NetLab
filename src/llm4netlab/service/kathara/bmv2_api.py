@@ -264,24 +264,26 @@ class BMv2APIMixin:
         list_root = self.exec_cmd(switch_name, "ls *.p4 2>/dev/null || true").strip()
         if list_root:
             p4_files = list_root.split()
-            results = []
-            for f in p4_files:
+            if len(p4_files) > 0:
+                f = p4_files[0]
                 content = self.exec_cmd(switch_name, f"cat {f}")
-                results.append(content)
-            return results
+                return content
+            else:
+                return ""
 
         # If not found, try p4_src/
         list_p4src = self.exec_cmd(switch_name, "ls p4_src/*.p4 2>/dev/null || true").strip()
         if list_p4src:
             p4_files = list_p4src.split()
-            results = []
-            for f in p4_files:
+            if len(p4_files) > 0:
+                f = p4_files[0]
                 content = self.exec_cmd(switch_name, f"cat {f}")
-                results.append(content)
-            return results
+                return content
+            else:
+                return ""
 
         # Nothing found
-        return []
+        return ""
 
 
 class KatharaBMv2API(KatharaBaseAPI, BMv2APIMixin):

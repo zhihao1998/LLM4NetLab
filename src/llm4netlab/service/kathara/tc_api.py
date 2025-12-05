@@ -140,21 +140,6 @@ class KatharaTCAPI(KatharaBaseAPI, TCMixin):
 
 
 if __name__ == "__main__":
-    lab_name = "p4_counter"
+    lab_name = "ospf_enterprise_dhcp"
     kathara_api = KatharaTCAPI(lab_name)
-    print(kathara_api.get_reachability())
-    kathara_api.tc_set_netem(
-        host_name="s1",
-        intf_name="eth1",
-        loss=90,
-        delay_ms=100,
-        jitter=10,
-        duplicate=0,
-        reorder=0,
-        corrupt=0,
-        rate=100,
-    )
-    print(kathara_api.tc_show_intf(host_name="s1", intf_name="eth1"))
-    print(kathara_api.get_reachability())
-    kathara_api.tc_clear_intf(host_name="s1", intf_name="eth1")
-    print(kathara_api.tc_show_intf(host_name="s1", intf_name="eth1"))
+    print(kathara_api.tc_show_statistics("host_1_1_1_1", "eth0"))

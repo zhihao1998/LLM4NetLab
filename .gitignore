@@ -13,4 +13,4 @@ config/config.yaml
 *.egg-info/
 /runtime/
 /.vscode/
-clean.sh
+/figs/
